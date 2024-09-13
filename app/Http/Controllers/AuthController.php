@@ -1,18 +1,18 @@
 <?php
-   
+
 namespace App\Http\Controllers;
-   
-use App\Models\User;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\BaseController as BaseController;
-   
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
 class AuthController extends BaseController
 {
     /**
-     * Register api
+     * Register API
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -20,57 +20,57 @@ class AuthController extends BaseController
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:6',
             'c_password' => 'required|same:password',
         ]);
-   
-        if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());       
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
         }
-   
+
         $input = $request->all();
-        $input['password'] = bcrypt($input['password']);
+        $input['password'] = Hash::make($input['password']);
         $user = User::create($input);
-        $success['token'] =  $user->createToken('MyApp')->plainTextToken;
-        $success['name'] =  $user->name;
-   
-        return $this->sendResponse($success, 'User register successfully.');
+        $success['token'] = $user->createToken('MyApp')->plainTextToken;
+        $success['name'] = $user->name;
+
+        return $this->sendResponse($success, 'User registered successfully.');
     }
-   
+
     /**
-     * Login api
+     * Login API
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function login(Request $request): JsonResponse
     {
-        if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
-            $user = Auth::user(); 
-            $success['token'] =  $user->createToken('MyApp')->plainTextToken; 
-            $success['name'] =  $user->name;
-   
-            return $this->sendResponse($success, 'User login successfully.');
-        } 
-        else{ 
-            return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
-        } 
+        $credentials = $request->only('email', 'password');
+
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            $success['token'] = $user->createToken('MyApp')->plainTextToken;
+            $success['name'] = $user->name;
+
+            return $this->sendResponse($success, 'User logged in successfully.');
+        } else {
+            return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
+        }
     }
 
     /**
-     * Logout api
+     * Logout API
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function logout(Request $request): JsonResponse
     {
-        // Get the authenticated user
-        $user = $request->user();
+        // Get the currently authenticated user
+        $user = Auth::user();
 
-        // Revoke the user's current token
-        $user->currentAccessToken()->delete();
+        // Revoke the token (or optionally all tokens if you're managing multiple tokens per user)
+        $user->tokens()->delete();
 
-        // Return a success response
         return $this->sendResponse([], 'User logged out successfully.');
     }
 }

@@ -1,7 +1,9 @@
 <?php
-  
+
+// app/http/Controllers/BaseController.php
+
 namespace App\Http\Controllers;
-  
+
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller as Controller;
