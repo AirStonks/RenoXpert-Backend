@@ -1,7 +1,5 @@
 <?php
 
-// app\Http\Resources\ProductResource.php
-
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
@@ -20,7 +18,7 @@ class ProductResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'SKU' => $this->SKU,
-            'category' => $this->category,
+            'category' => $this->category ? $this->category->name : null,
             'type' => $this->type,
             'remark' => $this->remark,
             'price' => $this->price,

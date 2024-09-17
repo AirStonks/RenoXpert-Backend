@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\BaseController as BaseController;
 use Illuminate\Validation\Rule;
 
 class ProductController extends BaseController
@@ -53,7 +52,7 @@ class ProductController extends BaseController
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
                 'SKU' => 'required|string|unique:products,SKU',
-                'category' => 'required|string',
+                'category' => 'required|numeric',
                 'type' => 'required|string',
                 'remark' => 'nullable|string',
                 'price' => 'required|numeric|min:0',
@@ -63,6 +62,11 @@ class ProductController extends BaseController
                 'SKU.unique' => 'The SKU has already been taken.',
             ]);
             
+            $validatedData = $validator->validated();
+            
+            // Transform 'category' to 'category_id'
+            $validatedData['category_id'] = $validatedData['category'];
+            unset($validatedData['category']); // Remove the old 'category' field
 
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
@@ -113,7 +117,7 @@ class ProductController extends BaseController
                 'string',
                 Rule::unique('products', 'SKU')->ignore($product->id), // Ensure SKU is unique, but ignore current product's ID
             ],
-            'category' => 'required|string',
+            'category_id' => 'required|numeric',
             'type' => 'required|string',
             'remark' => 'nullable|string',
             'price' => 'required|numeric|min:0',
@@ -144,7 +148,7 @@ class ProductController extends BaseController
         // Save the updated product
         $product->save();
 
-        return $this->sendResponse(new ProductResource($product), 'Product updated successfully.');
+        return $this->sendResponse(ProductResource::collection($product), 'Product updated successfully.');
     }
 
 

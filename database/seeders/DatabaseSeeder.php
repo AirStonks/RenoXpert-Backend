@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ProductCategory;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -19,6 +20,86 @@ class DatabaseSeeder extends Seeder
             'name' => 'dev',
             'email' => 'dev@gmail.com',
             'password' => 'developer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Kitchen',
+            'description' => 'This is kitchen',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
+        ]);
+
+        ProductCategory::create([
+            'name' => 'Foyer',
+            'description' => 'This is foyer',
         ]);
     }
 }
