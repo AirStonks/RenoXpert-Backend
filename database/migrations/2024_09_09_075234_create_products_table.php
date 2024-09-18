@@ -14,14 +14,16 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->unsignedBigInteger('category_id')->nullable();
             $table->string('SKU')->unique();
-            $table->string('category')->nullable();
             $table->string('type')->nullable();
             $table->text('remark')->nullable();
             $table->double('price')->nullable();
             $table->double('premium_price')->nullable();
             $table->string('status')->nullable();
             $table->timestamps();
+
+            $table->foreign('category_id')->references('id')->on('product_categories')->onDelete('set null');
         });
     }
 

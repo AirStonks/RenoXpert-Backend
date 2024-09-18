@@ -32,7 +32,7 @@ class ProductController extends BaseController
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
             "totalCount" => $products->total(),  // Total number of items
-            "data" => ProductResource::collection($products->items()) // Transformed product data
+            "data" => ProductResource::collection($products) // Transformed product data
         ];
 
         return response()->json($response, 200);
@@ -65,14 +65,14 @@ class ProductController extends BaseController
             $validatedData = $validator->validated();
             
             // Transform 'category' to 'category_id'
-            $validatedData['category_id'] = $validatedData['category'];
-            unset($validatedData['category']); // Remove the old 'category' field
+            $validatedData['category_id'] = (int) $validatedData['category'];
+            unset($validatedData['category']);
 
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            $product = Product::create($input);
+            $product = Product::create($validatedData);
 
             return $this->sendResponse(new ProductResource($product), 'Product created successfully.');
 
@@ -117,7 +117,7 @@ class ProductController extends BaseController
                 'string',
                 Rule::unique('products', 'SKU')->ignore($product->id), // Ensure SKU is unique, but ignore current product's ID
             ],
-            'category_id' => 'required|numeric',
+            'category' => 'required|numeric',
             'type' => 'required|string',
             'remark' => 'nullable|string',
             'price' => 'required|numeric|min:0',
@@ -125,6 +125,12 @@ class ProductController extends BaseController
         ], [
             'SKU.required' => 'The SKU field is required.',
         ]);
+
+        $validatedData = $validator->validated();
+            
+        // Transform 'category' to 'category_id'
+        $validatedData['category_id'] = (int) $validatedData['category'];
+        unset($validatedData['category']);
         
 
         if ($validator->fails()) {
@@ -136,19 +142,20 @@ class ProductController extends BaseController
         }
 
         // Update the product
-        $product->name = $input['name'];
-        $product->SKU = $input['SKU'];
-        $product->category = $input['category'];
-        $product->type = $input['type'];
-        $product->remark = $input['remark'] ?? null;
-        $product->price = $input['price'];
-        $product->premium_price = $input['premium_price'] ?? null;
-        $product->status = $input['status'] ?? null;
+        $product->name = $validatedData['name'];
+        $product->SKU = $validatedData['SKU'];
+        $product->category_id = $validatedData['category_id'];
+        $product->type = $validatedData['type'];
+        $product->remark = $validatedData['remark'] ?? null;
+        $product->price = $validatedData['price'];
+        $product->premium_price = $validatedData['premium_price'] ?? null;
+        $product->status = $validatedData['status'] ?? null;
+
 
         // Save the updated product
         $product->save();
 
-        return $this->sendResponse(ProductResource::collection($product), 'Product updated successfully.');
+        return $this->sendResponse(new ProductResource($product), 'Product updated successfully.');
     }
 
 

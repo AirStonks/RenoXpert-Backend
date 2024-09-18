@@ -1,13 +1,11 @@
 <?php
 
-// app/models/Product.php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-  
-class Product extends Model
+
+class Package extends Model
 {
     use HasFactory;
   
@@ -18,17 +16,14 @@ class Product extends Model
      */
     protected $fillable = [
         'name',
-        'category_id',
-        'SKU',
-        'type',
-        'remark',
-        'price',
-        'premium_price',
-        'status',
+        'description',
+        'category',
+        'total_price',
     ];
-
-    public function category()
+    
+    public function products()
     {
-        return $this->belongsTo(ProductCategory::class, 'category_id', 'id');
+        return $this->belongsToMany(Product::class, 'product_packages', 'package_id', 'product_id')->withTimestamps();
     }
+
 }

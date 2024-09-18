@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MyController;
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
+use App\Models\Package;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -30,4 +32,19 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('/products', ProductController::class);
     Route::apiResource('/product/category', ProductCategoryController::class);
+    Route::apiResource('/packages', PackageController::class);
+
+    Route::get('/test', function () {
+        
+        $package = Package::find(1);
+
+        // $package->products()->attach(2);
+
+        $newPackage = $package->products()->withPivot('created_at')->get();
+
+        $package->products = $newPackage;
+
+        return $package;
+    });
 });
+

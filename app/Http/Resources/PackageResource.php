@@ -5,30 +5,23 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProductResource extends JsonResource
+class PackageResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        // return $request->all();
-
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'SKU' => $this->SKU,
-            'category_id' => $this->category_id,
-            'category' => $this->category ? $this->category->name : null,
-            'type' => $this->type,
-            'remark' => $this->remark,
-            'price' => $this->price,
-            'premium_price' => $this->premium_price,
+            'category' => $this->category,
+            'total_price' => $this->total_price,
+            'products' => $this->products,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
-            'status' => $this->status,
         ];
     }
 }

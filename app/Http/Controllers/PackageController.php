@@ -2,32 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PackageResource;
+use App\Models\Package;
 use Illuminate\Http\Request;
-use App\Models\ProductCategory;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Resources\ProductCategoryResource;
 
-class ProductCategoryController extends BaseController
+class PackageController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
-        // Retrieve the size parameter from the request with a default value of 5
+        // Retrieve the size parameter from the request with a default value of 10
         $size = $request->input('size', 10);
 
-        $prodCat = ProductCategory::paginate($size);
+        $packages = Package::paginate($size);
 
         // Custome response to fit with Tailwind DataTable JSON format
         $response = [
-            "page" => $prodCat->currentPage(),  // Current page number
-            "pageCount" => $prodCat->lastPage(), // Total number of pages
+            "page" => $packages->currentPage(),  // Current page number
+            "pageCount" => $packages->lastPage(), // Total number of pages
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
-            "totalCount" => $prodCat->total(),  // Total number of items
-            "data" => ProductCategoryResource::collection($prodCat->items()) // Transformed product data
+            "totalCount" => $packages->total(),  // Total number of items
+            "data" => PackageResource::collection($packages) // Transformed product data
         ];
 
         return response()->json($response, 200);
@@ -80,10 +79,6 @@ class ProductCategoryController extends BaseController
      */
     public function destroy(string $id)
     {
-        $productCategory = ProductCategory::find($id);
-
-        $productCategory->delete();
-
-        return $this->sendResponse([], 'Product Category deleted successfully.');
+        //
     }
 }
