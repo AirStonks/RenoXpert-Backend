@@ -82,7 +82,13 @@ class PackageController extends BaseController
      */
     public function show(string $id)
     {
-        //
+        $package = Package::find($id);
+
+        if (is_null($package)) {
+            return $this->sendError('Package not found.');
+        }
+
+        return $this->sendResponse(new PackageResource($package), 'Product retrieved successfully.');
     }
 
     /**
