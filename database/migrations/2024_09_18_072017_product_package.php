@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('product_packages', function (Blueprint $table) {
             $table->unsignedBigInteger('package_id');
             $table->unsignedBigInteger('product_id');
+            $table->integer('quantity')->nullable();
             $table->timestamps();
             $table->foreign('package_id')->references('id')->on('packages');
             $table->foreign('product_id')->references('id')->on('products');

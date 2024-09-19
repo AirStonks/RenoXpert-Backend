@@ -21,7 +21,7 @@ class Product extends Model
         'category_id',
         'SKU',
         'type',
-        'remark',
+        'description',
         'price',
         'premium_price',
         'status',

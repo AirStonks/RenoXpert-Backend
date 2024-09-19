@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id')->nullable();
             $table->string('SKU')->unique();
             $table->string('type')->nullable();
-            $table->text('remark')->nullable();
+            $table->string('description')->nullable();
             $table->double('price')->nullable();
             $table->double('premium_price')->nullable();
             $table->string('status')->nullable();

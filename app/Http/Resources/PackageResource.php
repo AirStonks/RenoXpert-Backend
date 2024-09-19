@@ -18,8 +18,9 @@ class PackageResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'category' => $this->category,
+            'description' => $this->description,
             'total_price' => $this->total_price,
-            'products' => $this->products,
+            'products' => $this->products ? $this->products : null,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];

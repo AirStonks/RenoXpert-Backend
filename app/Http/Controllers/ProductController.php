@@ -20,12 +20,25 @@ class ProductController extends BaseController
      */
     public function index(Request $request): JsonResponse
     {
-        // Retrieve the size parameter from the request with a default value of 10
+        // Retrieve the size parameter from the request with a default value of 5
         $size = $request->input('size', 5);
 
-        $products = Product::paginate($size);
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
 
-        // Custome response to fit with Tailwind DataTable JSON format
+        // Build the query to retrieve products
+        $query = Product::query();
+
+        // Apply search filter if a search term is provided
+        if (!empty($search)) {
+            // Assuming 'name' is the field you want to search, adjust as necessary
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        // Paginate the results
+        $products = $query->paginate($size);
+
+        // Custom response to fit with Tailwind DataTable JSON format
         $response = [
             "page" => $products->currentPage(),  // Current page number
             "pageCount" => $products->lastPage(), // Total number of pages
@@ -37,6 +50,7 @@ class ProductController extends BaseController
 
         return response()->json($response, 200);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -54,16 +68,16 @@ class ProductController extends BaseController
                 'SKU' => 'required|string|unique:products,SKU',
                 'category' => 'required|numeric',
                 'type' => 'required|string',
-                'remark' => 'nullable|string',
+                'description' => 'nullable|string',
                 'price' => 'required|numeric|min:0',
                 'premium_price' => 'nullable|numeric|min:0',
             ], [
                 'SKU.required' => 'The SKU field is required.',
                 'SKU.unique' => 'The SKU has already been taken.',
             ]);
-            
+
             $validatedData = $validator->validated();
-            
+
             // Transform 'category' to 'category_id'
             $validatedData['category_id'] = (int) $validatedData['category'];
             unset($validatedData['category']);
@@ -75,7 +89,6 @@ class ProductController extends BaseController
             $product = Product::create($validatedData);
 
             return $this->sendResponse(new ProductResource($product), 'Product created successfully.');
-
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th);
         }
@@ -119,7 +132,7 @@ class ProductController extends BaseController
             ],
             'category' => 'required|numeric',
             'type' => 'required|string',
-            'remark' => 'nullable|string',
+            'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'premium_price' => 'nullable|numeric|min:0',
         ], [
@@ -127,11 +140,11 @@ class ProductController extends BaseController
         ]);
 
         $validatedData = $validator->validated();
-            
+
         // Transform 'category' to 'category_id'
         $validatedData['category_id'] = (int) $validatedData['category'];
         unset($validatedData['category']);
-        
+
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors(), 422);
@@ -146,7 +159,7 @@ class ProductController extends BaseController
         $product->SKU = $validatedData['SKU'];
         $product->category_id = $validatedData['category_id'];
         $product->type = $validatedData['type'];
-        $product->remark = $validatedData['remark'] ?? null;
+        $product->description = $validatedData['description'] ?? null;
         $product->price = $validatedData['price'];
         $product->premium_price = $validatedData['premium_price'] ?? null;
         $product->status = $validatedData['status'] ?? null;

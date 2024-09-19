@@ -17,7 +17,18 @@ class PackageController extends BaseController
         // Retrieve the size parameter from the request with a default value of 10
         $size = $request->input('size', 10);
 
-        $packages = Package::paginate($size);
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
+
+        // Build the query to retrieve product categories
+        $query = Package::query();
+
+        // Apply search filter if a search term is provided
+        if (!empty($search)) {
+            $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+        }
+
+        $packages = $query->paginate($size);
 
         // Custome response to fit with Tailwind DataTable JSON format
         $response = [
@@ -42,17 +53,25 @@ class PackageController extends BaseController
 
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
-                'description' => 'required|string|max:255',
+                'description' => 'nullable|string|max:255',
+                'total_price' => 'nullable|numeric|min:0',
             ]);
 
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            $productCat = ProductCategory::create($input);
+            $package = Package::create($input);
 
-            return $this->sendResponse(new ProductCategoryResource($productCat), 'Product Category added successfully.');
+            // $productArr = [];
 
+            foreach ($input['products'] as $product) {
+                $package->products()->attach($product['id']);
+            }
+
+            $package->products;
+
+            return $this->sendResponse(new PackageResource($package), 'Package added successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th);
         }
