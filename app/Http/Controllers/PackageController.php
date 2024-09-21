@@ -66,7 +66,7 @@ class PackageController extends BaseController
             // $productArr = [];
 
             foreach ($input['products'] as $product) {
-                $package->products()->attach($product['id']);
+                $package->products()->attach($product['id'], ['quantity' => $product['quantity']]);
             }
 
             $package->products;
@@ -94,16 +94,64 @@ class PackageController extends BaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Package $package)
     {
-        //
+
+        try {
+            $input = $request->all();
+
+            $validator = Validator::make($input, [
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string|max:255',
+                'total_price' => 'nullable|numeric|min:0',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->sendError('Validation Error.', $validator->errors(), 422);
+            }
+
+            $validatedData = $validator->validated();
+
+            $package->name = $validatedData['name'];
+            $package->description = $validatedData['description'];
+            $package->total_price = $validatedData['total_price'];
+
+            // OPTION 1: Remove all associated product_package and Insert the newest product_package
+
+            $package->products()->detach();
+
+            foreach ($input['products'] as $product) {
+                $package->products()->attach($product['id'], ['quantity' => $product['quantity']]);
+            }
+            
+            $package->save();
+
+            // OPTION 2: Check for update for all product_package with previous new product_package, if found changed, update it.
+
+            return $this->sendResponse(new PackageResource($package), 'Package added successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError('Error.', $th);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
-    {
-        //
+{
+    $package = Package::find($id);
+
+    if (!$package) {
+        return $this->sendResponse([], 'Package not found.', 404);
     }
+
+    // Detach any related items (or whatever the pivot model is)
+    $package->products()->detach(); // Adjust the method name as necessary
+
+    // Delete the package
+    $package->delete();
+
+    return $this->sendResponse([], 'Package deleted successfully.');
+}
+
 }

@@ -19,11 +19,14 @@ class Package extends Model
         'description',
         'category',
         'total_price',
+        'total_price',
     ];
     
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'product_packages', 'package_id', 'product_id')->withTimestamps();
+        return $this->belongsToMany(Product::class, 'product_packages', 'package_id', 'product_id')
+            ->withPivot('quantity')
+            ->withTimestamps();
     }
 
 }
