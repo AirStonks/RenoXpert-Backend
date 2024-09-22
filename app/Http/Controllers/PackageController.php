@@ -123,7 +123,7 @@ class PackageController extends BaseController
             foreach ($input['products'] as $product) {
                 $package->products()->attach($product['id'], ['quantity' => $product['quantity']]);
             }
-            
+
             $package->save();
 
             // OPTION 2: Check for update for all product_package with previous new product_package, if found changed, update it.
@@ -138,20 +138,19 @@ class PackageController extends BaseController
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
-{
-    $package = Package::find($id);
+    {
+        $package = Package::find($id);
 
-    if (!$package) {
-        return $this->sendResponse([], 'Package not found.', 404);
+        if (!$package) {
+            return $this->sendResponse([], 'Package not found.', 404);
+        }
+
+        // Detach any related items (or whatever the pivot model is)
+        $package->products()->detach(); // Adjust the method name as necessary
+
+        // Delete the package
+        $package->delete();
+
+        return $this->sendResponse([], 'Package deleted successfully.');
     }
-
-    // Detach any related items (or whatever the pivot model is)
-    $package->products()->detach(); // Adjust the method name as necessary
-
-    // Delete the package
-    $package->delete();
-
-    return $this->sendResponse([], 'Package deleted successfully.');
-}
-
 }

@@ -45,9 +45,18 @@ class AuthController extends BaseController
      */
     public function login(Request $request): JsonResponse
     {
-        $credentials = $request->only('email', 'password');
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-        if (Auth::attempt($credentials)) {
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        // Attempt login
+        if (Auth::attempt($request->only('email', 'password'))) {
             $user = Auth::user();
             $success['token'] = $user->createToken('MyApp')->plainTextToken;
             $success['name'] = $user->name;
