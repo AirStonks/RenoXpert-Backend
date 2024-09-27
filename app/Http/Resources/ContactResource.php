@@ -1,13 +1,11 @@
 <?php
 
-// app\Http\Resources\QuotationResource.php
-
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class QuotationResource extends JsonResource
+class ContactResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,13 +17,15 @@ class QuotationResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'total_amount' => $this->total_amount,
+            'email' => $this->email,
+            'phone_no' => $this->phone_no,
+            'alt_phone_no' => $this->alt_phone_no,
+            'race' => $this->race,
+            'gender' => $this->gender,
+            'nationality' => $this->nationality,
             'description' => $this->description,
-            'valid_from' => $this->valid_from,
-            'valid_until' => $this->valid_until,
-            'metadata' => json_decode($this->metadata),
-            'created_at' => $this->created_at->format('d/m/Y'),
-            'updated_at' => $this->updated_at->format('d/m/Y'),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

@@ -7,11 +7,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MyController;
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\QuotationController;
-use App\Http\Controllers\UserController;
 use App\Models\Package;
 
 Route::get('/user', function (Request $request) {
@@ -35,6 +36,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('/product/category', ProductCategoryController::class);
     Route::apiResource('/packages', PackageController::class);
     Route::apiResource('/quotations', QuotationController::class);
+    Route::apiResource('/contacts', ContactController::class);
+    Route::apiResource('/properties', PropertyController::class);
 
     Route::get('/test', function () {
         

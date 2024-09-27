@@ -96,14 +96,49 @@ class QuotationController extends BaseController
      */
     public function update(Request $request, Quotation $quotation)
     {
-        //
+        try {
+            $input = $request->all();
+
+            $validator = Validator::make($input, [
+                'name' => 'required|string|max:255',
+                'total_amount' => 'nullable|numeric|min:0',
+                'description' => 'nullable|string|max:255',
+                'valid_from' => 'nullable|string|max:255',
+                'valid_until' => 'nullable|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->sendError('Validation Error.', $validator->errors(), 422);
+            }
+
+            $validatedData = $validator->validated();
+
+            $quotation->name = $validatedData['name'];
+            $quotation->total_amount = $validatedData['total_amount'];
+            $quotation->description = $validatedData['description'];
+            $quotation->metadata = $input['metadata'] = json_encode($input['metadata']);
+
+            $quotation->save();
+
+            return $this->sendResponse(new QuotationResource($quotation), 'Package updated successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError('Error.', $th);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Quotation $quotation)
+    public function destroy(string $id)
     {
-        //
+        $quotation = Quotation::find($id);
+
+        if (!$quotation) {
+            return $this->sendResponse([], 'Quotation not found.', 404);
+        }
+
+        $quotation->delete();
+
+        return $this->sendResponse([], 'Package deleted successfully.');
     }
 }

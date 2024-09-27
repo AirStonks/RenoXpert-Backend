@@ -69,6 +69,7 @@ class ProductController extends BaseController
                 'category' => 'required|numeric',
                 'type' => 'required|string',
                 'description' => 'nullable|string',
+                'status' => 'nullable|string',
                 'price' => 'required|numeric|min:0',
                 'premium_price' => 'nullable|numeric|min:0',
             ], [
@@ -133,6 +134,7 @@ class ProductController extends BaseController
             'category' => 'required|numeric',
             'type' => 'required|string',
             'description' => 'nullable|string',
+            'status' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'premium_price' => 'nullable|numeric|min:0',
         ], [
