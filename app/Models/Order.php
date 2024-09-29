@@ -18,11 +18,25 @@ class Order extends Model
         'order_no',
         'contact_id',
         'property_id',
-        'quotation_id',
         'block',
         'floor',
         'unit_no',
         'description',
-        'metadata',
     ];
+
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class, 'contact_id', 'id');
+    }
+
+    public function property()
+    {
+        return $this->belongsTo(Property::class, 'property_id', 'id');
+    }
+
+    public function orderQuotations()
+    {
+        return $this->hasMany(OrderQuotation::class, 'order_id', 'id');
+    }
 }
+

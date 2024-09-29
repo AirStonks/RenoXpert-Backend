@@ -8,6 +8,7 @@ use App\Http\Controllers\MyController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
@@ -38,6 +39,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('/quotations', QuotationController::class);
     Route::apiResource('/contacts', ContactController::class);
     Route::apiResource('/properties', PropertyController::class);
+    Route::apiResource('/orders', OrderController::class);
 
     Route::get('/test', function () {
         

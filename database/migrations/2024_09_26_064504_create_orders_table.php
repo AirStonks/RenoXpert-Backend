@@ -13,7 +13,17 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->string('order_no')->unique();
+            $table->unsignedBigInteger('contact_id')->nullable();
+            $table->unsignedBigInteger('property_id')->nullable();
+            $table->string('block')->nullable();
+            $table->string('floor')->nullable();
+            $table->string('unit_no')->nullable();
+            $table->string('description')->nullable();
             $table->timestamps();
+
+            $table->foreign('contact_id')->references('id')->on('contacts')->onDelete('set null');
+            $table->foreign('property_id')->references('id')->on('properties')->onDelete('set null');
         });
     }
 
