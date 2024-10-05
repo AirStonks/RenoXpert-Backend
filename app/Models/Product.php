@@ -22,8 +22,9 @@ class Product extends Model
         'SKU',
         'type',
         'description',
-        'price',
-        'premium_price',
+        'product_retail_price',
+        'product_cost_of_good_sold',
+        'product_excluded_price',
         'status',
     ];
 

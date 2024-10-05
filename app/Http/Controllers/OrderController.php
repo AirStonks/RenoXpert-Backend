@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderQuotation;
+use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -60,6 +61,7 @@ class OrderController extends BaseController
                 'block' => 'nullable|string|max:255',
                 'floor' => 'nullable|string|max:255',
                 'unit_no' => 'nullable|string|max:255',
+                'total_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:255',
                 'metadata' => 'nullable|array', // Added validation for metadata
             ]);
@@ -95,8 +97,6 @@ class OrderController extends BaseController
             return $this->sendError('Error.', $th);
         }
     }
-
-
 
     /**
      * Display the specified resource.
@@ -143,6 +143,7 @@ class OrderController extends BaseController
             $order->floor = $validatedData['floor'];
             $order->unit_no = $validatedData['unit_no'];
             $order->description = $validatedData['description'];
+            $order->status = 'pending';
 
             // Create OrderQuotation with incremented version
             $latestQuotation = OrderQuotation::where('order_id', $order->id)->orderBy('version', 'desc')->first();
@@ -150,6 +151,7 @@ class OrderController extends BaseController
 
             OrderQuotation::create([
                 'order_id' => $order->id,
+                'quotation_id' => $validatedData['quotation_id'],
                 'version' => $nextVersion,
                 'total_amount' => 1000.00, // CHANGE IT LATER TO REAL DATA
                 'metadata' => json_encode($input['metadata']) ?? null,
@@ -166,8 +168,69 @@ class OrderController extends BaseController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Order $order)
+    public function destroy($id)
     {
-        //
+        $order = Order::find($id);
+
+        $order->delete();
+
+        return $this->sendResponse([], 'Order deleted successfully.');
+    }
+
+    public function confirmOrder($id)
+    {
+        try {
+            // Find the order by ID
+            $order = Order::find($id);
+
+            if ($order) {
+                // Update the order status
+                $order->status = 'confirmed';
+                $order->save(); // Use save() to persist changes
+
+                // Get the latest sales number
+                $latestSaleNo = Sale::orderBy('created_at', 'desc')->value('sales_no');
+
+                // Generate new sales number
+                $newSalesNo = $this->generateNewSalesNo($latestSaleNo);
+
+                // CREATE NEW SALE
+                Sale::create([
+                    'sales_no' => $newSalesNo,
+                    'order_id' => $order->id,
+                    'user_id' => null,
+                    'sale_no' => $latestSaleNo,
+                    'description' => '',
+                    'total_amount' => $order->total_amount,
+                    'remaining_amount' => $order->total_amount,
+                    'remaining_percentage' => 1,
+                ]);
+
+                return $this->sendResponse([], 'Order Confirmed');
+            } else {
+                return $this->sendError('Order Not Found.');
+            }
+        } catch (\Throwable $th) {
+            return $this->sendError('Error confirming order.', $th->getMessage());
+        }
+    }
+
+    /**
+     * Generate a new sales number based on the latest sales number.
+     *
+     * @param string|null $latestSaleNo
+     * @return string
+     */
+    private function generateNewSalesNo($latestSaleNo)
+    {
+        if ($latestSaleNo) {
+            // Extract the numeric part and increment
+            preg_match('/(\d+)/', $latestSaleNo, $matches);
+            $nextNumber = (int)$matches[0] + 1; // Increment the number
+        } else {
+            $nextNumber = 1; // Start from 1 if there are no sales
+        }
+
+        return 'S' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT); // Pad to 6 digits
     }
 }

@@ -65,28 +65,37 @@ class ProductController extends BaseController
 
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
-                'SKU' => 'required|string|unique:products,SKU',
+                'SKU' => 'nullable|string',
                 'category' => 'required|numeric',
                 'type' => 'required|string',
                 'description' => 'nullable|string',
                 'status' => 'nullable|string',
-                'price' => 'required|numeric|min:0',
+                'product_retail_price' => 'required|numeric|min:0',
+                'product_cost_of_good_sold' => 'required|numeric|min:0',
+                'product_excluded_price' => 'required|numeric|min:0',
                 'premium_price' => 'nullable|numeric|min:0',
-            ], [
-                'SKU.required' => 'The SKU field is required.',
-                'SKU.unique' => 'The SKU has already been taken.',
             ]);
 
+            // Apply unique validation for SKU only if it's provided
+            if (!empty($input['SKU'])) {
+                $validator->sometimes('SKU', 'unique:products,SKU', function ($input) {
+                    return !empty($input['SKU']);
+                });
+            }
+
+            // Check if validation fails before attempting to access validated data
+            if ($validator->fails()) {
+                return $this->sendError('Validation Error.', $validator->errors(), 422);
+            }
+
+            // Now we can safely validate and transform data
             $validatedData = $validator->validated();
 
             // Transform 'category' to 'category_id'
             $validatedData['category_id'] = (int) $validatedData['category'];
             unset($validatedData['category']);
 
-            if ($validator->fails()) {
-                return $this->sendError('Validation Error.', $validator->errors(), 422);
-            }
-
+            // Create the product
             $product = Product::create($validatedData);
 
             return $this->sendResponse(new ProductResource($product), 'Product created successfully.');
@@ -94,7 +103,7 @@ class ProductController extends BaseController
             return $this->sendError('Error.', $th);
         }
     }
-
+    
     /**
      * Display the specified resource.
      *
@@ -126,20 +135,28 @@ class ProductController extends BaseController
         // Validate input data
         $validator = Validator::make($input, [
             'name' => 'required|string|max:255',
-            'SKU' => [
-                'required',
-                'string',
-                Rule::unique('products', 'SKU')->ignore($product->id), // Ensure SKU is unique, but ignore current product's ID
-            ],
+            'SKU' => 'nullable|string',
             'category' => 'required|numeric',
             'type' => 'required|string',
             'description' => 'nullable|string',
             'status' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
+            'product_retail_price' => 'required|numeric|min:0',
+            'product_cost_of_good_sold' => 'required|numeric|min:0',
+            'product_excluded_price' => 'required|numeric|min:0',
             'premium_price' => 'nullable|numeric|min:0',
-        ], [
-            'SKU.required' => 'The SKU field is required.',
         ]);
+
+        // Apply unique validation for SKU only if it's provided
+        if (!empty($input['SKU'])) {
+            $validator->sometimes('SKU', 'unique:products,SKU', function ($input) {
+                return !empty($input['SKU']);
+            });
+        }
+
+        // Check if validation fails before attempting to access validated data
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        }
 
         $validatedData = $validator->validated();
 
@@ -162,8 +179,9 @@ class ProductController extends BaseController
         $product->category_id = $validatedData['category_id'];
         $product->type = $validatedData['type'];
         $product->description = $validatedData['description'] ?? null;
-        $product->price = $validatedData['price'];
-        $product->premium_price = $validatedData['premium_price'] ?? null;
+        $product->product_retail_price = $validatedData['product_retail_price'];
+        $product->product_cost_of_good_sold = $validatedData['product_cost_of_good_sold'];
+        $product->product_excluded_price = $validatedData['product_excluded_price'];
         $product->status = $validatedData['status'] ?? null;
 
 

@@ -21,7 +21,9 @@ class Order extends Model
         'block',
         'floor',
         'unit_no',
+        'total_amount',
         'description',
+        'status',
     ];
 
     public function contact()

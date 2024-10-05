@@ -15,11 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->unsignedBigInteger('category_id')->nullable();
-            $table->string('SKU')->unique();
+            $table->string('SKU')->unique()->nullable();
             $table->string('type')->nullable();
             $table->string('description')->nullable();
-            $table->double('price')->nullable();
-            $table->double('premium_price')->nullable();
+            $table->double('product_retail_price')->nullable();
+            $table->double('product_cost_of_good_sold')->nullable();
+            $table->double('product_excluded_price')->nullable();
+            $table->boolean('visibility')->default(true);
             $table->string('status')->nullable();
             $table->timestamps();
 

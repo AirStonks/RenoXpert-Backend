@@ -8,12 +8,15 @@ use App\Http\Controllers\MyController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DiscountFeeController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\SaleController;
 use App\Models\Package;
 
 Route::get('/user', function (Request $request) {
@@ -40,6 +43,12 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('/contacts', ContactController::class);
     Route::apiResource('/properties', PropertyController::class);
     Route::apiResource('/orders', OrderController::class);
+    Route::apiResource('/sales', SaleController::class);
+    Route::apiResource('/discountFees', DiscountFeeController::class);
+    Route::apiResource('/invoices', InvoiceController::class);
+
+    // Confirm Order
+    Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
 
     Route::get('/test', function () {
         

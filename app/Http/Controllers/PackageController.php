@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\PackageResource;
 use App\Models\Package;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -54,7 +55,6 @@ class PackageController extends BaseController
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string|max:255',
-                'total_price' => 'nullable|numeric|min:0',
             ]);
 
             if ($validator->fails()) {
@@ -63,11 +63,20 @@ class PackageController extends BaseController
 
             $package = Package::create($input);
 
-            // $productArr = [];
+            $totalAmount = 0.0;
 
-            foreach ($input['products'] as $product) {
-                $package->products()->attach($product['id'], ['quantity' => $product['quantity']]);
+            foreach ($input['products'] as $productInput) {
+
+                $product = Product::find($productInput['id']);
+
+                $totalAmount += $product->product_retail_price * $productInput['quantity'];
+
+                $package->products()->attach($productInput['id'], ['quantity' => $productInput['quantity']]);
             }
+
+            $package->total_price = $totalAmount;
+
+            $package->save();
 
             $package->products;
 
@@ -103,7 +112,6 @@ class PackageController extends BaseController
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string|max:255',
-                'total_price' => 'nullable|numeric|min:0',
             ]);
 
             if ($validator->fails()) {
@@ -114,15 +122,23 @@ class PackageController extends BaseController
 
             $package->name = $validatedData['name'];
             $package->description = $validatedData['description'];
-            $package->total_price = $validatedData['total_price'];
 
             // OPTION 1: Remove all associated product_package and Insert the newest product_package
 
             $package->products()->detach();
 
-            foreach ($input['products'] as $product) {
-                $package->products()->attach($product['id'], ['quantity' => $product['quantity']]);
+            $totalAmount = 0.0;
+
+            foreach ($input['products'] as $productInput) {
+
+                $product = Product::find($productInput['id']);
+
+                $totalAmount += $product->product_retail_price * $productInput['quantity'];
+
+                $package->products()->attach($productInput['id'], ['quantity' => $productInput['quantity']]);
             }
+
+            $package->total_price = $totalAmount;
 
             $package->save();
 

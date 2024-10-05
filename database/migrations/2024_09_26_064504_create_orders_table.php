@@ -19,7 +19,9 @@ return new class extends Migration
             $table->string('block')->nullable();
             $table->string('floor')->nullable();
             $table->string('unit_no')->nullable();
+            $table->double('total_amount')->nullable();
             $table->string('description')->nullable();
+            $table->string('status')->default('pending');
             $table->timestamps();
 
             $table->foreign('contact_id')->references('id')->on('contacts')->onDelete('set null');
