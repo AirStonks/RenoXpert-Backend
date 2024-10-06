@@ -16,6 +16,9 @@ return new class extends Migration
             $table->unsignedBigInteger('package_id');
             $table->unsignedBigInteger('product_id');
             $table->integer('quantity')->nullable();
+            $table->boolean('visibility')->default(true);
+            $table->boolean('included')->default(true);
+            $table->boolean('isOriginal')->default(true);
             $table->timestamps();
             $table->foreign('package_id')->references('id')->on('packages');
             $table->foreign('product_id')->references('id')->on('products');

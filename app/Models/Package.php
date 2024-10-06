@@ -25,6 +25,9 @@ class Package extends Model
     {
         return $this->belongsToMany(Product::class, 'product_packages', 'package_id', 'product_id')
             ->withPivot('quantity')
+            ->withPivot('visibility')
+            ->withPivot('included')
+            ->withPivot('isOriginal')
             ->withTimestamps();
     }
 
