@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,7 @@ class SaleResource extends JsonResource
             'id' => $this->id,
             'sales_no' => $this->sales_no,
             'order_id' => $this->order_id,
-            'order' => $this->order,
+            'order' => new OrderResource(Order::find($this->order_id)),
             'user_id' => $this->user_id,
             'user' => null,
             'invoices' => $this->invoices,

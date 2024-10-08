@@ -12,6 +12,7 @@ use App\Http\Controllers\DiscountFeeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PropertyController;
@@ -23,6 +24,9 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::get('/invoices/public/view/{id}', [InvoiceController::class, 'showPublicInvoice'])->name('invoice.public.show');
+
+Route::get('/payex/paymentIntent/invoice/{invoiceId}', [PaymentController::class, 'paymentIntent']);
 
 Route::controller(AuthController::class)->group(function(){
     Route::post('register', 'register');
@@ -49,6 +53,9 @@ Route::middleware('auth:sanctum')->group( function () {
 
     // Confirm Order
     Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
+
+    // Change Invoice Link Status
+    Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
 
     Route::get('/test', function () {
         

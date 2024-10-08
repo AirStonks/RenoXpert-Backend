@@ -35,15 +35,31 @@ class InvoiceController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            // Get the latest invoice
+            // Get the selected Sale
+            $sale = Sale::find($input['sale_id']);
+            if (!$sale) {
+                return $this->sendError('Sale not found.', [], 404);
+            }
+
+            // Determine the new invoice number and version
             $latestInvoice = Invoice::orderBy('id', 'desc')->first();
             $newInvoiceNumber = 'INV-RNV-1000001'; // Default in case there are no invoices
+            $newVersion = 1; // Default version in case there are no invoices
 
-            // Check if there's a latest invoice
+            $selectedSaleLatestInvoice = Invoice::where('sale_id', $sale->id)->orderBy('id', 'desc')->first();
+
+            // Check if there's a latest invoice for the sale
             if ($latestInvoice) {
-                // Extract the last invoice number from the latest invoice
-                preg_match('/(\d+)$/', $latestInvoice->invoice_no, $matches);
+                // Increment the version number
 
+                $newVersion = 1;
+
+                if ($selectedSaleLatestInvoice) {
+                    $newVersion = $selectedSaleLatestInvoice->version + 1;
+                }
+
+                // Extract the last invoice number
+                preg_match('/(\d+)$/', $latestInvoice->invoice_no, $matches);
                 if (isset($matches[1])) {
                     // Increment the number part
                     $lastInvoiceNumber = (int)$matches[1];
@@ -51,20 +67,33 @@ class InvoiceController extends BaseController
                 }
             }
 
-            // Set the new invoice number in the input array
+            // Set the new invoice number and version in the input array
             $input['invoice_no'] = $newInvoiceNumber;
+            $input['version'] = $newVersion; // Add the version to the input
 
-            // First, extract discount and fee into collection 
+            // Calculate due date based on version
+            $dueDate = now(); // Current date
+            switch ($newVersion) {
+                case 1:
+                    $dueDate->addDays(14); // First invoice: 14 days
+                    break;
+                case 2:
+                    $dueDate->addDays(21); // Second invoice: 21 days
+                    break;
+                default:
+                    $dueDate->addMonth(); // Subsequent invoices: 1 month
+                    break;
+            }
+            $input['due_date'] = $dueDate; // Add the due date to the input
+
+            // Extract discount and fee into collection 
             $discounts = json_decode($input['discountsData'], true);
             $fees = json_decode($input['feesData'], true);
 
-            // Get selected Sale
-            $sale = Sale::find($input['sale_id']);
-
             // Calculate balance amount
-            $sale->remaining_amount = $sale->remaining_amount - ($sale->total_amount * $input['percentage']);
+            $sale->remaining_amount -= ($sale->total_amount * $input['percentage']);
 
-            // If there is discount, deduct from balance amount
+            // If there are discounts, deduct from balance amount
             $totalDiscount = 0;
             $totalFee = 0;
 
@@ -77,6 +106,7 @@ class InvoiceController extends BaseController
                 }
             }
 
+            // Calculate total fees
             foreach ($fees as $fee) {
                 if ($fee['valueType'] === 'percentage') {
                     $totalFee += ($sale->remaining_amount * $input['percentage']) * ($fee['value']);
@@ -85,17 +115,14 @@ class InvoiceController extends BaseController
                 }
             }
 
-            // Calculate balance percentage
+            // Calculate remaining percentage
             $sale->remaining_percentage -= $input['percentage'];
 
-            // Close the sale
+            // Close the sale if necessary
             if ($sale->remaining_amount <= 0) {
                 $sale->remaining_amount = 0;
                 $sale->status = 'closed';
             }
-
-            // TODO: Also close the Order
-
 
             // Update Sale
             $sale->save();
@@ -110,7 +137,7 @@ class InvoiceController extends BaseController
             // Create the Invoice
             $invoice = Invoice::create($input);
 
-            return $this->sendResponse(new InvoiceResource($invoice), 'Order added successfully.');
+            return $this->sendResponse(new InvoiceResource($invoice), 'Invoice created successfully.');
         } catch (\Throwable $th) {
             // Return a more specific error response
             return $this->sendError('Database Error.', [
@@ -120,10 +147,23 @@ class InvoiceController extends BaseController
         }
     }
 
+
+
     /**
      * Display the specified resource.
      */
     public function show($id)
+    {
+        $invoice = Invoice::find($id);
+
+        if (is_null($invoice)) {
+            return $this->sendError('Invoice not found.');
+        }
+
+        return $this->sendResponse(new InvoiceResource($invoice), 'Invoice retrieved successfully.');
+    }
+
+    public function showPublicInvoice($id)
     {
         $invoice = Invoice::find($id);
 
@@ -148,5 +188,20 @@ class InvoiceController extends BaseController
     public function destroy(Invoice $invoice)
     {
         //
+    }
+
+    public function changeLinkStatus($id, $status)
+    {
+        try {
+            $invoice = Invoice::find($id);
+
+            $invoice->link_status = $status;
+
+            $invoice->save();
+
+            return $this->sendResponse(new InvoiceResource($invoice), 'Invoice Link Status Successfully Changed.');
+        } catch (\Throwable $th) {
+            return $this->sendError('Error.', $th);
+        }
     }
 }

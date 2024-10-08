@@ -88,7 +88,7 @@ class OrderController extends BaseController
                 'order_id' => $order->id,
                 'quotation_id' => $input['quotation_id'],
                 'version' => $nextVersion,
-                'total_amount' => 1000.00, // CHANGE IT LATER TO REAL DATA
+                'total_amount' => $input['total_amount'],
                 'metadata' => json_encode($input['metadata']) ?? null,
             ]);
 

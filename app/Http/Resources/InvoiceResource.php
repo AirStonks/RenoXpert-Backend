@@ -24,6 +24,9 @@ class InvoiceResource extends JsonResource
             'discountsData' => $this->discountsData,
             'FeesData' => $this->FeesData,
             'status' => $this->status,
+            'link_status' => $this->link_status,
+            'version' => $this->version,
+            'due_date' => $this->due_date,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];

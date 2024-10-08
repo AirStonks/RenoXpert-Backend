@@ -18,6 +18,9 @@ return new class extends Migration
             $table->double('percentage');
             $table->double('amount');
             $table->string('status')->default('pending');
+            $table->string('link_status')->default('active');
+            $table->integer('version')->default(1);
+            $table->date('due_date')->nullable();
             $table->JSON('discountsData')->nullable();
             $table->JSON('feesData')->nullable();
             $table->timestamps();

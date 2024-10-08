@@ -15,6 +15,9 @@ class Invoice extends Model
         'percentage',
         'amount',
         'status',
+        'link_status',
+        'due_date',
+        'version',
         'discountsData',
         'feesData',
     ];
