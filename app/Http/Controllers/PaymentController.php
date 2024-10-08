@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\PaymentResource;
 use App\Models\Invoice;
 use App\Models\Payment;
 use GuzzleHttp\Client;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
@@ -27,50 +26,37 @@ class PaymentController extends Controller
         $this->token = $this->getToken();
     }
 
-    public function test()
-    {
-        // $this->paymentIntent();
-    }
+    // public function index(Request $request): JsonResponse
+    // {
+    //     // Retrieve the size parameter from the request with a default value of 5
+    //     $size = $request->input('size', 5);
 
-    public function index(Request $request): JsonResponse
-    {
-        // Retrieve the size parameter from the request with a default value of 5
-        $size = $request->input('size', 5);
+    //     // Retrieve the search term from the request
+    //     $search = $request->input('search', '');
 
-        // Retrieve the search term from the request
-        $search = $request->input('search', '');
+    //     // Build the query to retrieve product categories
+    //     $query = Payment::query();
 
-        // Build the query to retrieve product categories
-        $query = Payment::query();
+    //     // Apply search filter if a search term is provided
+    //     if (!empty($search)) {
+    //         $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+    //     }
 
-        // Apply search filter if a search term is provided
-        if (!empty($search)) {
-            $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
-        }
+    //     // Paginate the results
+    //     $prodCat = $query->paginate($size);
 
-        // Paginate the results
-        $prodCat = $query->paginate($size);
+    //     // Custom response to fit with Tailwind DataTable JSON format
+    //     $response = [
+    //         "page" => $prodCat->currentPage(),  // Current page number
+    //         "pageCount" => $prodCat->lastPage(), // Total number of pages
+    //         "sortField" => null,                 // Sorting field, if applicable
+    //         "sortOrder" => null,                 // Sorting order, if applicable
+    //         "totalCount" => $prodCat->total(),  // Total number of items
+    //         "data" => PaymentResource::collection($prodCat->items()) // Transformed product data
+    //     ];
 
-        // Custom response to fit with Tailwind DataTable JSON format
-        $response = [
-            "page" => $prodCat->currentPage(),  // Current page number
-            "pageCount" => $prodCat->lastPage(), // Total number of pages
-            "sortField" => null,                 // Sorting field, if applicable
-            "sortOrder" => null,                 // Sorting order, if applicable
-            "totalCount" => $prodCat->total(),  // Total number of items
-            "data" => PaymentResource::collection($prodCat->items()) // Transformed product data
-        ];
-
-        return response()->json($response, 200);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+    //     return response()->json($response, 200);
+    // }
 
     public function paymentIntent($invoiceId)
     {
@@ -82,13 +68,14 @@ class PaymentController extends Controller
             // return new InvoiceResource($invoice);
             return $clientDomain . '/invoice/' . $invoice->id . '/view';
         }
-        
+
         // NOTE:
         // callback_url is backend process url
 
         $client = new Client();
 
-        $returnUrl = $clientDomain . '/invoice/' . $invoice->id . '/view';
+        // $returnUrl = $clientDomain . '/invoice/' . $invoice->id . '/view';
+        $returnUrl = env('APP_URL') . ':8000/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
 
         $headers = [
             'Content-Type' => 'application/json',
@@ -112,9 +99,13 @@ class PaymentController extends Controller
                 "show_payment_types" => true,
                 "tokenize" => false,
                 "return_url" => $returnUrl,
-                "callback_url" => "https://www.google.com/",
-                "reject_url" => $returnUrl,
+                // "callback_url" => "https://www.google.com/",
+                // "reject_url" => $returnUrl,
                 "single_attempt" => true,
+                "metadata" => [
+                    "invoiceId" => $invoice->id,
+                    "clientDomain" => $clientDomain,
+                ],
                 // "expiry_date" => "2024-12-07T15:30:00Z"
             ]
         ];
@@ -140,29 +131,59 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function paymentSuccess(Request $request)
     {
-        //
+        // Get all input data from the request
+        $inputData = $request->all();
+
+        // Decode the metadata JSON string
+        $metadata = json_decode($inputData['metadata'], true);
+
+        // Extract clientDomain and invoiceId
+        $clientDomain = $metadata['clientDomain'] ?? null;
+        $invoiceId = $metadata['invoiceId'] ?? null;
+        $authCode = $inputData['auth_code'] ?? null;
+        $referenceNo = $inputData['txn_id'] ?? null;
+        $currency = $inputData['currency'] ?? null;
+        $description = $inputData['description'] ?? null;
+        $amount = $inputData['amount'] ?? null;
+        $paymentMethod = $inputData['txn_type'] ?? null;
+
+        if ($authCode == "00") {
+
+            // Generate Payment/Transaction
+            $payment = Payment::create([
+                'reference_no' => $referenceNo,
+                'invoice_id' => $invoiceId,
+                'amount' => $amount,
+                'payment_method' => $paymentMethod,
+                'currency' => $currency,
+                'description' => $description,
+                'status' => 'paid',
+            ]);
+
+            // Update Invoice Status
+            $invoice = Invoice::find($invoiceId);
+
+            $invoice->status = 'paid';
+
+            $invoice->save();
+
+            // Redirect to the success URL
+            return redirect()->to($clientDomain . '/invoice/' . $invoiceId . '/payment/success');
+        } else {
+            return redirect()->to($clientDomain . '/invoice/' . $invoiceId . '/payment/error');
+        }
+
+        // If clientDomain or invoiceId is missing, return a JSON response
+        return response()->json([
+            'inputData' => $inputData,
+            'clientDomain' => $clientDomain,
+            'invoiceId' => $invoiceId,
+            'message' => 'Client domain or invoice ID is missing.'
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 
     private function getToken()
     {

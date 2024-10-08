@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderQuotation;
+use App\Models\Quotation;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -84,9 +85,12 @@ class OrderController extends BaseController
             $latestQuotation = OrderQuotation::where('order_id', $order->id)->orderBy('version', 'desc')->first();
             $nextVersion = $latestQuotation ? ($latestQuotation->version + 1) : 1;
 
+            $quotation = Quotation::find($input['quotation_id']);
+
             OrderQuotation::create([
                 'order_id' => $order->id,
                 'quotation_id' => $input['quotation_id'],
+                'quotation_name' => $quotation->name,
                 'version' => $nextVersion,
                 'total_amount' => $input['total_amount'],
                 'metadata' => json_encode($input['metadata']) ?? null,
@@ -149,9 +153,12 @@ class OrderController extends BaseController
             $latestQuotation = OrderQuotation::where('order_id', $order->id)->orderBy('version', 'desc')->first();
             $nextVersion = $latestQuotation ? ($latestQuotation->version + 1) : 1;
 
+            $quotation = Quotation::find($input['quotation_id']);
+
             OrderQuotation::create([
                 'order_id' => $order->id,
                 'quotation_id' => $validatedData['quotation_id'],
+                'quotation_name' => $quotation->name,
                 'version' => $nextVersion,
                 'total_amount' => 1000.00, // CHANGE IT LATER TO REAL DATA
                 'metadata' => json_encode($input['metadata']) ?? null,
@@ -172,10 +179,19 @@ class OrderController extends BaseController
     {
         $order = Order::find($id);
 
+        if (is_null($order)) {
+            return $this->sendError('Order not found.');
+        }
+
+        // Delete associated OrderQuotations
+        OrderQuotation::where('order_id', $order->id)->delete();
+
+        // Now delete the Order
         $order->delete();
 
         return $this->sendResponse([], 'Order deleted successfully.');
     }
+
 
     public function confirmOrder($id)
     {

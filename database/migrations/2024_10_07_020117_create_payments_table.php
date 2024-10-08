@@ -13,13 +13,16 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('invoice_id')->nullable();
             $table->string('reference_no');
             $table->double('amount');
             $table->string('payment_method');
             $table->string('currency');
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->string('status')->default('pending');
             $table->timestamps();
+
+            $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('set null');
         });
     }
 

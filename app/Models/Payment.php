@@ -15,6 +15,7 @@ class Payment extends Model
      * @var array
      */
     protected $fillable = [
+        'invoice_id',
         'reference_no',
         'amount',
         'payment_method',
@@ -22,4 +23,9 @@ class Payment extends Model
         'description',
         'status',
     ];
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class, 'invoice_id', 'id');
+    }
 }

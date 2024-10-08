@@ -19,6 +19,7 @@ class InvoiceResource extends JsonResource
             'id' => $this->id,
             'sale_id' => $this->sale_id,
             'sale' => new SaleResource(Sale::find($this->sale_id)),
+            'payments' => $this->payments,
             'invoice_no' => $this->invoice_no,
             'amount' => $this->amount,
             'discountsData' => $this->discountsData,
