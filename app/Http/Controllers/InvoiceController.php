@@ -91,7 +91,7 @@ class InvoiceController extends BaseController
             $fees = json_decode($input['feesData'], true);
 
             // Calculate balance amount
-            $sale->remaining_amount -= ($sale->total_amount * $input['percentage']);
+            $sale->remaining_amount -= round($sale->total_amount * $input['percentage'], 2);
 
             // If there are discounts, deduct from balance amount
             $totalDiscount = 0;
@@ -118,17 +118,14 @@ class InvoiceController extends BaseController
             // Calculate remaining percentage
             $sale->remaining_percentage -= $input['percentage'];
 
-            // Close the sale if necessary
-            if ($sale->remaining_amount <= 0) {
-                $sale->remaining_amount = 0;
-                $sale->status = 'closed';
-            }
-
             // Update Sale
             $sale->save();
 
             // Calculate Payment Invoice Amount
             $input['amount'] = ($sale->total_amount * $input['percentage']) - $totalDiscount + $totalFee;
+
+            // Round up to two decimal places
+            $input['amount'] = ceil($input['amount'] * 100) / 100;
 
             // Store the metadata as JSON
             $input['discountsData'] = json_encode($discounts);

@@ -62,6 +62,7 @@ class PaymentController extends Controller
     {
         $invoice = Invoice::find($invoiceId);
         $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
+        $clientHost = request()->getHost();
 
         if (!($invoice->status == 'pending' && $invoice->link_status == 'active')) {
             // return 'error';
@@ -75,16 +76,18 @@ class PaymentController extends Controller
         $client = new Client();
 
         // $returnUrl = $clientDomain . '/invoice/' . $invoice->id . '/view';
-        $returnUrl = env('APP_URL') . ':8000/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
+        $returnUrl = 'http://' . $clientHost . ':8000/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
 
         $headers = [
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer ' . $this->token
         ];
 
+        // $amount = $invoice->amount * 100;
+
         $data = [
             [
-                "amount" => $invoice->amount * 100,
+                "amount" => floor($invoice->amount * 100),
                 "currency" => "MYR",
                 "capture" => true,
                 "customer_name" => $invoice->sale->order->contact->name,
@@ -100,12 +103,12 @@ class PaymentController extends Controller
                 "tokenize" => false,
                 "return_url" => $returnUrl,
                 // "callback_url" => "https://www.google.com/",
-                // "reject_url" => $returnUrl,
+                "reject_url" => $returnUrl,
                 "single_attempt" => true,
                 "metadata" => [
                     "invoiceId" => $invoice->id,
                     "clientDomain" => $clientDomain,
-                ],
+                ]
                 // "expiry_date" => "2024-12-07T15:30:00Z"
             ]
         ];
@@ -143,17 +146,18 @@ class PaymentController extends Controller
         $clientDomain = $metadata['clientDomain'] ?? null;
         $invoiceId = $metadata['invoiceId'] ?? null;
         $authCode = $inputData['auth_code'] ?? null;
-        $referenceNo = $inputData['txn_id'] ?? null;
+        $transactionNo = $inputData['txn_id'] ?? null;
         $currency = $inputData['currency'] ?? null;
         $description = $inputData['description'] ?? null;
         $amount = $inputData['amount'] ?? null;
         $paymentMethod = $inputData['txn_type'] ?? null;
 
-        if ($authCode == "00") {
+        $invoice = Invoice::find($invoiceId);
 
+        if ($authCode == "00") {
             // Generate Payment/Transaction
             $payment = Payment::create([
-                'reference_no' => $referenceNo,
+                'transaction_no' => $transactionNo,
                 'invoice_id' => $invoiceId,
                 'amount' => $amount,
                 'payment_method' => $paymentMethod,
@@ -163,17 +167,62 @@ class PaymentController extends Controller
             ]);
 
             // Update Invoice Status
-            $invoice = Invoice::find($invoiceId);
-
             $invoice->status = 'paid';
-
             $invoice->save();
 
-            // Redirect to the success URL
-            return redirect()->to($clientDomain . '/invoice/' . $invoiceId . '/payment/success');
+            // Check sale status based on invoice status
+            $sale = $invoice->sale;
+
+            if ($sale) {
+                // Get all invoices associated with the sale
+                $invoices = $sale->invoices;
+
+                // Check if all invoices are paid
+                $allPaid = $invoices->every(function ($inv) {
+                    return $inv->status === 'paid';
+                });
+
+                // Check if the sale percentage is greater than 0
+                if ($allPaid && $sale->remaining_percentage == 0) {
+                    $sale->status = 'fully-paid';
+                } elseif (!$allPaid && $sale->remaining_percentage > 0) {
+                    $sale->status = 'partial-paid';
+                }
+
+                // Save the sale status if it has changed
+                $sale->save();
+            }
+
+            // Prepare data to pass to client
+            $storageData = [
+                'transactionNo' => $transactionNo,
+                'invoiceNo' => $invoice->invoice_no,
+                'amount' => $amount,
+                'paymentDate' => now(), // You can format this as needed
+                'returnUrl' => $clientDomain . '/invoice/' . $invoiceId . '/view',
+            ];
+
+            // Encode the data as a JSON string
+            $jsonData = json_encode($storageData);
+
+            // Redirect to the success URL with encoded data as a query parameter
+            return redirect()->to($clientDomain . '/invoice/' . $invoiceId . '/payment/success?data=' . urlencode($jsonData));
         } else {
-            return redirect()->to($clientDomain . '/invoice/' . $invoiceId . '/payment/error');
+            // Prepare error data to pass to client
+            $errorData = [
+                'invoiceId' => $invoiceId,
+                'errorCode' => $authCode,
+                'invoiceNo' => $invoice->invoice_no,
+                'returnUrl' => $clientDomain . '/invoice/' . $invoiceId . '/view',
+            ];
+
+            // Convert the error data to a JSON string
+            $jsonErrorData = json_encode($errorData);
+
+            // Include the error data in the query string (or handle it through a session)
+            return redirect()->to($clientDomain . '/invoice/' . $invoiceId . '/payment/error?errorData=' . urlencode($jsonErrorData));
         }
+
 
         // If clientDomain or invoiceId is missing, return a JSON response
         return response()->json([
@@ -184,6 +233,8 @@ class PaymentController extends Controller
         ]);
     }
 
+    // session()->flash('paymentSuccess', $storageData);
+    // session()->flash('paymentError', $storageData);
 
     private function getToken()
     {
