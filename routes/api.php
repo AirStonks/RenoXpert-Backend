@@ -18,6 +18,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SmsController;
 use App\Models\Package;
 
 Route::get('/user', function (Request $request) {
@@ -29,6 +30,8 @@ Route::get('/invoices/public/view/{id}', [InvoiceController::class, 'showPublicI
 Route::get('/payex/paymentIntent/invoice/{invoiceId}', [PaymentController::class, 'paymentIntent']);
 
 Route::post('/payex/paymentIntent/invoice/{invoiceId}/payment/success', [PaymentController::class, 'paymentSuccess']);
+
+Route::get('/send-sms', [SmsController::class, 'sendSms']);
 
 Route::controller(AuthController::class)->group(function(){
     Route::post('register', 'register');
