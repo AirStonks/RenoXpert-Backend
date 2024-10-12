@@ -8,6 +8,9 @@ use App\Models\OrderQuotation;
 use App\Models\Quotation;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends BaseController
@@ -115,6 +118,51 @@ class OrderController extends BaseController
 
         return $this->sendResponse(new OrderResource($order), 'Order retrieved successfully.');
     }
+
+    public function showOrderOverview($orderId)
+    {
+        $order = Order::find($orderId);
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        $mobile = $order->contact->phone_no;
+        $sessionValid = $this->checkSession($mobile, $orderId);
+
+        if ($sessionValid) {
+            return $this->sendResponse(new OrderResource($order), 'Order retrieved successfully.');
+        } else {
+            return response()->json([
+                'status' => 'otp_required',
+                'message' => 'OTP Required',
+                'order_id' => $orderId,
+                'mobile' => $mobile
+            ], 200);
+        }
+    }
+
+    public function verify($orderId)
+    {
+        $order = Order::find($orderId);
+        
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        $mobileNumber = $order->contact->phone_no;
+
+        // Re-verify the guest with the mobile number associated with the order
+        if ($this->verifyGuestOtp($mobileNumber)) {
+            // If the re-verification is successful, return a response indicating access to the order detail
+            return $this->sendResponse(new OrderResource($order), 'Order retrieved successfully.');
+        }
+
+        // If the re-verification fails, return an error response
+        return response()->json(['error' => 'Invalid mobile number or OTP'], 401);
+    }
+
+
 
     /**
      * Update the specified resource in storage.
@@ -249,4 +297,13 @@ class OrderController extends BaseController
 
         return 'S' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT); // Pad to 6 digits
     }
+
+    private function verifyGuestOtp($mobileNumber)
+    {
+        // Verify the guest OTP using the provided mobile number
+        $storedOtp = session('guest_otp_' . $mobileNumber);
+        $requestOtp = $request->input('otp_code');
+        return Hash::check($requestOtp, $storedOtp);
+    }
+
 }

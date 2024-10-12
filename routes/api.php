@@ -18,7 +18,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SaleController;
-use App\Http\Controllers\SmsController;
+use App\Http\Controllers\OTPRequestController;
+use App\Http\Controllers\SessionController;
 use App\Models\Package;
 
 Route::get('/user', function (Request $request) {
@@ -26,12 +27,13 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/invoices/public/view/{id}', [InvoiceController::class, 'showPublicInvoice'])->name('invoice.public.show');
-
 Route::get('/payex/paymentIntent/invoice/{invoiceId}', [PaymentController::class, 'paymentIntent']);
-
 Route::post('/payex/paymentIntent/invoice/{invoiceId}/payment/success', [PaymentController::class, 'paymentSuccess']);
 
-Route::get('/send-sms', [SmsController::class, 'sendSms']);
+Route::get('/order/public/view/{id}', [OrderController::class, 'showOrderOverview']);
+Route::post('/sms-otp/request', [OTPRequestController::class, 'requestOtp'])->name('otp.request');
+Route::post('/sms-otp/verify', [OTPRequestController::class, 'verifyOtp'])->name('otp.verify');
+Route::post('/session/check', [SessionController::class, 'checkSession'])->name('session.check');
 
 Route::controller(AuthController::class)->group(function(){
     Route::post('register', 'register');
@@ -75,4 +77,3 @@ Route::middleware('auth:sanctum')->group( function () {
         return $package;
     });
 });
-
