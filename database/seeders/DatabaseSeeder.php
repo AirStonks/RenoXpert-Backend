@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'dev',
             'email' => 'dev@gmail.com',
             'password' => 'developer',
+            'phone_no' => '0123456789',
+            'type' => 'admin',
         ]);
 
         // ProductCategory::create([
@@ -863,9 +865,9 @@ class DatabaseSeeder extends Seeder
         // $package2->products()->attach(13, ['quantity' => 1]);
 
         Contact::create([
-            'name' => 'Alex Chong',
-            'email' => 'alexchong55@gmail.com',
-            'phone_no' => '0123456789',
+            'name' => 'CK Chang',
+            'email' => 'ckchang@gmail.com',
+            'phone_no' => '01136647745',
             'race' => 'Chinese',
             'gender' => 'Male',
             'nationality' => 'Malaysian',

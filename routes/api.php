@@ -30,8 +30,8 @@ Route::get('/invoices/public/view/{id}', [InvoiceController::class, 'showPublicI
 Route::get('/payex/paymentIntent/invoice/{invoiceId}', [PaymentController::class, 'paymentIntent']);
 Route::post('/payex/paymentIntent/invoice/{invoiceId}/payment/success', [PaymentController::class, 'paymentSuccess']);
 
-Route::get('/order/public/view/{id}', [OrderController::class, 'showOrderOverview']);
-Route::post('/sms-otp/request', [OTPRequestController::class, 'requestOtp'])->name('otp.request');
+Route::get('/order/public/view/{id}/head', [OrderController::class, 'getOrderOverviewHead']);
+Route::post('/sms-otp/request/{encryptedMobile}', [OTPRequestController::class, 'requestOtp'])->name('otp.request');
 Route::post('/sms-otp/verify', [OTPRequestController::class, 'verifyOtp'])->name('otp.verify');
 Route::post('/session/check', [SessionController::class, 'checkSession'])->name('session.check');
 
@@ -40,11 +40,15 @@ Route::controller(AuthController::class)->group(function(){
     Route::post('login', 'login');
     Route::post('credential/verify', 'isAuthenticated');
 });
-         
+
 Route::middleware('auth:sanctum')->group( function () {
     Route::get('/user', function (Request $request) {
         return response()->json($request->user());
     });
+    
+    Route::get('/order/public/view/{id}', [OrderController::class, 'showOrderOverview']);
+
+
     Route::get('/data', [MyController::class, 'getData']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('/products', ProductController::class);

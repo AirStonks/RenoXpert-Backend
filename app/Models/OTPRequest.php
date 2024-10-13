@@ -9,6 +9,8 @@ class OTPRequest extends Model
 {
     use HasFactory;
 
+    protected $table = 'otp_requests';
+
     protected $fillable = [
         'mobile',
         'code',

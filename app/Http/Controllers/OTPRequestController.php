@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OTPRequest;
+use App\Models\User;
+use App\Models\Order;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use App\Models\OTPRequest;
+use Illuminate\Support\Str;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Laravel\Sanctum\PersonalAccessToken;
+use GuzzleHttp\Exception\RequestException;
 
 class OTPRequestController extends Controller
 {
@@ -23,13 +27,23 @@ class OTPRequestController extends Controller
         $this->senderId = 'MOBIWEB';
     }
 
-    public function requestOtp($mobile_no)
+    public function requestOtp($encryptedMobile)
     {
+        $mobile = Crypt::decryptString($encryptedMobile);
+
+        $mobile = substr($mobile, 1);
+        
+        // return response()->json([
+        //     'status' => 'success',
+        //     'message' => 'OTP sent successfully',
+        //     'mobile' => $mobile
+        // ], 200);
+
         // Customize your message here
         $message = 'your OTP CODE %OTP%';
 
-        $url = "https://www.isms.com.my/2FA/request.php?mobile={$mobile_no}&country_code=60&un={$this->username}&pass={$this->password}&type=1&sendid={$this->senderId}&msg={$message}";
-
+        $url = "https://www.isms.com.my/2FA/request.php?mobile={$mobile}&country_code=60&un={$this->username}&pass={$this->password}&type=1&sendid={$this->senderId}&msg={$message}";
+        
         $client = new Client();
 
         try {
@@ -61,7 +75,8 @@ class OTPRequestController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Failed to send OTP',
-                    'details' => $responseBody
+                    'details' => $responseBody,
+                    'url' -> $url
                 ], 500);
             }
         } catch (RequestException $e) {
@@ -72,7 +87,93 @@ class OTPRequestController extends Controller
         }
     }
 
+    // return response()->json([
+    //     'status' => 'error',
+    //     'message' => '',
+    //     'data' => $input,
+    // ], 200);
+
     public function verifyOtp(Request $request)
+    {
+        $input = $request->all();
+
+        $dectyptedMobile = Crypt::decryptString($input['mobH']);
+        $mobile = substr($dectyptedMobile, 1);
+        $otpFormatMobile = '+6' . $dectyptedMobile;
+
+        // return ['1' => $dectyptedMobile, '2' => $mobile, '3' => $otpFormatMobile];
+
+        $latestOtpReq = OTPRequest::where('mobile', $otpFormatMobile)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$latestOtpReq) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No OTP request found.',
+            ], 404);
+        }
+
+        $code = $input['otp_code'];
+        $uuid = $latestOtpReq->uuid;
+        $smsId = $latestOtpReq->sms_id;
+
+        $url = "https://www.isms.com.my/2FA/request.php?interval=3&mobile={$mobile}&country_code=60&un={$this->username}&pass={$this->password}&sendid={$this->senderId}&method=verify&code={$code}&sms_id={$smsId}&uuid={$uuid}";
+
+        $client = new Client();
+
+        try {
+            $response = $client->post($url);
+            $responseBody = json_decode($response->getBody()->getContents(), true);
+
+            // If status == 'Verified'
+            if (isset($responseBody['status']) && $responseBody['status'] === 'Verified') {
+
+                $latestOtpReq->status = 'verified';
+                $latestOtpReq->save();
+
+                $user = User::firstOrCreate(
+                    ['phone_no' => $dectyptedMobile], 
+                    [
+                        'name' => 'Guest', 
+                        'email' => Str::random(12) . '@guest.tmp', 
+                        'password' => bcrypt(Str::random(8)), 
+                        'type' => 'guest'
+                    ]
+                );
+
+                if (Auth::loginUsingId($user->id)) {
+                    $token = $user->createToken('Guest')->plainTextToken;
+        
+                    return response()->json([
+                        'status' => 'verified',
+                        'message' => 'OTP verified',
+                        'guest_token' => $token ,
+                    ], 200);
+
+                } else {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => $responseBody['message'],
+                    ], 500);
+                }
+                
+            } elseif (isset($responseBody['status']) && $responseBody['status'] === 'Failed') {
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $responseBody['message'],
+                ], 500);
+            }
+        } catch (RequestException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], $e->getCode());
+        }
+    }
+    
+    public function verifyGuestOtp(Request $request)
     {
         $input = $request->all();
 
@@ -92,25 +193,17 @@ class OTPRequestController extends Controller
 
             // If status == 'Verified'
             if (isset($responseBody['status']) && $responseBody['status'] === 'Verified') {
-                $uuid = $responseBody['uuid'];
-                $mobile = $responseBody['mobile'];
-                $orderId = $request->input('order_id');
 
-                $latestOtpRequest = OTPRequest::where('mobile', $mobile)
-                    ->orderBy('created_at', 'desc')
-                    ->first();
-
-                $latestOtpRequest->status = 'verified';
-                $latestOtpRequest->save();
-
-                // Create a new personal access token for the guest user
-                $token = $this->generatePat($input);
+                // Store guest user auth
+                $guestUser = User::firstOrCreate(['mobile' => $mobile], ['name' => 'Guest User']);
+                $success['token'] = $guestUser->createToken('GuestApp')->plainTextToken;
 
                 return response()->json([
                     'status' => 'verified',
                     'message' => 'OTP verified',
-                    'guest_token' => $token,
+                    'data' => $success,
                 ], 200);
+
             } elseif (isset($responseBody['status']) && $responseBody['status'] === 'Failed') {
 
                 return response()->json([
@@ -124,18 +217,5 @@ class OTPRequestController extends Controller
                 'message' => $e->getMessage(),
             ], $e->getCode());
         }
-    }
-
-    private function generatePat()
-    {
-        // Create a new personal access token for the guest user
-        $pat = PersonalAccessToken::create([
-            'name' => 'OTP Verification PAT to View Order Overview',
-            'tokenable_type' => 'guest',
-            'abilities' => ['verify-otp'],
-        ]);
-
-        // Return the generated PAT
-        return $pat->plainTextToken;
     }
 }
