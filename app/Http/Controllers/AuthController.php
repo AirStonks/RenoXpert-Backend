@@ -82,7 +82,7 @@ class AuthController extends BaseController
             if ($user->type === 'owner') {
                 $success['token'] = $user->createToken('OwnerSite')->plainTextToken;
                 $success['name'] = $user->name;
-            } elseif ($user->type === 'staff' || $user->type === 'admin') {
+            } elseif ($user->type === 'staff' || $user->type === 'admin' || $user->type === 'super-admin') {
                 $success['token'] = $user->createToken('StaffSite')->plainTextToken;
                 $success['name'] = $user->name;
             }
