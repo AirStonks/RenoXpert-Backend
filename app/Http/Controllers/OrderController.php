@@ -121,6 +121,23 @@ class OrderController extends BaseController
         return $this->sendResponse(new OrderResource($order), 'Order retrieved successfully.');
     }
 
+    public function showOwnerOrder($id)
+    {
+        $user = Auth::user();
+
+        $order = Order::find($id);
+
+        if (is_null($order)) {
+            return $this->sendError('Order not found.');
+        }
+
+        if ($order->contact->phone_no !== $user->phone_no) {
+            return $this->sendError('Invalid Credential');
+        }
+
+        return $this->sendResponse(new OrderResource($order), 'Order retrieved successfully.');
+    }
+
     public function getOrderOverviewHead($orderId)
     {
         $order = Order::find($orderId);
@@ -220,7 +237,7 @@ class OrderController extends BaseController
                 'quotation_id' => $validatedData['quotation_id'],
                 'quotation_name' => $quotation->name,
                 'version' => $nextVersion,
-                'total_amount' => 1000.00, // CHANGE IT LATER TO REAL DATA
+                'total_amount' => $order->total_amount, // CHANGE IT LATER TO REAL DATA
                 'metadata' => json_encode($input['metadata']) ?? null,
             ]);
 

@@ -38,6 +38,26 @@ class AuthController extends BaseController
         return $this->sendResponse($success, 'User registered successfully.');
     }
 
+    // public function ownerRegister(Request $request): JsonResponse
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required',
+    //         'email' => 'required|email|unique:users,email',
+    //         'password' => 'required|min:6',
+    //         'c_password' => 'required|same:password',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return $this->sendError('Validation Error.', $validator->errors());
+    //     }
+
+    //     $input = $request->all();
+    //     $input['password'] = Hash::make($input['password']);
+    //     $input['type'] = 'owner';
+
+    //     return $this->sendResponse($success, 'User registered successfully.');
+    // }
+
     /**
      * Login API
      *
@@ -58,14 +78,43 @@ class AuthController extends BaseController
         // Attempt login
         if (Auth::attempt($request->only('email', 'password'))) {
             $user = Auth::user();
-            $success['token'] = $user->createToken('MyApp')->plainTextToken;
-            $success['name'] = $user->name;
+
+            if ($user->type === 'owner') {
+                $success['token'] = $user->createToken('OwnerSite')->plainTextToken;
+                $success['name'] = $user->name;
+            } elseif ($user->type === 'staff' || $user->type === 'admin') {
+                $success['token'] = $user->createToken('StaffSite')->plainTextToken;
+                $success['name'] = $user->name;
+            }
 
             return $this->sendResponse($success, 'User logged in successfully.');
         } else {
             return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
         }
     }
+
+    public function changePassword(Request $request): JsonResponse
+    {
+        // Validate the request
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = auth()->user();
+
+        // Check if the current password is correct
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'Current password is incorrect.'], 401);
+        }
+
+        // Update the user's password
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Password changed successfully.']);
+    }
+
 
     /**
      * Logout API

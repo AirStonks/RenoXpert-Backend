@@ -3,15 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Order;
 use GuzzleHttp\Client;
 use App\Models\OTPRequest;
-use Illuminate\Support\Str;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Crypt;
-use Laravel\Sanctum\PersonalAccessToken;
 use GuzzleHttp\Exception\RequestException;
 
 class OTPRequestController extends Controller
@@ -27,9 +23,9 @@ class OTPRequestController extends Controller
         $this->senderId = 'MOBIWEB';
     }
 
-    public function requestOtp($encryptedMobile)
+    public function requestOtp($mobile)
     {
-        $mobile = Crypt::decryptString($encryptedMobile);
+        // $mobile = Crypt::decryptString($encryptedMobile);
 
         $mobile = substr($mobile, 1);
         
@@ -76,7 +72,7 @@ class OTPRequestController extends Controller
                     'status' => 'error',
                     'message' => 'Failed to send OTP',
                     'details' => $responseBody,
-                    'url' -> $url
+                    'url' => $url
                 ], 500);
             }
         } catch (RequestException $e) {
@@ -87,19 +83,16 @@ class OTPRequestController extends Controller
         }
     }
 
-    // return response()->json([
-    //     'status' => 'error',
-    //     'message' => '',
-    //     'data' => $input,
-    // ], 200);
-
-    public function verifyOtp(Request $request)
+    public function verifyLoginOtp(Request $request)
     {
         $input = $request->all();
 
-        $dectyptedMobile = Crypt::decryptString($input['mobH']);
-        $mobile = substr($dectyptedMobile, 1);
-        $otpFormatMobile = '+6' . $dectyptedMobile;
+        // $dectyptedMobile = Crypt::decryptString($input['mobH']);
+        // $mobile = substr($dectyptedMobile, 1);
+        // $otpFormatMobile = '+6' . $dectyptedMobile;
+        // $dectyptedMobile = Crypt::decryptString($input['mobH']);
+        $mobile = substr($input['mobile'], 1);
+        $otpFormatMobile = '+6' . $input['mobile'];
 
         // return ['1' => $dectyptedMobile, '2' => $mobile, '3' => $otpFormatMobile];
 
@@ -133,12 +126,10 @@ class OTPRequestController extends Controller
                 $latestOtpReq->save();
 
                 $user = User::firstOrCreate(
-                    ['phone_no' => $dectyptedMobile], 
+                    ['phone_no' => $input['mobile']], 
                     [
-                        'name' => 'Guest', 
-                        'email' => Str::random(12) . '@guest.tmp', 
-                        'password' => bcrypt(Str::random(8)), 
-                        'type' => 'guest'
+                        'name' => 'OwnerSite', 
+                        'type' => 'owner'
                     ]
                 );
 
@@ -148,7 +139,7 @@ class OTPRequestController extends Controller
                     return response()->json([
                         'status' => 'verified',
                         'message' => 'OTP verified',
-                        'guest_token' => $token ,
+                        'o_token' => $token,
                     ], 200);
 
                 } else {
@@ -172,15 +163,34 @@ class OTPRequestController extends Controller
             ], $e->getCode());
         }
     }
-    
-    public function verifyGuestOtp(Request $request)
+
+    public function verifyOtp(Request $request)
     {
         $input = $request->all();
 
-        $mobile = $input['mobile'];
+        // $dectyptedMobile = Crypt::decryptString($input['mobH']);
+        // $mobile = substr($dectyptedMobile, 1);
+        // $otpFormatMobile = '+6' . $dectyptedMobile;
+        // $dectyptedMobile = Crypt::decryptString($input['mobH']);
+        $mobile = substr($input['mobile'], 1);
+        $otpFormatMobile = '+6' . $input['mobile'];
+
+        // return ['1' => $dectyptedMobile, '2' => $mobile, '3' => $otpFormatMobile];
+
+        $latestOtpReq = OTPRequest::where('mobile', $otpFormatMobile)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$latestOtpReq) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No OTP request found.',
+            ], 404);
+        }
+
         $code = $input['otp_code'];
-        $uuid = $input['uuid'];
-        $smsId = $input['smsId'];
+        $uuid = $latestOtpReq->uuid;
+        $smsId = $latestOtpReq->sms_id;
 
         $url = "https://www.isms.com.my/2FA/request.php?interval=3&mobile={$mobile}&country_code=60&un={$this->username}&pass={$this->password}&sendid={$this->senderId}&method=verify&code={$code}&sms_id={$smsId}&uuid={$uuid}";
 
@@ -188,20 +198,17 @@ class OTPRequestController extends Controller
 
         try {
             $response = $client->post($url);
-
             $responseBody = json_decode($response->getBody()->getContents(), true);
 
             // If status == 'Verified'
             if (isset($responseBody['status']) && $responseBody['status'] === 'Verified') {
 
-                // Store guest user auth
-                $guestUser = User::firstOrCreate(['mobile' => $mobile], ['name' => 'Guest User']);
-                $success['token'] = $guestUser->createToken('GuestApp')->plainTextToken;
+                $latestOtpReq->status = 'verified';
+                $latestOtpReq->save();
 
                 return response()->json([
                     'status' => 'verified',
                     'message' => 'OTP verified',
-                    'data' => $success,
                 ], 200);
 
             } elseif (isset($responseBody['status']) && $responseBody['status'] === 'Failed') {

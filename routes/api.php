@@ -19,7 +19,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\OTPRequestController;
-use App\Http\Controllers\SessionController;
+use App\Http\Controllers\UserController;
 use App\Models\Package;
 
 Route::get('/user', function (Request $request) {
@@ -30,10 +30,12 @@ Route::get('/invoices/public/view/{id}', [InvoiceController::class, 'showPublicI
 Route::get('/payex/paymentIntent/invoice/{invoiceId}', [PaymentController::class, 'paymentIntent']);
 Route::post('/payex/paymentIntent/invoice/{invoiceId}/payment/success', [PaymentController::class, 'paymentSuccess']);
 
-Route::get('/order/public/view/{id}/head', [OrderController::class, 'getOrderOverviewHead']);
 Route::post('/sms-otp/request/{encryptedMobile}', [OTPRequestController::class, 'requestOtp'])->name('otp.request');
-Route::post('/sms-otp/verify', [OTPRequestController::class, 'verifyOtp'])->name('otp.verify');
-Route::post('/session/check', [SessionController::class, 'checkSession'])->name('session.check');
+Route::post('/sms-otp/verify/login', [OTPRequestController::class, 'verifyLoginOtp'])->name('otp.verify.login');
+Route::post('/sms-otp/verify/', [OTPRequestController::class, 'verifyOtp'])->name('otp.verify');
+
+// Confirm Order
+Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
 
 Route::controller(AuthController::class)->group(function(){
     Route::post('register', 'register');
@@ -45,12 +47,16 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('/user', function (Request $request) {
         return response()->json($request->user());
     });
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/change-password', [AuthController::class, 'changePassword'])->name('changePassword');
     
     Route::get('/order/public/view/{id}', [OrderController::class, 'showOrderOverview']);
+    Route::get('/owner/order/{id}', [OrderController::class, 'showOwnerOrder']);
 
+    // Change Invoice Link Status
+    Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
 
-    Route::get('/data', [MyController::class, 'getData']);
-    Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('/products', ProductController::class);
     Route::apiResource('/product/category', ProductCategoryController::class);
     Route::apiResource('/packages', PackageController::class);
@@ -61,13 +67,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('/sales', SaleController::class);
     Route::apiResource('/discountFees', DiscountFeeController::class);
     Route::apiResource('/invoices', InvoiceController::class);
+    Route::apiResource('/users', UserController::class);
 
-    // Confirm Order
-    Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
-
-    // Change Invoice Link Status
-    Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
-
+    // TEST
+    Route::get('/data', [MyController::class, 'getData']);
     Route::get('/test', function () {
         
         $package = Package::find(1);

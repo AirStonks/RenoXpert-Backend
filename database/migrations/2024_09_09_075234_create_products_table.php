@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('SKU')->unique()->nullable();
             $table->string('type')->nullable();
             $table->string('description')->nullable();
+            $table->string('internal_remark')->nullable();
             $table->double('product_retail_price')->nullable();
             $table->double('product_cost_of_good_sold')->nullable();
             $table->double('product_excluded_price')->nullable();
