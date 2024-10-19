@@ -19,6 +19,7 @@ return new class extends Migration
             $table->boolean('visibility')->default(true);
             $table->boolean('included')->default(true);
             $table->boolean('isOriginal')->default(true);
+            $table->string('internal_note')->nullable();
             $table->timestamps();
             $table->foreign('package_id')->references('id')->on('packages');
             $table->foreign('product_id')->references('id')->on('products');

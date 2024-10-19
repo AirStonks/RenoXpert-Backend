@@ -28,6 +28,7 @@ class Package extends Model
             ->withPivot('visibility')
             ->withPivot('included')
             ->withPivot('isOriginal')
+            ->withPivot('internal_note')
             ->withTimestamps();
     }
 

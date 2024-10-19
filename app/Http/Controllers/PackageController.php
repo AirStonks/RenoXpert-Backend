@@ -71,7 +71,13 @@ class PackageController extends BaseController
 
                 $totalAmount += $product->product_retail_price * $productInput['quantity'];
 
-                $package->products()->attach($productInput['id'], ['quantity' => $productInput['quantity'], 'visibility' => $productInput['visibility'], 'included' => true, 'isOriginal' => true]);
+                $package->products()->attach($productInput['id'], [
+                    'quantity' => $productInput['quantity'],
+                    'visibility' => $productInput['visibility'],
+                    'included' => true,
+                    'isOriginal' => true,
+                    'internal_note' => $productInput['internal_note']
+                ]);
             }
 
             $package->total_price = $totalAmount;

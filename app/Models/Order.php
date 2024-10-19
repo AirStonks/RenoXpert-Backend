@@ -40,5 +40,9 @@ class Order extends Model
     {
         return $this->hasMany(OrderQuotation::class, 'order_id', 'id');
     }
+
+    public function sale() {
+        return $this->hasOne(Sale::class, 'order_id', 'id');
+    }
 }
 

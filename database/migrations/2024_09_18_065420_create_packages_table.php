@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable();
             $table->string('description')->nullable();
+            $table->string('description_internal')->nullable();
             $table->string('category')->nullable();
             $table->double('total_price')->nullable();
             $table->timestamps();

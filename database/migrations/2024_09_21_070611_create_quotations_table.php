@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('description')->nullable();
+            $table->string('description_internal')->nullable();
             $table->double('total_amount');
             $table->date('valid_from')->nullable();
             $table->date('valid_until')->nullable();

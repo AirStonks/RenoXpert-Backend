@@ -44,6 +44,17 @@ class PropertyController extends BaseController
         return response()->json($response, 200);
     }
 
+    public function getPublicProperties()
+    {
+        $properties = Property::get();
+
+        if (is_null($properties)) {
+            return $this->sendError('Contact not found.');
+        }
+
+        return $this->sendResponse(PropertyResource::collection($properties), 'Properties retrieved successfully.');
+    }
+
     /**
      * Store a newly created resource in storage.
      */

@@ -1121,6 +1121,16 @@ class DatabaseSeeder extends Seeder
             'description' => 'some desc',
         ]);
 
+        Contact::create([
+            'name' => 'Lee',
+            'email' => 'lee@gmail.com',
+            'phone_no' => '01118882881',
+            'race' => 'Chinese',
+            'gender' => 'Male',
+            'nationality' => 'Malaysian',
+            'description' => 'some desc',
+        ]);
+
         Property::create([
             'name' => 'Meta City',
             'address' => '',

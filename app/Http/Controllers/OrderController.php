@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\OrderResource;
+use App\Http\Resources\OwnerOrderResource;
 use App\Models\Order;
 use App\Models\OrderQuotation;
 use App\Models\Quotation;
@@ -50,6 +51,19 @@ class OrderController extends BaseController
 
         return response()->json($response, 200);
     }
+
+    public function getOwnerOrders()
+    {
+        $user = Auth::user();
+
+        // Assuming you have a relationship set up in your Order model to access the contact
+        $orders = Order::whereHas('contact', function ($query) use ($user) {
+            $query->where('phone_no', $user->phone_no);
+        })->get();
+
+        return $this->sendResponse(OwnerOrderResource::collection($orders), 'Order retrieved successfully.');
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -135,7 +149,7 @@ class OrderController extends BaseController
             return $this->sendError('Invalid Credential');
         }
 
-        return $this->sendResponse(new OrderResource($order), 'Order retrieved successfully.');
+        return $this->sendResponse(new OwnerOrderResource($order), 'Order retrieved successfully.');
     }
 
     public function getOrderOverviewHead($orderId)
