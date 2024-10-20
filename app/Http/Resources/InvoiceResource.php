@@ -17,15 +17,19 @@ class InvoiceResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'address' => $this->address,
-            'street' => $this->street,
-            'postcode' => $this->postcode,
-            'city' => $this->city,
-            'state' => $this->state,
-            'description' => $this->description,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'sale_id' => $this->sale_id,
+            'sale' => new SaleResource(Sale::find($this->sale_id)),
+            'payments' => $this->payments,
+            'invoice_no' => $this->invoice_no,
+            'amount' => $this->amount,
+            'discountsData' => $this->discountsData,
+            'FeesData' => $this->FeesData,
+            'status' => $this->status,
+            'link_status' => $this->link_status,
+            'version' => $this->version,
+            'due_date' => $this->due_date,
+            'created_at' => $this->created_at->format('d/m/Y'),
+            'updated_at' => $this->updated_at->format('d/m/Y'),
         ];
     }
 }

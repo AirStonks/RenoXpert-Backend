@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\RegistrationFormResource;
-use App\Models\RegistrationForm;
+use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\RegistrationForm;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\RegistrationFormResource;
 
 class RegistrationFormController extends BaseController
 {
@@ -86,20 +87,20 @@ class RegistrationFormController extends BaseController
         try {
             $input = $request->all();
 
-            // $validator = Validator::make($input, [
-            //     'name_first' => 'required|string|max:255',
-            //     'name_last' => 'required|string|max:255',
-            //     'name_preferred' => 'required|string|max:255',
-            //     'email' => 'required|string|max:255',
-            //     'name_preferred' => 'required|string|max:255',
-            // ]);
-
-
-            // if ($validator->fails()) {
-            //     return $this->sendError('Validation Error.', $validator->errors(), 422);
-            // }
-
             $form = RegistrationForm::create($input);
+
+            if (!$form) {
+                return $this->sendError('Error.', 'Something error while creating new registration form');
+            }
+
+            $user = User::firstOrCreate(
+                ['phone_no' => $input['phone_no']],
+                [
+                    'name' => $input['name_first'] . ' ' . $input['name_last'],
+                    'email' => $input['email'],
+                    'type' => 'owner'
+                ]
+            );
 
             return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form added successfully.');
         } catch (\Throwable $th) {
