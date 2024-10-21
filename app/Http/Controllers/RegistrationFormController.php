@@ -108,6 +108,25 @@ class RegistrationFormController extends BaseController
         }
     }
 
+    public function approveForm($id)
+    {
+        $form = RegistrationForm::find($id);
+
+        $form->status = 'approved';
+        $form->save();
+
+        return $this->sendResponse(null, 'Registration Form Approved.');
+    }
+
+    public function rejectForm($id)
+    {
+        $form = RegistrationForm::find($id);
+
+        $form->status = 'rejected';
+        $form->save();
+
+        return $this->sendResponse(null, 'Registration Form Rejected.');
+    }
 
     /**
      * Display the specified resource.

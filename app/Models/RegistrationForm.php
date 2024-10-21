@@ -15,6 +15,7 @@ class RegistrationForm extends Model
         'name_last',
         'name_preferred',
         'email',
+        'country_code',
         'phone_no',
         'address_1',
         'address_2',

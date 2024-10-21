@@ -76,6 +76,7 @@ class RegistrationFormResource extends JsonResource
             'name_last' => $this->name_last,
             'name_preferred' => $this->name_preferred,
             'email' => $this->email,
+            'country_code' => $this->country_code,
             'phone_no' => $this->phone_no,
             'address' => [
                 'address_1' => $this->address_1,

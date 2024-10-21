@@ -78,6 +78,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('/users', UserController::class);
     Route::apiResource('/owner/reno-registration-form', RegistrationFormController::class);
 
+    Route::get('/owner/reno-registration-form/{id}/status/approve', [RegistrationFormController::class, 'approveForm']);
+    Route::get('/owner/reno-registration-form/{id}/status/reject', [RegistrationFormController::class, 'rejectForm']);
+
     // TEST
     Route::get('/data', [MyController::class, 'getData']);
     Route::get('/test', function () {
