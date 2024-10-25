@@ -22,7 +22,9 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::factory()->create([
-            'name' => 'dev',
+            'name' => 'Super Admin',
+            'name_first' => 'Super',
+            'name_last' => 'Admin',
             'email' => 'dev@gmail.com',
             'password' => 'developer',
             'phone_no' => '0123456789',
@@ -1101,35 +1103,35 @@ class DatabaseSeeder extends Seeder
         $package11->products()->attach(60, ['quantity' => 4, 'visibility' => 1]);
         $package11->products()->attach(61, ['quantity' => 1, 'visibility' => 1]);
 
-        Contact::create([
-            'name' => 'CK Chang',
-            'email' => 'ckchang@gmail.com',
-            'phone_no' => '01136647745',
-            'race' => 'Chinese',
-            'gender' => 'Male',
-            'nationality' => 'Malaysian',
-            'description' => 'some desc',
-        ]);
+        // Contact::create([
+        //     'name' => 'CK Chang',
+        //     'email' => 'ckchang@gmail.com',
+        //     'phone_no' => '01136647745',
+        //     'race' => 'Chinese',
+        //     'gender' => 'Male',
+        //     'nationality' => 'Malaysian',
+        //     'description' => 'some desc',
+        // ]);
 
-        Contact::create([
-            'name' => 'Shelyn Ooi',
-            'email' => 'shelynooi@gmail.com',
-            'phone_no' => '01111476550',
-            'race' => 'Chinese',
-            'gender' => 'Female',
-            'nationality' => 'Malaysian',
-            'description' => 'some desc',
-        ]);
+        // Contact::create([
+        //     'name' => 'Shelyn Ooi',
+        //     'email' => 'shelynooi@gmail.com',
+        //     'phone_no' => '01111476550',
+        //     'race' => 'Chinese',
+        //     'gender' => 'Female',
+        //     'nationality' => 'Malaysian',
+        //     'description' => 'some desc',
+        // ]);
 
-        Contact::create([
-            'name' => 'Lee',
-            'email' => 'lee@gmail.com',
-            'phone_no' => '01118882881',
-            'race' => 'Chinese',
-            'gender' => 'Male',
-            'nationality' => 'Malaysian',
-            'description' => 'some desc',
-        ]);
+        // Contact::create([
+        //     'name' => 'Lee',
+        //     'email' => 'lee@gmail.com',
+        //     'phone_no' => '01118882881',
+        //     'race' => 'Chinese',
+        //     'gender' => 'Male',
+        //     'nationality' => 'Malaysian',
+        //     'description' => 'some desc',
+        // ]);
 
         Property::create([
             'name' => 'Meta City',

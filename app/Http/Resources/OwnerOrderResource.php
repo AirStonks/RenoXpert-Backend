@@ -25,17 +25,12 @@ class OwnerOrderResource extends JsonResource
         return [
             'id' => $this->id,
             'order_no' => $this->order_no,
-            'contact_id' => $this->contact_id,
-            'contact' => [
-                'id' => $this->contact_id,
-                'name' => $this->contact->name,
-                'email' => $this->contact->email,
-                'phone_no' => $this->contact->phone_no,
-                'alt_phone_no' => $this->contact->alt_phone_no,
-                'race' => $this->contact->race,
-                'gender' => $this->contact->gender,
-                'nationality' => $this->contact->nationality,
-                'description' => $this->contact->description,
+            'user_id' => $this->user_id,
+            'user' => [
+                'id' => $this->user_id,
+                'name' => $this->user->name,
+                'email' => $this->user->email,
+                'phone_no' => $this->user->phone_no,
             ],
             'property_id' => $this->property_id,
             'property' => [

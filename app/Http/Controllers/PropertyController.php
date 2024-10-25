@@ -97,7 +97,7 @@ class PropertyController extends BaseController
             return $this->sendError('Contact not found.');
         }
 
-        return $this->sendResponse(new PropertyResource($property), 'Contact retrieved successfully.');
+        return $this->sendResponse(new PropertyResource($property), 'Property retrieved successfully.');
     }
 
     /**

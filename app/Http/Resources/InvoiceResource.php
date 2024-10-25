@@ -23,6 +23,7 @@ class InvoiceResource extends JsonResource
             'invoice_no' => $this->invoice_no,
             'amount' => $this->amount,
             'discountsData' => $this->discountsData,
+            'percentage' => $this->percentage,
             'FeesData' => $this->FeesData,
             'status' => $this->status,
             'link_status' => $this->link_status,

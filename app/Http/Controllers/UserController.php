@@ -10,15 +10,78 @@ use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-class UserController  extends BaseController
+class UserController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        //
+        // Retrieve the size parameter from the request with a default value of 5
+        $size = $request->input('size', 5);
+
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
+
+        // Build the query to retrieve user
+        $query = User::query();
+
+        // Apply search filter if a search term is provided
+        if (!empty($search)) {
+            $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+        }
+
+        // Paginate the results
+        $user = $query->paginate($size);
+
+        // Custom response to fit with Tailwind DataTable JSON format
+        $response = [
+            "page" => $user->currentPage(),  // Current page number
+            "pageCount" => $user->lastPage(), // Total number of pages
+            "sortField" => null,                 // Sorting field, if applicable
+            "sortOrder" => null,                 // Sorting order, if applicable
+            "totalCount" => $user->total(),  // Total number of items
+            "data" => UserResource::collection($user->items()) // Transformed user data
+        ];
+
+        return response()->json($response, 200);
     }
+
+    public function getUsersWithType(Request $request, $type)
+    {
+        // Retrieve the size parameter from the request with a default value of 5
+        $size = $request->input('size', 5);
+
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
+
+        // Build the query to retrieve user
+        $query = User::query();
+
+        // Filter for users of type
+        $query->where('type', $type);
+
+        // Apply search filter if a search term is provided
+        if (!empty($search)) {
+            $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+        }
+
+        // Paginate the results
+        $user = $query->paginate($size);
+
+        // Custom response to fit with Tailwind DataTable JSON format
+        $response = [
+            "page" => $user->currentPage(),  // Current page number
+            "pageCount" => $user->lastPage(), // Total number of pages
+            "sortField" => null,                 // Sorting field, if applicable
+            "sortOrder" => null,                 // Sorting order, if applicable
+            "totalCount" => $user->total(),  // Total number of items
+            "data" => UserResource::collection($user->items()) // Transformed user data
+        ];
+
+        return response()->json($response, 200);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -37,12 +100,12 @@ class UserController  extends BaseController
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
-            
+
             // Generate a random password of 18 characters
             $input['password'] = Str::random(16);
 
             $user = User::create($input);
-            
+
             return $this->sendResponse([new UserResource($user), 'new_password' => $input['password']], 'User added successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th);
@@ -51,10 +114,29 @@ class UserController  extends BaseController
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        $user = User::find($id);
+
+        if (is_null($user)) {
+            return $this->sendError('User not found.');
+        }
+
+        return $this->sendResponse(new UserResource($user), 'User retrieved successfully.');
     }
+
+    public function verifyExistsPhoneUser($phone)
+    {
+        $userExists = User::where('phone_no', $phone)->exists();
+
+        if ($userExists) {
+            return $this->sendResponse(null, 'User Exists.');
+        } else {
+            return $this->sendError('User not exists', null);
+        }
+    }
+
+
     /**
      * Update the specified resource in storage.
      */

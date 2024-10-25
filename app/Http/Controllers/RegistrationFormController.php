@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\RegistrationForm;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\RegistrationFormResource;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 
 class RegistrationFormController extends BaseController
 {
@@ -45,12 +48,20 @@ class RegistrationFormController extends BaseController
         return response()->json($response, 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function getOwnerRegistrationForms($phone_no)
     {
-        //
+        $forms = RegistrationForm::where('phone_no', $phone_no)->get();
+
+        return $this->sendResponse(RegistrationFormResource::collection($forms), 'Registration Form retrieved successfully.');
+    }
+
+    public function retrieveRegistrationForms()
+    {
+        $user = Auth::user();
+
+        $forms = RegistrationForm::where('phone_no', $user->phone_no)->get();
+
+        return $this->sendResponse(RegistrationFormResource::collection($forms), 'Registration Form retrieved successfully.');
     }
 
     /**
@@ -84,8 +95,39 @@ class RegistrationFormController extends BaseController
 
     public function submitForm(Request $request)
     {
+
         try {
+            // Validate incoming request
+            $request->validate([
+                'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf|max:2048',
+            ]);
+
+            $directory = 'uploads/files/form/reno'; // No 'public/' prefix here
+            Storage::makeDirectory('public/' . $directory); // Create the directory in the public disk
+
+            $uploadedFiles = [];
+            if ($request->has('attachments')) {
+                foreach ($request->attachments as $attachment) {
+                    $path = $attachment->store($directory, 'public'); // Specify the public disk
+                    $uploadedFiles[] = [
+                        'file_url' => Storage::url($path),
+                        'original_name' => $attachment->getClientOriginalName(),
+                    ];
+                }
+            }
+
             $input = $request->all();
+            $input['metadata'] = json_encode(['furnishing' => json_decode($input['furnishing']), 'questions' => json_decode($input['questions'])]);
+            $input['attachments'] = json_encode($uploadedFiles);
+
+            $metadata = json_decode($input['metadata']);
+
+            // // Now you can save $uploadedFiles to your database or return a response
+            // return response()->json([
+            //     'success' => false,
+            //     'files' => $uploadedFiles,
+            //     'others' => $input['metadata'],
+            // ]);
 
             $form = RegistrationForm::create($input);
 
@@ -97,6 +139,11 @@ class RegistrationFormController extends BaseController
                 ['phone_no' => $input['phone_no']],
                 [
                     'name' => $input['name_first'] . ' ' . $input['name_last'],
+                    'name_first' => $input['name_first'],
+                    'name_last' => $input['name_last'],
+                    'name_preferred' => $input['name_preferred'],
+                    'ic' => $input['ic'],
+                    'salutations' => $input['salutations'],
                     'email' => $input['email'],
                     'type' => 'owner'
                 ]
@@ -104,7 +151,10 @@ class RegistrationFormController extends BaseController
 
             return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form added successfully.');
         } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th);
+            return $this->sendError('Database Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
         }
     }
 
@@ -114,6 +164,8 @@ class RegistrationFormController extends BaseController
 
         $form->status = 'approved';
         $form->save();
+
+        $owner = User::where('phone_no', $form->phone_no);
 
         return $this->sendResponse(null, 'Registration Form Approved.');
     }
@@ -131,31 +183,86 @@ class RegistrationFormController extends BaseController
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
+        $input = $request->input();
         $form = RegistrationForm::find($id);
 
         if (is_null($form)) {
             return $this->sendError('Registration not found.');
         }
 
+        if ($input['originalForm'] === 'true') {
+            return $this->sendResponse($form, 'Registration Form retrieved successfully.');
+        }
+
         return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form retrieved successfully.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(RegistrationForm $registrationForm)
+    public function showRegistrationForm($id)
     {
-        //
+        $user = Auth::user();
+        $form = RegistrationForm::find($id);
+
+        if ($user->phone_no === $form->phone_no) {
+            return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form retrieved successfully.');
+        }
+
+        return $this->sendError('Registration not found.');
     }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, RegistrationForm $registrationForm)
+    public function update(Request $request, RegistrationForm $form)
     {
-        //
+        $input = $request->all();
+
+
+        // // Validate input data
+        // $validator = Validator::make($input, [
+        //     'name' => 'required|string|max:255',
+        //     'SKU' => 'nullable|string',
+        //     'category' => 'required|numeric',
+        //     'type' => 'required|string',
+        //     'description' => 'nullable|string',
+        //     'status' => 'nullable|string',
+        //     'product_retail_price' => 'required|numeric|min:0',
+        //     'product_cost_of_good_sold' => 'required|numeric|min:0',
+        //     'product_excluded_price' => 'required|numeric|min:0',
+        //     'premium_price' => 'nullable|numeric|min:0',
+        // ]);
+
+        $form = RegistrationForm::find($input['id']);
+
+        $input['metadata'] = json_encode(['furnishing' => $input['furnishing'], 'questions' => $input['questions']]);
+
+        $form->salutations = $input['salutations'];
+        $form->name_first = $input['name_first'];
+        $form->name_last = $input['name_last'];
+        $form->name_preferred = $input['name_preferred'];
+        $form->email = $input['email'];
+        $form->country_code = $input['country_code'];
+        $form->phone_no = $input['phone_no'];
+        $form->address_1 = $input['address_1'];
+        $form->address_2 = $input['address_2'];
+        $form->city = $input['city'];
+        $form->state = $input['state'];
+        $form->postcode = $input['postcode'];
+        $form->ic = $input['ic'];
+        $form->property_name = $input['property_name'];
+        $form->other_property_name = $input['other_property_name'];
+        $form->block = $input['block'];
+        $form->level = $input['level'];
+        $form->unit = $input['unit'];
+        $form->layout_type = $input['layout_type'];
+        $form->sqft = $input['sqft'];
+        $form->metadata = $input['metadata'];
+
+        $form->save();
+
+        return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form updated successfully.');
     }
 
     /**

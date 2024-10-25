@@ -37,6 +37,8 @@ Route::post('/sms-otp/verify/login', [OTPRequestController::class, 'verifyLoginO
 Route::post('/sms-otp/verify/', [OTPRequestController::class, 'verifyOtp'])->name('otp.verify');
 
 
+Route::get('/owner/check/list/user/{phone}', [UserController::class, 'verifyExistsPhoneUser']);
+
 // PUBLIC PROPERTIES
 Route::get('/public/properties', [PropertyController::class, 'getPublicProperties']);
 Route::post('/owner/reno-registration-form/overview/submit', [RegistrationFormController::class, 'submitForm']);
@@ -61,6 +63,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('/order/public/view/{id}', [OrderController::class, 'showOrderOverview']);
     Route::get('/owner/order/{id}', [OrderController::class, 'showOwnerOrder']);
     Route::get('/owner/orders', [OrderController::class, 'getOwnerOrders']);
+    Route::get('/owner/form/reno-registration-forms', [RegistrationFormController::class, 'retrieveRegistrationForms']);
+    Route::get('/owner/form/reno-registration-forms/{id}', [RegistrationFormController::class, 'showRegistrationForm']);
 
     // Change Invoice Link Status
     Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
@@ -78,6 +82,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('/users', UserController::class);
     Route::apiResource('/owner/reno-registration-form', RegistrationFormController::class);
 
+    Route::get('/users/type/{type}', [UserController::class, 'getUsersWithType']);
     Route::get('/owner/reno-registration-form/{id}/status/approve', [RegistrationFormController::class, 'approveForm']);
     Route::get('/owner/reno-registration-form/{id}/status/reject', [RegistrationFormController::class, 'rejectForm']);
 

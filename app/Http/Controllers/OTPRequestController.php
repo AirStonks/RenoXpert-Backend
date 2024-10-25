@@ -177,8 +177,8 @@ class OTPRequestController extends Controller
         // $mobile = substr($dectyptedMobile, 1);
         // $otpFormatMobile = '+6' . $dectyptedMobile;
         // $dectyptedMobile = Crypt::decryptString($input['mobH']);
-        $mobile = substr($input['mobile'], 1);
-        $otpFormatMobile = '+6' . $input['mobile'];
+        $mobile = $input['mobile'];
+        $otpFormatMobile = '+60' . $input['mobile'];
 
         // return ['1' => $dectyptedMobile, '2' => $mobile, '3' => $otpFormatMobile];
 

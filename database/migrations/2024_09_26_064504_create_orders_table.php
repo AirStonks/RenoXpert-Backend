@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_no')->unique();
-            $table->unsignedBigInteger('contact_id')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('property_id')->nullable();
             $table->string('block')->nullable();
             $table->string('floor')->nullable();
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->timestamps();
 
-            $table->foreign('contact_id')->references('id')->on('contacts')->onDelete('set null');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->foreign('property_id')->references('id')->on('properties')->onDelete('set null');
         });
     }

@@ -16,7 +16,7 @@ class Order extends Model
      */
     protected $fillable = [
         'order_no',
-        'contact_id',
+        'user_id',
         'property_id',
         'block',
         'floor',
@@ -26,9 +26,9 @@ class Order extends Model
         'status',
     ];
 
-    public function contact()
+    public function user()
     {
-        return $this->belongsTo(Contact::class, 'contact_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     public function property()

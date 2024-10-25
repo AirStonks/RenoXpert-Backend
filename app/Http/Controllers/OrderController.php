@@ -57,7 +57,7 @@ class OrderController extends BaseController
         $user = Auth::user();
 
         // Assuming you have a relationship set up in your Order model to access the contact
-        $orders = Order::whereHas('contact', function ($query) use ($user) {
+        $orders = Order::whereHas('user', function ($query) use ($user) {
             $query->where('phone_no', $user->phone_no);
         })->get();
 
@@ -75,7 +75,7 @@ class OrderController extends BaseController
 
             // Validate the input
             $validator = Validator::make($input, [
-                'contact_id' => 'required|numeric|max:255',
+                'user_id' => 'required|numeric|max:255',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
                 'block' => 'nullable|string|max:255',
@@ -145,7 +145,7 @@ class OrderController extends BaseController
             return $this->sendError('Order not found.');
         }
 
-        if ($order->contact->phone_no !== $user->phone_no) {
+        if ($order->user->phone_no !== $user->phone_no) {
             return $this->sendError('Invalid Credential');
         }
 
@@ -160,7 +160,7 @@ class OrderController extends BaseController
             return response()->json(['message' => 'Order not found'], 404);
         }
 
-        $mobile = $this->normalizePhoneNumber($order->contact->phone_no);
+        $mobile = $this->normalizePhoneNumber($order->user->phone_no);
         $lastFourMobile = substr($mobile, -4);
 
         return response()->json([
@@ -181,7 +181,7 @@ class OrderController extends BaseController
 
         $user = Auth::user();
 
-        $mobile = $this->normalizePhoneNumber($order->contact->phone_no);
+        $mobile = $this->normalizePhoneNumber($order->user->phone_no);
         $lastFourMobile = substr($mobile, -4);
 
         if (!$user) {
@@ -216,7 +216,7 @@ class OrderController extends BaseController
             $input = $request->all();
 
             $validator = Validator::make($input, [
-                'contact_id' => 'required|numeric|max:255',
+                'user_id' => 'required|numeric|max:255',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
                 'block' => 'nullable|string|max:255',
@@ -232,7 +232,7 @@ class OrderController extends BaseController
 
             $validatedData = $validator->validated();
 
-            $order->contact_id = $validatedData['contact_id'];
+            $order->user_id = $validatedData['user_id'];
             $order->property_id = $validatedData['property_id'];
             $order->block = $validatedData['block'];
             $order->floor = $validatedData['floor'];
