@@ -21,11 +21,14 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\OTPRequestController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\UserController;
+use App\Http\Resources\UserResource;
 use App\Models\Package;
 use App\Models\RegistrationForm;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 
 Route::get('/user', function (Request $request) {
-    return $request->user();
+    return 'new UserResource($request->user())';
 })->middleware('auth:sanctum');
 
 Route::get('/invoices/public/view/{id}', [InvoiceController::class, 'showPublicInvoice'])->name('invoice.public.show');
@@ -46,20 +49,20 @@ Route::post('/owner/reno-registration-form/overview/submit', [RegistrationFormCo
 // Confirm Order
 Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
 
-Route::controller(AuthController::class)->group(function(){
+Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login', 'login');
     Route::post('credential/verify', 'isAuthenticated');
 });
 
-Route::middleware('auth:sanctum')->group( function () {
+Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
-        return response()->json($request->user());
+        return response()->json(new UserResource($request->user()));
     });
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('changePassword');
-    
+
     Route::get('/order/public/view/{id}', [OrderController::class, 'showOrderOverview']);
     Route::get('/owner/order/{id}', [OrderController::class, 'showOwnerOrder']);
     Route::get('/owner/orders', [OrderController::class, 'getOwnerOrders']);
@@ -89,7 +92,7 @@ Route::middleware('auth:sanctum')->group( function () {
     // TEST
     Route::get('/data', [MyController::class, 'getData']);
     Route::get('/test', function () {
-        
+
         $package = Package::find(1);
 
         // $package->products()->attach(2);
@@ -99,5 +102,23 @@ Route::middleware('auth:sanctum')->group( function () {
         $package->products = $newPackage;
 
         return $package;
+    });
+
+
+    // DEV TOOLS
+    Route::get('/dev/database/refresh', function () {
+        Artisan::call('migrate:fresh --seed');
+
+        return 'Database migrated and seeded successfully!';
+    });
+
+    Route::get('/dev/storage/clear', function () {
+        $path = storage_path('app/public/uploads');
+
+        if (File::exists($path)) {
+            File::deleteDirectory($path);
+        }
+
+        return 'Uploads directory cleared successfully!';
     });
 });

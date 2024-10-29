@@ -8,6 +8,7 @@ use App\Models\RegistrationForm;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\RegistrationFormResource;
+use App\Models\Address;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 
@@ -145,9 +146,25 @@ class RegistrationFormController extends BaseController
                     'ic' => $input['ic'],
                     'salutations' => $input['salutations'],
                     'email' => $input['email'],
-                    'type' => 'owner'
+                    'type' => 'owner',
                 ]
             );
+
+            // Check if user was just created (which means it didn't exist before)
+            if ($user->wasRecentlyCreated) {
+                // If user is newly created, then create the address
+                $address = Address::create([
+                    'address_1' => $input['address_1'],
+                    'address_2' => $input['address_2'],
+                    'city' => $input['city'],
+                    'state' => $input['state'],
+                    'postcode' => $input['postcode'],
+                ]);
+
+                // Associate the address with the user
+                $user->address_id = $address->id;
+                $user->save();
+            }
 
             return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form added successfully.');
         } catch (\Throwable $th) {

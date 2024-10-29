@@ -76,7 +76,9 @@ class PackageController extends BaseController
                     'visibility' => $productInput['visibility'],
                     'included' => true,
                     'isOriginal' => true,
-                    'internal_note' => $productInput['internal_note']
+                    // 'internal_note' => $productInput['description_internal'],
+                    'includeSupply' => $productInput['supply'],
+                    'includeInstall' => $productInput['install']
                 ]);
             }
 
@@ -88,7 +90,10 @@ class PackageController extends BaseController
 
             return $this->sendResponse(new PackageResource($package), 'Package added successfully.');
         } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th);
+            return $this->sendError('Database Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
         }
     }
 

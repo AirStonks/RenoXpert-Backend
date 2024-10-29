@@ -7,6 +7,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
@@ -23,11 +24,27 @@ class User extends Authenticatable
         'name_last',
         'name_preferred',
         'salutations',
+        'ic',
         'email',
         'password',
         'phone_no',
         'type',
+        'created_by',
+        'updated_by',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->created_by = auth()->id(); // or your logic to get the user ID
+        });
+
+        static::updating(function ($model) {
+            $model->updated_by = auth()->id(); // or your logic to get the user ID
+        });
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -50,5 +67,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function address()
+    {
+        return $this->hasOne(Address::class, 'id', 'address_id');
     }
 }

@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('description_internal')->nullable();
             $table->string('category')->nullable();
             $table->double('total_price')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
         });
     }

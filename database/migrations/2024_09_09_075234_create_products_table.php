@@ -18,10 +18,15 @@ return new class extends Migration
             $table->string('SKU')->unique()->nullable();
             $table->string('type')->nullable();
             $table->string('description')->nullable();
+            $table->string('uom')->nullable();
             $table->double('product_retail_price')->nullable();
             $table->double('product_cost_of_good_sold')->nullable();
             $table->double('product_excluded_price')->nullable();
+            $table->double('supply_cost')->nullable();
+            $table->double('install_cost')->nullable();
             $table->string('status')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
 
             $table->foreign('category_id')->references('id')->on('product_categories')->onDelete('set null');

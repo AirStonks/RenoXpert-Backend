@@ -23,6 +23,8 @@ return new class extends Migration
             $table->date('due_date')->nullable();
             $table->JSON('discountsData')->nullable();
             $table->JSON('feesData')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
 
             $table->foreign('sale_id')->references('id')->on('sales')->onDelete('set null');

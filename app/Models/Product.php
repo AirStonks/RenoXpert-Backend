@@ -22,11 +22,30 @@ class Product extends Model
         'SKU',
         'type',
         'description',
+        'uom',
         'product_retail_price',
         'product_cost_of_good_sold',
         'product_excluded_price',
+        'supply_cost',
+        'install_cost',
         'status',
+        'created_by',
+        'updated_by',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->created_by = auth()->id(); // or your logic to get the user ID
+        });
+
+        static::updating(function ($model) {
+            $model->updated_by = auth()->id(); // or your logic to get the user ID
+        });
+    }
+
 
     public function category()
     {

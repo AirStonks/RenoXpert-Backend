@@ -21,6 +21,8 @@ return new class extends Migration
             $table->double('remaining_amount')->nullable();
             $table->double('remaining_percentage')->nullable();
             $table->string('status')->default('issued');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
             
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('set null');

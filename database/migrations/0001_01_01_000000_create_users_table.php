@@ -22,10 +22,15 @@ return new class extends Migration
             $table->string('email')->nullable()->unique();
             $table->string('type', 30);
             $table->string('phone_no', 15)->nullable();
+            $table->unsignedBigInteger('address_id')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->rememberToken();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
+
+            $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

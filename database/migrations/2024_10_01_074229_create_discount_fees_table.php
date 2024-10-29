@@ -18,6 +18,8 @@ return new class extends Migration
             $table->double('amount')->nullable();
             $table->double('percentage')->nullable();
             $table->string('status')->default('available');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
         });
     }

@@ -24,6 +24,7 @@ class QuotationResource extends JsonResource
             'valid_from' => $this->valid_from,
             'valid_until' => $this->valid_until,
             'metadata' => json_decode($this->metadata),
+            'packages' => json_decode($this->metadata),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];

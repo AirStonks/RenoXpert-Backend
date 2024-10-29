@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('currency');
             $table->string('description')->nullable();
             $table->string('status')->default('pending');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
 
             $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('set null');

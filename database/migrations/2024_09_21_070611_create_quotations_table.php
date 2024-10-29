@@ -20,6 +20,8 @@ return new class extends Migration
             $table->date('valid_from')->nullable();
             $table->date('valid_until')->nullable();
             $table->json('metadata')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
         });
     }

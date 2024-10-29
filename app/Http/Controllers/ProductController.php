@@ -70,9 +70,12 @@ class ProductController extends BaseController
                 'type' => 'required|string',
                 'description' => 'nullable|string',
                 'status' => 'nullable|string',
+                'uom' => 'required|string',
                 'product_retail_price' => 'required|numeric|min:0',
                 'product_cost_of_good_sold' => 'required|numeric|min:0',
                 'product_excluded_price' => 'required|numeric|min:0',
+                'supply_cost' => 'nullable|numeric|min:0',
+                'install_cost' => 'nullable|numeric|min:0',
                 'premium_price' => 'nullable|numeric|min:0',
             ]);
 
@@ -140,9 +143,12 @@ class ProductController extends BaseController
             'type' => 'required|string',
             'description' => 'nullable|string',
             'status' => 'nullable|string',
+            'uom' => 'required|string',
             'product_retail_price' => 'required|numeric|min:0',
             'product_cost_of_good_sold' => 'required|numeric|min:0',
             'product_excluded_price' => 'required|numeric|min:0',
+            'supply_cost' => 'nullable|numeric|min:0',
+            'install_cost' => 'nullable|numeric|min:0',
             'premium_price' => 'nullable|numeric|min:0',
         ]);
 
@@ -179,9 +185,12 @@ class ProductController extends BaseController
         $product->category_id = $validatedData['category_id'];
         $product->type = $validatedData['type'];
         $product->description = $validatedData['description'] ?? null;
+        $product->uom = $validatedData['uom'] ?? null;
         $product->product_retail_price = $validatedData['product_retail_price'];
         $product->product_cost_of_good_sold = $validatedData['product_cost_of_good_sold'];
         $product->product_excluded_price = $validatedData['product_excluded_price'];
+        $product->supply_cost = $validatedData['supply_cost'];
+        $product->install_cost = $validatedData['install_cost'];
         $product->status = $validatedData['status'] ?? null;
 
 

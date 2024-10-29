@@ -25,6 +25,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'phone_no' => $this->phone_no,
             'type' => $this->type,
+            'address' => $this->address ? $this->address : null,
             'email_verified_at' => $this->email_verified_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

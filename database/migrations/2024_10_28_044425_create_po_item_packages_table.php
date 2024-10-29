@@ -11,16 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contacts', function (Blueprint $table) {
+        Schema::create('po_item_packages', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->nullable();
-            $table->string('phone_no')->nullable();
-            $table->string('alt_phone_no')->nullable();
-            $table->string('race')->nullable();
-            $table->string('gender')->nullable();
-            $table->string('nationality')->nullable();
-            $table->string('description')->nullable();
+            $table->unsignedBigInteger('po_id')->nullable();
+            $table->unsignedBigInteger('origin_package')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
@@ -32,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('contacts');
+        Schema::dropIfExists('po_item_packages');
     }
 };

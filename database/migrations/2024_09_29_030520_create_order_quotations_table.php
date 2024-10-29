@@ -19,6 +19,8 @@ return new class extends Migration
             $table->integer('version');
             $table->double('total_amount')->nullable();
             $table->json('metadata')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
 
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('set null');

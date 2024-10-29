@@ -22,6 +22,8 @@ return new class extends Migration
             $table->double('total_amount')->nullable();
             $table->string('description')->nullable();
             $table->string('status')->default('pending');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');

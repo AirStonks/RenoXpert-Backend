@@ -19,5 +19,7 @@ class OTPRequest extends Model
         'sms_id',
         'token',
         'expires_at',
+        'created_by',
+        'updated_by',
     ];
 }

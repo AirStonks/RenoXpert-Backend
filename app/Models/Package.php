@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Package extends Model
 {
@@ -19,7 +20,22 @@ class Package extends Model
         'description',
         'category',
         'total_price',
+        'created_by',
+        'updated_by',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->created_by = auth()->id(); // or your logic to get the user ID
+        });
+
+        static::updating(function ($model) {
+            $model->updated_by = auth()->id(); // or your logic to get the user ID
+        });
+    }
     
     public function products()
     {
@@ -29,6 +45,8 @@ class Package extends Model
             ->withPivot('included')
             ->withPivot('isOriginal')
             ->withPivot('internal_note')
+            ->withPivot('includeSupply')
+            ->withPivot('includeInstall')
             ->withTimestamps();
     }
 

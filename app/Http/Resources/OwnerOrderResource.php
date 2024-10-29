@@ -30,7 +30,9 @@ class OwnerOrderResource extends JsonResource
                 'id' => $this->user_id,
                 'name' => $this->user->name,
                 'email' => $this->user->email,
+                'ic' => $this->user->ic,
                 'phone_no' => $this->user->phone_no,
+                'address' => $this->user->address,
             ],
             'property_id' => $this->property_id,
             'property' => [

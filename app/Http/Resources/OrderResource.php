@@ -30,7 +30,9 @@ class OrderResource extends JsonResource
                 'id' => $this->user_id,
                 'name' => $this->user->name,
                 'email' => $this->user->email,
+                'ic' => $this->user->ic,
                 'phone_no' => $this->user->phone_no,
+                'address' => $this->user->address,
             ],
             'property_id' => $this->property_id,
             'property' => [
@@ -43,6 +45,7 @@ class OrderResource extends JsonResource
                 'state' => $this->property->state,
                 'description' => $this->property->description,
             ],
+            'latest_quotation_test' => $latestQuotation ? new OrderQuotationResource($latestQuotation) : null,
             'order_quotations' => $orderQuotations, // This is now sorted in descending order
             'latest_quotation' => $latestQuotation ? $latestQuotation : null,
             'block' => $this->block,
