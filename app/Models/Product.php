@@ -6,11 +6,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-  
+
 class Product extends Model
 {
     use HasFactory;
-  
+
     /**
      * The attributes that are mass assignable.
      *
@@ -23,11 +23,6 @@ class Product extends Model
         'type',
         'description',
         'uom',
-        'product_retail_price',
-        'product_cost_of_good_sold',
-        'product_excluded_price',
-        'supply_cost',
-        'install_cost',
         'status',
         'created_by',
         'updated_by',
@@ -46,9 +41,18 @@ class Product extends Model
         });
     }
 
-
     public function category()
     {
         return $this->belongsTo(ProductCategory::class, 'category_id', 'id');
+    }
+
+    public function productSupply()
+    {
+        return $this->hasOne(ProductSupply::class, 'product_id', 'id');
+    }
+
+    public function productInstall()
+    {
+        return $this->hasOne(ProductInstall::class, 'product_id', 'id');
     }
 }

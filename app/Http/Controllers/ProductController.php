@@ -8,6 +8,8 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ProductResource;
+use App\Models\ProductInstall;
+use App\Models\ProductSupply;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -71,12 +73,12 @@ class ProductController extends BaseController
                 'description' => 'nullable|string',
                 'status' => 'nullable|string',
                 'uom' => 'required|string',
-                'product_retail_price' => 'required|numeric|min:0',
-                'product_cost_of_good_sold' => 'required|numeric|min:0',
-                'product_excluded_price' => 'required|numeric|min:0',
-                'supply_cost' => 'nullable|numeric|min:0',
-                'install_cost' => 'nullable|numeric|min:0',
-                'premium_price' => 'nullable|numeric|min:0',
+                'provisioning.supply.retail_price' => 'required|numeric|min:0',
+                'provisioning.supply.cogs' => 'required|numeric|min:0',
+                'provisioning.supply.excluded_price' => 'required|numeric|min:0',
+                'provisioning.install.retail_price' => 'required|numeric|min:0',
+                'provisioning.install.cogs' => 'required|numeric|min:0',
+                'provisioning.install.excluded_price' => 'required|numeric|min:0',
             ]);
 
             // Apply unique validation for SKU only if it's provided
@@ -100,6 +102,22 @@ class ProductController extends BaseController
 
             // Create the product
             $product = Product::create($validatedData);
+
+            // Create Product Supply
+            $productSupply = ProductSupply::create([
+                'product_id' => $product->id,
+                'retail_price' => $validatedData['provisioning']['supply']['retail_price'],
+                'cogs' => $validatedData['provisioning']['supply']['cogs'],
+                'excluded_price' => $validatedData['provisioning']['supply']['excluded_price'],
+            ]);
+
+            // Create Product Install
+            $productInstall = ProductInstall::create([
+                'product_id' => $product->id,
+                'retail_price' => $validatedData['provisioning']['install']['retail_price'],
+                'cogs' => $validatedData['provisioning']['install']['cogs'],
+                'excluded_price' => $validatedData['provisioning']['install']['excluded_price'],
+            ]);
 
             return $this->sendResponse(new ProductResource($product), 'Product created successfully.');
         } catch (\Throwable $th) {
