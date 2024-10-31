@@ -63,13 +63,13 @@ class PackageController extends BaseController
 
             $package = Package::create($input);
 
-            $totalAmount = 0.0;
+            // $totalAmount = 0.0;
 
             foreach ($input['products'] as $productInput) {
 
                 $product = Product::find($productInput['id']);
 
-                $totalAmount += $product->product_retail_price * $productInput['quantity'];
+                // $totalAmount += $product->product_retail_price * $productInput['quantity'];
 
                 $package->products()->attach($productInput['id'], [
                     'quantity' => $productInput['quantity'],
@@ -82,7 +82,7 @@ class PackageController extends BaseController
                 ]);
             }
 
-            $package->total_price = $totalAmount;
+            // $package->total_price = $totalAmount;
 
             $package->save();
 
