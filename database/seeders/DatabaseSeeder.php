@@ -6,6 +6,8 @@ use App\Models\Contact;
 use App\Models\Package;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductInstall;
+use App\Models\ProductSupply;
 use App\Models\Property;
 use App\Models\Quotation;
 use App\Models\User;
@@ -25,8 +27,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Super Admin',
             'name_first' => 'Super',
             'name_last' => 'Admin',
-            'email' => 'dev@gmail.com',
-            'password' => 'developer',
+            'email' => 'dev@belive.asia',
+            'password' => '12345678',
             'phone_no' => '0123456789',
             'type' => 'super-admin',
         ]);
@@ -76,851 +78,1753 @@ class DatabaseSeeder extends Seeder
             'description' => 'Other category products goes this category',
         ]);
 
-        // Product::create([
-        //     'id' => 1,
-        //     'name' => 'Accent Wall - Designer-look painting',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 300.00,
-        //     'product_cost_of_good_sold' => 150.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        Product::create([
+            'id' => 1,
+            'name' => 'Accent Wall - Designer-look painting',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            // 'product_retail_price' => 300.00,
+            // 'product_cost_of_good_sold' => 130.00,
+            // 'product_excluded_price' => 150.00,
+            'description' => '',
+            'uom' => 'set',
+        ]);
 
-        // Product::create([
-        //     'id' => 2,
-        //     'name' => 'Built-In Queen-sized Bedhead & Bedframe',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 550.00,
-        //     'product_cost_of_good_sold' => 390.00,
-        //     'product_excluded_price' => 460.00,
-        //     'description' => 'with 2nos Soft-Close System Drawers, Fabricated w/ LED strip & 13A plugpoint',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 1,
+            'retail_price' => 110.0,
+            'cogs' => 50.0,
+            'excluded_price' => 50.0,
+        ]);
 
-        // Product::create([
-        //     'id' => 3,
-        //     'name' => 'Built-In 3 Doors Swing Wardrobe',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 700.00,
-        //     'product_cost_of_good_sold' => 415.00,
-        //     'product_excluded_price' => 610.00,
-        //     'description' => 'with full height mirror (1200mm (W) x 2400mm (H) x 480mm (D),Fabricated w/ LED strip & 2nos 13A plugpoints',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 1,
+            'retail_price' => 190.0,
+            'cogs' => 80.0,
+            'excluded_price' => 100.0,
+        ]);
 
-        // Product::create([
-        //     'id' => 4,
-        //     'name' => 'Built-In Study Table Set',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 300.00,
-        //     'product_cost_of_good_sold' => 230.00,
-        //     'product_excluded_price' => 250.00,
-        //     'description' => '750mm (W) x 750mm (H) x 480mm (D) Fabricated w/ 13A plugpoints',
-        // ]);
+        Product::create([
+            'id' => 2,
+            'name' => 'Built-In Queen-sized Bedhead & Bedframe',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            // 'product_retail_price' => 550.00,
+            // 'product_cost_of_good_sold' => 390.00,
+            // 'product_excluded_price' => 460.00,
+            'description' => 'with 2nos Soft-Close System Drawers, Fabricated w/ LED strip & 13A plugpoint',
+            'uom' => 'set'
+        ]);
 
-        // Product::create([
-        //     'id' => 5,
-        //     'name' => 'Built-In Wall-Mounted Cabinet Unit',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 200.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 130.00,
-        //     'description' => 'Fabricated w/ LED Strip',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 2,
+            'retail_price' => 320.0,
+            'cogs' => 250.0,
+            'excluded_price' => 280.0,
+        ]);
 
-        // Product::create([
-        //     'id' => 6,
-        //     'name' => 'Goodnite Branded - 10" Queen-sized mattress with 10 years warranty',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 800.00,
-        //     'product_cost_of_good_sold' => 500.00,
-        //     'product_excluded_price' => 600.00,
-        //     'description' => 'Bathroom Wall Mirror',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 2,
+            'retail_price' => 230.0,
+            'cogs' => 140.0,
+            'excluded_price' => 180.0,
+        ]);
 
-        // Product::create([
-        //     'id' => 7,
-        //     'name' => 'Protector, Pillow, Queen-sized bedsheet set with comforter',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 300.00,
-        //     'product_cost_of_good_sold' => 100.00,
-        //     'product_excluded_price' => 200.00,
-        //     'description' => '',
-        // ]);
+        Product::create([
+            'id' => 3,
+            'name' => 'Built-In 3 Doors Swing Wardrobe',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            // 'product_retail_price' => 700.00,
+            // 'product_cost_of_good_sold' => 415.00,
+            // 'product_excluded_price' => 610.00,
+            'description' => 'with full height mirror (1200mm (W) x 2400mm (H) x 480mm (D),Fabricated w/ LED strip & 2nos 13A plugpoints',
+            'uom' => 'set'
+        ]);
 
-        // Product::create([
-        //     'id' => 8,
-        //     'name' => 'Optimal-Designed Writing Chair',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 150.00,
-        //     'product_cost_of_good_sold' => 100.00,
-        //     'product_excluded_price' => 100.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 3,
+            'retail_price' => 480.0,
+            'cogs' => 255.0,
+            'excluded_price' => 410.0,
+        ]);
 
-        // Product::create([
-        //     'id' => 9,
-        //     'name' => 'Semi blackout full length curtain',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 500.00,
-        //     'product_cost_of_good_sold' => 400.00,
-        //     'product_excluded_price' => 400.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 3,
+            'retail_price' => 220.0,
+            'cogs' => 160.0,
+            'excluded_price' => 200.0,
+        ]);
 
-        // Product::create([
-        //     'id' => 10,
-        //     'name' => 'Soft LED lighting',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 180.00,
-        //     'product_cost_of_good_sold' => 150.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '(2 downlights & 1 track light)',
-        // ]);
+        Product::create([
+            'id' => 4,
+            'name' => 'Built-In Study Table Set',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            // 'product_retail_price' => 300.00,
+            // 'product_cost_of_good_sold' => 230.00,
+            // 'product_excluded_price' => 250.00,
+            'description' => '750mm (W) x 750mm (H) x 480mm (D) Fabricated w/ 13A plugpoints',
+            'uom' => 'set'
+        ]);
 
-        // Product::create([
-        //     'id' => 11,
-        //     'name' => 'Supply and install a branded ceiling fan',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 200.00,
-        //     'product_cost_of_good_sold' => 180.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 4,
+            'retail_price' => 230.0,
+            'cogs' => 185.0,
+            'excluded_price' => 200.0,
+        ]);
 
-        // Product::create([
-        //     'id' => 12,
-        //     'name' => 'Designer-Approved Decorative set',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 200.00,
-        //     'product_cost_of_good_sold' => 150.00,
-        //     'product_excluded_price' => 150.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 4,
+            'retail_price' => 70.0,
+            'cogs' => 45.0,
+            'excluded_price' => 50.0,
+        ]);
 
-        // Product::create([
-        //     'id' => 13,
-        //     'name' => '9.5mm drywall partition, with skim, paint, knobs, hinges, and wooden door',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 2000.00,
-        //     'product_cost_of_good_sold' => 1600.00,
-        //     'product_excluded_price' => 1800.00,
-        //     'description' => ' (< 150sqft)',
-        // ]);
+        Product::create([
+            'id' => 5,
+            'name' => 'Built-In Wall-Mounted Cabinet Unit',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            // 'product_retail_price' => 200.00,
+            // 'product_cost_of_good_sold' => 0.00,
+            // 'product_excluded_price' => 130.00,
+            'description' => 'Fabricated w/ LED Strip',
+            'uom' => 'unit'
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 5,
+            'retail_price' => 130.0,
+            'cogs' => 0.0,
+            'excluded_price' => 85.0,
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 5,
+            'retail_price' => 70.0,
+            'cogs' => 0.0,
+            'excluded_price' => 45.0,
+        ]);
+
+        // Product 6
+        Product::create([
+            'id' => 6,
+            'name' => 'Goodnite Branded - 10" Queen-sized mattress with 10 years warranty',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => 'Bathroom Wall Mirror',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 6,
+            'retail_price' => 800.00 * (3 / 5), // 480.00
+            'cogs' => 500.00 * (3 / 5), // 300.00
+            'excluded_price' => 600.00 * (3 / 5), // 360.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 6,
+            'retail_price' => 800.00 * (2 / 5), // 320.00
+            'cogs' => 500.00 * (2 / 5), // 200.00
+            'excluded_price' => 600.00 * (2 / 5), // 240.00
+        ]);
+
+        // Product 7
+        Product::create([
+            'id' => 7,
+            'name' => 'Protector, Pillow, Queen-sized bedsheet set with comforter',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'set',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 7,
+            'retail_price' => 300.00 * (3 / 5), // 180.00
+            'cogs' => 100.00 * (3 / 5), // 60.00
+            'excluded_price' => 200.00 * (3 / 5), // 120.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 7,
+            'retail_price' => 300.00 * (2 / 5), // 120.00
+            'cogs' => 100.00 * (2 / 5), // 40.00
+            'excluded_price' => 200.00 * (2 / 5), // 80.00
+        ]);
+
+        // Product 8
+        Product::create([
+            'id' => 8,
+            'name' => 'Optimal-Designed Writing Chair',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 8,
+            'retail_price' => 150.00 * (3 / 5), // 90.00
+            'cogs' => 100.00 * (3 / 5), // 60.00
+            'excluded_price' => 100.00 * (3 / 5), // 60.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 8,
+            'retail_price' => 150.00 * (2 / 5), // 60.00
+            'cogs' => 100.00 * (2 / 5), // 40.00
+            'excluded_price' => 100.00 * (2 / 5), // 40.00
+        ]);
+
+        // Product 9
+        Product::create([
+            'id' => 9,
+            'name' => 'Semi blackout full length curtain',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'set',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 9,
+            'retail_price' => 500.00 * (3 / 5), // 300.00
+            'cogs' => 400.00 * (3 / 5), // 240.00
+            'excluded_price' => 400.00 * (3 / 5), // 240.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 9,
+            'retail_price' => 500.00 * (2 / 5), // 200.00
+            'cogs' => 400.00 * (2 / 5), // 160.00
+            'excluded_price' => 400.00 * (2 / 5), // 160.00
+        ]);
+
+        // Product 10
+        Product::create([
+            'id' => 10,
+            'name' => 'Soft LED lighting',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '(2 downlights & 1 track light)',
+            'uom' => 'set',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 10,
+            'retail_price' => 180.00 * (3 / 5), // 108.00
+            'cogs' => 150.00 * (3 / 5), // 90.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 10,
+            'retail_price' => 180.00 * (2 / 5), // 72.00
+            'cogs' => 150.00 * (2 / 5), // 60.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+
+        // Product 11
+        Product::create([
+            'id' => 11,
+            'name' => 'Supply and install a branded ceiling fan',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 11,
+            'retail_price' => 200.00 * (3 / 5), // 120.00
+            'cogs' => 180.00 * (3 / 5), // 108.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 11,
+            'retail_price' => 200.00 * (2 / 5), // 80.00
+            'cogs' => 180.00 * (2 / 5), // 72.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 12
+        Product::create([
+            'id' => 12,
+            'name' => 'Designer-Approved Decorative set',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'set',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 12,
+            'retail_price' => 200.00 * (3 / 5), // 120.00
+            'cogs' => 150.00 * (3 / 5), // 90.00
+            'excluded_price' => 150.00 * (3 / 5), // 90.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 12,
+            'retail_price' => 200.00 * (2 / 5), // 80.00
+            'cogs' => 150.00 * (2 / 5), // 60.00
+            'excluded_price' => 150.00 * (2 / 5), // 60.00
+        ]);
+
+        // Product 13
+        Product::create([
+            'id' => 13,
+            'name' => '9.5mm drywall partition, with skim, paint, knobs, hinges, and wooden door',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => ' (< 150sqft)',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 13,
+            'retail_price' => 2000.00 * (3 / 5), // 1200.00
+            'cogs' => 1600.00 * (3 / 5), // 960.00
+            'excluded_price' => 1800.00 * (3 / 5), // 1080.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 13,
+            'retail_price' => 2000.00 * (2 / 5), // 800.00
+            'cogs' => 1600.00 * (2 / 5), // 640.00
+            'excluded_price' => 1800.00 * (2 / 5), // 720.00
+        ]);
+
 
         // // ---------------------------------------------------
 
-        // Product::create([
-        //     'id' => 14,
-        //     'name' => 'Accent Wall - Designer-look painting',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 300.00,
-        //     'product_cost_of_good_sold' => 150.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        // Product 14
+        Product::create([
+            'id' => 14,
+            'name' => 'Accent Wall - Designer-look painting',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'set',
+        ]);
 
-        // Product::create([
-        //     'id' => 15,
-        //     'name' => 'Built-In Single-sized Bedhead & Bedframe',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 400.00,
-        //     'product_cost_of_good_sold' => 280.00,
-        //     'product_excluded_price' => 380.00,
-        //     'description' => 'with 2nos Soft-Close System Drawers, Fabricated w/ LED strip & 13A plugpoint',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 14,
+            'retail_price' => 300.00 * (3 / 5), // 180.00
+            'cogs' => 150.00 * (3 / 5), // 90.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
 
-        // Product::create([
-        //     'id' => 16,
-        //     'name' => 'Built-In 2 Doors Swing Wardrobe',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 500.00,
-        //     'product_cost_of_good_sold' => 290.00,
-        //     'product_excluded_price' => 480.00,
-        //     'description' => 'with full height mirror (1200mm (W) x 2400mm (H) x 480mm (D),Fabricated w/ LED strip & 2nos 13A plugpoints',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 14,
+            'retail_price' => 300.00 * (2 / 5), // 120.00
+            'cogs' => 150.00 * (2 / 5), // 60.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
 
-        // Product::create([
-        //     'id' => 17,
-        //     'name' => 'Built-In Study Table Set',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 300.00,
-        //     'product_cost_of_good_sold' => 230.00,
-        //     'product_excluded_price' => 250.00,
-        //     'description' => '750mm (W) x 750mm (H) x 480mm (D) Fabricated w/ 13A plugpoints',
-        // ]);
+        // Product 15
+        Product::create([
+            'id' => 15,
+            'name' => 'Built-In Single-sized Bedhead & Bedframe',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => 'with 2nos Soft-Close System Drawers, Fabricated w/ LED strip & 13A plugpoint',
+            'uom' => 'set',
+        ]);
 
-        // Product::create([
-        //     'id' => 18,
-        //     'name' => 'Built-In Wall-Mounted Cabinet Unit',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 200.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 130.00,
-        //     'description' => 'Fabricated w/ LED Strip',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 15,
+            'retail_price' => 400.00 * (3 / 5), // 240.00
+            'cogs' => 280.00 * (3 / 5), // 168.00
+            'excluded_price' => 380.00 * (3 / 5), // 228.00
+        ]);
 
-        // Product::create([
-        //     'id' => 19,
-        //     'name' => 'Goodnite Branded - 10" Single-sized mattress with 10 years warranty',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 800.00,
-        //     'product_cost_of_good_sold' => 350.00,
-        //     'product_excluded_price' => 638.00,
-        //     'description' => 'Damask Fabric w/ Posture Spring System, Non-Flip Tech',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 15,
+            'retail_price' => 400.00 * (2 / 5), // 160.00
+            'cogs' => 280.00 * (2 / 5), // 112.00
+            'excluded_price' => 380.00 * (2 / 5), // 152.00
+        ]);
 
-        // Product::create([
-        //     'id' => 20,
-        //     'name' => 'Protector, Pillow, Single-sized bedsheet set with comforter',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 180.00,
-        //     'product_cost_of_good_sold' => 100.00,
-        //     'product_excluded_price' => 150.00,
-        //     'description' => '',
-        // ]);
+        // Product 16
+        Product::create([
+            'id' => 16,
+            'name' => 'Built-In 2 Doors Swing Wardrobe',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => 'with full height mirror (1200mm (W) x 2400mm (H) x 480mm (D), Fabricated w/ LED strip & 2nos 13A plugpoints',
+            'uom' => 'set',
+        ]);
 
-        // Product::create([
-        //     'id' => 21,
-        //     'name' => 'Optimal-Designed Writing Chair',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 150.00,
-        //     'product_cost_of_good_sold' => 100.00,
-        //     'product_excluded_price' => 100.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 16,
+            'retail_price' => 500.00 * (3 / 5), // 300.00
+            'cogs' => 290.00 * (3 / 5), // 174.00
+            'excluded_price' => 480.00 * (3 / 5), // 288.00
+        ]);
 
-        // Product::create([
-        //     'id' => 22,
-        //     'name' => 'Semi blackout full length curtain',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 500.00,
-        //     'product_cost_of_good_sold' => 400.00,
-        //     'product_excluded_price' => 400.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 16,
+            'retail_price' => 500.00 * (2 / 5), // 200.00
+            'cogs' => 290.00 * (2 / 5), // 116.00
+            'excluded_price' => 480.00 * (2 / 5), // 192.00
+        ]);
 
-        // Product::create([
-        //     'id' => 23,
-        //     'name' => 'Soft LED lighting',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 180.00,
-        //     'product_cost_of_good_sold' => 150.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '(2 downlights & 1 track light)',
-        // ]);
+        // Product 17
+        Product::create([
+            'id' => 17,
+            'name' => 'Built-In Study Table Set',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '750mm (W) x 750mm (H) x 480mm (D) Fabricated w/ 13A plugpoints',
+            'uom' => 'set',
+        ]);
 
-        // Product::create([
-        //     'id' => 24,
-        //     'name' => 'Supply and install a branded ceiling fan',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 200.00,
-        //     'product_cost_of_good_sold' => 180.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 17,
+            'retail_price' => 300.00 * (3 / 5), // 180.00
+            'cogs' => 230.00 * (3 / 5), // 138.00
+            'excluded_price' => 250.00 * (3 / 5), // 150.00
+        ]);
 
-        // Product::create([
-        //     'id' => 25,
-        //     'name' => 'Designer-Approved Decorative set',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 200.00,
-        //     'product_cost_of_good_sold' => 150.00,
-        //     'product_excluded_price' => 150.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 17,
+            'retail_price' => 300.00 * (2 / 5), // 120.00
+            'cogs' => 230.00 * (2 / 5), // 92.00
+            'excluded_price' => 250.00 * (2 / 5), // 100.00
+        ]);
 
-        // Product::create([
-        //     'id' => 26,
-        //     'name' => '9.5mm drywall partition, with skim, paint, knobs, hinges, and wooden door',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 1800.00,
-        //     'product_cost_of_good_sold' => 1600.00,
-        //     'product_excluded_price' => 1600.00,
-        //     'description' => ' (< 150sqft)',
-        // ]);
+        // Product 18
+        Product::create([
+            'id' => 18,
+            'name' => 'Built-In Wall-Mounted Cabinet Unit',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => 'Fabricated w/ LED Strip',
+            'uom' => 'unit',
+        ]);
 
-        // // ===================================================================
-        // // ===================================================================
-        // // ===================================================================
+        ProductSupply::create([
+            'product_id' => 18,
+            'retail_price' => 200.00 * (3 / 5), // 120.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 130.00 * (3 / 5), // 78.00
+        ]);
 
-        // Product::create([
-        //     'id' => 27,
-        //     'name' => 'Soft LED lighting (2 lights / track lights) & required wiring works',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 480.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 150.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 18,
+            'retail_price' => 200.00 * (2 / 5), // 80.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 130.00 * (2 / 5), // 52.00
+        ]);
 
-        // Product::create([
-        //     'id' => 28,
-        //     'name' => '5ft - 7ft Built-In Kitchen Cabinet Package with LED Ambient Strip',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 5000.00,
-        //     'product_cost_of_good_sold' => 2600.00,
-        //     'product_excluded_price' => 3000.00,
-        //     'description' => '',
-        // ]);
+        // Product 19
+        Product::create([
+            'id' => 19,
+            'name' => 'Goodnite Branded - 10" Single-sized mattress with 10 years warranty',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => 'Damask Fabric w/ Posture Spring System, Non-Flip Tech',
+            'uom' => 'unit',
+        ]);
 
-        // // ===================================================================
-        // // ===================================================================
-        // // ===================================================================
+        ProductSupply::create([
+            'product_id' => 19,
+            'retail_price' => 800.00 * (3 / 5), // 480.00
+            'cogs' => 350.00 * (3 / 5), // 210.00
+            'excluded_price' => 638.00 * (3 / 5), // 382.80
+        ]);
 
-        // Product::create([
-        //     'id' => 29,
-        //     'name' => 'Dining bar table',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 500.00,
-        //     'product_cost_of_good_sold' => 480.00,
-        //     'product_excluded_price' => 480.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 19,
+            'retail_price' => 800.00 * (2 / 5), // 320.00
+            'cogs' => 350.00 * (2 / 5), // 140.00
+            'excluded_price' => 638.00 * (2 / 5), // 255.20
+        ]);
 
-        // Product::create([
-        //     'id' => 30,
-        //     'name' => 'Dining chairs',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 120.00,
-        //     'product_cost_of_good_sold' => 100.00,
-        //     'product_excluded_price' => 100.00,
-        //     'description' => '',
-        // ]);
+        // Product 20
+        Product::create([
+            'id' => 20,
+            'name' => 'Protector, Pillow, Single-sized bedsheet set with comforter',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'set',
+        ]);
 
-        // Product::create([
-        //     'id' => 31,
-        //     'name' => 'Built-In Shoe Cabinet (W:900mm x H:1200mm x D:350mm)',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 430.00,
-        //     'product_cost_of_good_sold' => 400.00,
-        //     'product_excluded_price' => 400.00,
-        //     'description' => ' with Bench (W:500mm x H:450mm x D:350mm)',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 20,
+            'retail_price' => 180.00 * (3 / 5), // 108.00
+            'cogs' => 100.00 * (3 / 5), // 60.00
+            'excluded_price' => 150.00 * (3 / 5), // 90.00
+        ]);
 
-        // Product::create([
-        //     'id' => 32,
-        //     'name' => 'Supply and install cloth hanger',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 180.00,
-        //     'product_cost_of_good_sold' => 150.00,
-        //     'product_excluded_price' => 150.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 20,
+            'retail_price' => 180.00 * (2 / 5), // 72.00
+            'cogs' => 100.00 * (2 / 5), // 40.00
+            'excluded_price' => 150.00 * (2 / 5), // 60.00
+        ]);
 
-        // Product::create([
-        //     'id' => 33,
-        //     'name' => 'Fire extinguishers (Dining)',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 80.00,
-        //     'product_cost_of_good_sold' => 50.00,
-        //     'product_excluded_price' => 50.00,
-        //     'description' => '',
-        // ]);
+        // Product 21
+        Product::create([
+            'id' => 21,
+            'name' => 'Optimal-Designed Writing Chair',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
 
-        // Product::create([
-        //     'id' => 34,
-        //     'name' => 'Soft LED lighting (Dining)',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 250.00,
-        //     'product_cost_of_good_sold' => 210.00,
-        //     'product_excluded_price' => 210.00,
-        //     'description' => '(Downlights & Pendant Light)',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 21,
+            'retail_price' => 150.00 * (3 / 5), // 90.00
+            'cogs' => 100.00 * (3 / 5), // 60.00
+            'excluded_price' => 100.00 * (3 / 5), // 60.00
+        ]);
 
-        // Product::create([
-        //     'id' => 35,
-        //     'name' => 'Additional wiring-related work for plugs for Wifi & CCTV',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 30.00,
-        //     'product_cost_of_good_sold' => 25.00,
-        //     'product_excluded_price' => 25.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 21,
+            'retail_price' => 150.00 * (2 / 5), // 60.00
+            'cogs' => 100.00 * (2 / 5), // 40.00
+            'excluded_price' => 100.00 * (2 / 5), // 40.00
+        ]);
 
-        // // ===================================================================
-        // // ===================================================================
-        // // ===================================================================
+        // Product 22
+        Product::create([
+            'id' => 22,
+            'name' => 'Semi blackout full length curtain',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
 
-        // Product::create([
-        //     'id' => 36,
-        //     'name' => 'Fire extinguishers (Commune Living Space)',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 250.00,
-        //     'product_cost_of_good_sold' => 200.00,
-        //     'product_excluded_price' => 200.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 22,
+            'retail_price' => 500.00 * (3 / 5), // 300.00
+            'cogs' => 400.00 * (3 / 5), // 240.00
+            'excluded_price' => 400.00 * (3 / 5), // 240.00
+        ]);
 
-        // Product::create([
-        //     'id' => 37,
-        //     'name' => 'Soft LED lighting (Commune Living Space)',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 220.00,
-        //     'product_cost_of_good_sold' => 200.00,
-        //     'product_excluded_price' => 200.00,
-        //     'description' => '(Downlights & Pendant Light)',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 22,
+            'retail_price' => 500.00 * (2 / 5), // 200.00
+            'cogs' => 400.00 * (2 / 5), // 160.00
+            'excluded_price' => 400.00 * (2 / 5), // 160.00
+        ]);
 
-        // Product::create([
-        //     'id' => 38,
-        //     'name' => 'Supply and install branded ceiling fan',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 200.00,
-        //     'product_cost_of_good_sold' => 180.00,
-        //     'product_excluded_price' => 180.00,
-        //     'description' => '(Living Space & Dining Space)',
-        // ]);
 
-        // Product::create([
-        //     'id' => 40,
-        //     'name' => 'Curtain (semi blackout full length) with track',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 550.00,
-        //     'product_cost_of_good_sold' => 500.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
-        
-        // Product::create([
-        //     'id' => 41,
-        //     'name' => 'Tatami Living Platform ',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 800.00,
-        //     'product_cost_of_good_sold' => 780.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '(W: 910mm x L: 1900mm x H: 300mm)',
-        // ]);
-        
-        // Product::create([
-        //     'id' => 42,
-        //     'name' => 'Convertible Tatami Bench',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 750.00,
-        //     'product_cost_of_good_sold' => 730.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '(W: 2400mm x H: 450mm x D: 400mm)',
-        // ]);
-        
-        // Product::create([
-        //     'id' => 43,
-        //     'name' => 'Coffee Table',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 750.00,
-        //     'product_cost_of_good_sold' => 250.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '(W: 2400mm x H: 450mm x D: 400mm)',
-        // ]);
+        // Product 23
+        Product::create([
+            'id' => 23,
+            'name' => 'Soft LED lighting',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '(2 downlights & 1 track light)',
+            'uom' => 'set',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 23,
+            'retail_price' => 180.00 * (3 / 5), // 108.00
+            'cogs' => 150.00 * (3 / 5), // 90.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 23,
+            'retail_price' => 180.00 * (2 / 5), // 72.00
+            'cogs' => 150.00 * (2 / 5), // 60.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);;
+
+        // Product 24
+        Product::create([
+            'id' => 24,
+            'name' => 'Supply and install a branded ceiling fan',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 24,
+            'retail_price' => 200.00 * (3 / 5), // 120.00
+            'cogs' => 180.00 * (3 / 5), // 108.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 24,
+            'retail_price' => 200.00 * (2 / 5), // 80.00
+            'cogs' => 180.00 * (2 / 5), // 72.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 25
+        Product::create([
+            'id' => 25,
+            'name' => 'Designer-Approved Decorative set',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'set',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 25,
+            'retail_price' => 200.00 * (3 / 5), // 120.00
+            'cogs' => 150.00 * (3 / 5), // 90.00
+            'excluded_price' => 150.00 * (3 / 5), // 90.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 25,
+            'retail_price' => 200.00 * (2 / 5), // 80.00
+            'cogs' => 150.00 * (2 / 5), // 60.00
+            'excluded_price' => 150.00 * (2 / 5), // 60.00
+        ]);
+
+        // Product 26
+        Product::create([
+            'id' => 26,
+            'name' => '9.5mm drywall partition, with skim, paint, knobs, hinges, and wooden door',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '(< 150sqft)',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 26,
+            'retail_price' => 1800.00 * (3 / 5), // 1080.00
+            'cogs' => 1600.00 * (3 / 5), // 960.00
+            'excluded_price' => 1600.00 * (3 / 5), // 960.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 26,
+            'retail_price' => 1800.00 * (2 / 5), // 720.00
+            'cogs' => 1600.00 * (2 / 5), // 640.00
+            'excluded_price' => 1600.00 * (2 / 5), // 640.00
+        ]);
+
 
         // // ===================================================================
         // // ===================================================================
         // // ===================================================================
 
-        // Product::create([
-        //     'id' => 44,
-        //     'name' => 'Supply and install downlight',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 0.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        // Product 27
+        Product::create([
+            'id' => 27,
+            'name' => 'Soft LED lighting (2 lights / track lights) & required wiring works',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'set',
+        ]);
 
-        // Product::create([
-        //     'id' => 45,
-        //     'name' => 'Supply and install on wall mirror',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 0.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 27,
+            'retail_price' => 480.00 * (3 / 5), // 288.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 150.00 * (3 / 5), // 90.00
+        ]);
 
-        // Product::create([
-        //     'id' => 46,
-        //     'name' => 'Supply and install water heater',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 0.00,
-        //     'product_cost_of_good_sold' => 180.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 27,
+            'retail_price' => 480.00 * (2 / 5), // 192.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 150.00 * (2 / 5), // 60.00
+        ]);
 
-        // Product::create([
-        //     'id' => 47,
-        //     'name' => 'Supply and install on clothes hanger',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 0.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        // Product 28
+        Product::create([
+            'id' => 28,
+            'name' => '5ft - 7ft Built-In Kitchen Cabinet Package with LED Ambient Strip',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'package',
+        ]);
 
-        // // ===================================================================
-        // // ===================================================================
-        // // ===================================================================
+        ProductSupply::create([
+            'product_id' => 28,
+            'retail_price' => 5000.00 * (3 / 5), // 3000.00
+            'cogs' => 2600.00 * (3 / 5), // 1560.00
+            'excluded_price' => 3000.00 * (3 / 5), // 1800.00
+        ]);
 
-        // Product::create([
-        //     'id' => 48,
-        //     'name' => 'Supply & install 8kg washer front load with IoT Enabled',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 1500.00,
-        //     'product_cost_of_good_sold' => 1100.00,
-        //     'product_excluded_price' => 1100.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 28,
+            'retail_price' => 5000.00 * (2 / 5), // 2000.00
+            'cogs' => 2600.00 * (2 / 5), // 1040.00
+            'excluded_price' => 3000.00 * (2 / 5), // 1200.00
+        ]);
 
-        // Product::create([
-        //     'id' => 49,
-        //     'name' => 'Supply & install 8kg dryer front load with IoT Enabled',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 1500.00,
-        //     'product_cost_of_good_sold' => 1100.00,
-        //     'product_excluded_price' => 1100.00,
-        //     'description' => '',
-        // ]);
-
-        // Product::create([
-        //     'id' => 50,
-        //     'name' => 'Supply & install Combo 2 In 1 Washer Dryer with IoT Enabled',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 0.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
-
-        // Product::create([
-        //     'id' => 51,
-        //     'name' => 'Supply and Install hood and hob',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 2000.00,
-        //     'product_cost_of_good_sold' => 1500.00,
-        //     'product_excluded_price' => 1500.00,
-        //     'description' => '',
-        // ]);
-
-        // Product::create([
-        //     'id' => 52,
-        //     'name' => 'Supply & Install iBilikPlus IoT Enabled Smart Main Door Lock',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 545.00,
-        //     'product_cost_of_good_sold' => 600.00,
-        //     'product_excluded_price' => 600.00,
-        //     'description' => 'with double latches',
-        // ]);
-
-        // Product::create([
-        //     'id' => 53,
-        //     'name' => 'Supply and install CCTV in dining area',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 250.00,
-        //     'product_cost_of_good_sold' => 180.00,
-        //     'product_excluded_price' => 180.00,
-        //     'description' => '',
-        // ]);
-
-        // Product::create([
-        //     'id' => 54,
-        //     'name' => 'Microwave',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 400.00,
-        //     'product_cost_of_good_sold' => 230.00,
-        //     'product_excluded_price' => 230.00,
-        //     'description' => '',
-        // ]);
-
-        // Product::create([
-        //     'id' => 55,
-        //     'name' => 'Hot & Warm Water Dispenser c/w 4 Layer Korea Technology Filtration',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 380.00,
-        //     'product_cost_of_good_sold' => 266.00,
-        //     'product_excluded_price' => 266.00,
-        //     'description' => '',
-        // ]);
-
-        // Product::create([
-        //     'id' => 56,
-        //     'name' => '2 door mini bar Fridge',
-        //     'category_id' => 1,
-        //     'type' => 'component',
-        //     'status' => 'available',
-        //     'product_retail_price' => 500.00,
-        //     'product_cost_of_good_sold' => 400.00,
-        //     'product_excluded_price' => 400.00,
-        //     'description' => '',
-        // ]);
 
         // // ===================================================================
         // // ===================================================================
         // // ===================================================================
 
-        // Product::create([
-        //     'id' => 57,
-        //     'name' => 'Supply and install 1 hp aircond without copper piping - midea/ gree/ hisense',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 1300.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        // Product 29
+        Product::create([
+            'id' => 29,
+            'name' => 'Dining bar table',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
 
-        // Product::create([
-        //     'id' => 58,
-        //     'name' => 'Relocation of aircond to the partitioned room',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 250.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 29,
+            'retail_price' => 500.00 * (3 / 5), // 300.00
+            'cogs' => 480.00 * (3 / 5), // 288.00
+            'excluded_price' => 480.00 * (3 / 5), // 288.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 29,
+            'retail_price' => 500.00 * (2 / 5), // 200.00
+            'cogs' => 480.00 * (2 / 5), // 192.00
+            'excluded_price' => 480.00 * (2 / 5), // 192.00
+        ]);
+
+        // Product 30
+        Product::create([
+            'id' => 30,
+            'name' => 'Dining chairs',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 30,
+            'retail_price' => 120.00 * (3 / 5), // 72.00
+            'cogs' => 100.00 * (3 / 5), // 60.00
+            'excluded_price' => 100.00 * (3 / 5), // 60.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 30,
+            'retail_price' => 120.00 * (2 / 5), // 48.00
+            'cogs' => 100.00 * (2 / 5), // 40.00
+            'excluded_price' => 100.00 * (2 / 5), // 40.00
+        ]);
+
+        // Product 31
+        Product::create([
+            'id' => 31,
+            'name' => 'Built-In Shoe Cabinet (W:900mm x H:1200mm x D:350mm)',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => 'with Bench (W:500mm x H:450mm x D:350mm)',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 31,
+            'retail_price' => 430.00 * (3 / 5), // 258.00
+            'cogs' => 400.00 * (3 / 5), // 240.00
+            'excluded_price' => 400.00 * (3 / 5), // 240.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 31,
+            'retail_price' => 430.00 * (2 / 5), // 172.00
+            'cogs' => 400.00 * (2 / 5), // 160.00
+            'excluded_price' => 400.00 * (2 / 5), // 160.00
+        ]);
+
+        // Product 32
+        Product::create([
+            'id' => 32,
+            'name' => 'Supply and install cloth hanger',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 32,
+            'retail_price' => 180.00 * (3 / 5), // 108.00
+            'cogs' => 150.00 * (3 / 5), // 90.00
+            'excluded_price' => 150.00 * (3 / 5), // 90.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 32,
+            'retail_price' => 180.00 * (2 / 5), // 72.00
+            'cogs' => 150.00 * (2 / 5), // 60.00
+            'excluded_price' => 150.00 * (2 / 5), // 60.00
+        ]);
+
+        // Product 33
+        Product::create([
+            'id' => 33,
+            'name' => 'Fire extinguishers (Dining)',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 33,
+            'retail_price' => 80.00 * (3 / 5), // 48.00
+            'cogs' => 50.00 * (3 / 5), // 30.00
+            'excluded_price' => 50.00 * (3 / 5), // 30.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 33,
+            'retail_price' => 80.00 * (2 / 5), // 32.00
+            'cogs' => 50.00 * (2 / 5), // 20.00
+            'excluded_price' => 50.00 * (2 / 5), // 20.00
+        ]);
+
+        // Product 34
+        Product::create([
+            'id' => 34,
+            'name' => 'Soft LED lighting (Dining)',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '(Downlights & Pendant Light)',
+            'uom' => 'set',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 34,
+            'retail_price' => 250.00 * (3 / 5), // 150.00
+            'cogs' => 210.00 * (3 / 5), // 126.00
+            'excluded_price' => 210.00 * (3 / 5), // 126.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 34,
+            'retail_price' => 250.00 * (2 / 5), // 100.00
+            'cogs' => 210.00 * (2 / 5), // 84.00
+            'excluded_price' => 210.00 * (2 / 5), // 84.00
+        ]);
+
+        // Product 35
+        Product::create([
+            'id' => 35,
+            'name' => 'Additional wiring-related work for plugs for Wifi & CCTV',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 35,
+            'retail_price' => 30.00 * (3 / 5), // 18.00
+            'cogs' => 25.00 * (3 / 5), // 15.00
+            'excluded_price' => 25.00 * (3 / 5), // 15.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 35,
+            'retail_price' => 30.00 * (2 / 5), // 12.00
+            'cogs' => 25.00 * (2 / 5), // 10.00
+            'excluded_price' => 25.00 * (2 / 5), // 10.00
+        ]);
+
 
         // // ===================================================================
         // // ===================================================================
         // // ===================================================================
 
-        // Product::create([
-        //     'id' => 59,
-        //     'name' => 'Supply & Install iBilikPlus IoT Enabled Smart Room Door Lock',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 350.00,
-        //     'product_cost_of_good_sold' => 297.00,
-        //     'product_excluded_price' => 297.00,
-        //     'description' => '',
-        // ]);
+        // Product 36
+        Product::create([
+            'id' => 36,
+            'name' => 'Fire extinguishers (Commune Living Space)',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
 
-        // Product::create([
-        //     'id' => 60,
-        //     'name' => 'Supply & Install iBilikPlus IoT Enabled Smart Meter connected to WHOLE room',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 500.00,
-        //     'product_cost_of_good_sold' => 199.00,
-        //     'product_excluded_price' => 199.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 36,
+            'retail_price' => 250.00 * (3 / 5), // 150.00
+            'cogs' => 200.00 * (3 / 5), // 120.00
+            'excluded_price' => 200.00 * (3 / 5), // 120.00
+        ]);
 
-        // Product::create([
-        //     'id' => 61,
-        //     'name' => 'Supply & Install Smart WIFI G2 Gateway Hub',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 168.00,
-        //     'product_cost_of_good_sold' => 168.00,
-        //     'product_excluded_price' => 168.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 36,
+            'retail_price' => 250.00 * (2 / 5), // 100.00
+            'cogs' => 200.00 * (2 / 5), // 80.00
+            'excluded_price' => 200.00 * (2 / 5), // 80.00
+        ]);
 
-        // Product::create([
-        //     'id' => 62,
-        //     'name' => 'Manpower cost for M&E AND Painting',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 700.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        // Product 37
+        Product::create([
+            'id' => 37,
+            'name' => 'Soft LED lighting (Commune Living Space)',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '(Downlights & Pendant Light)',
+            'uom' => 'set',
+        ]);
 
-        // Product::create([
-        //     'id' => 63,
-        //     'name' => 'Roudup for Partition Queen-Sized Bedroom',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 920.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 37,
+            'retail_price' => 220.00 * (3 / 5), // 132.00
+            'cogs' => 200.00 * (3 / 5), // 120.00
+            'excluded_price' => 200.00 * (3 / 5), // 120.00
+        ]);
 
-        // Product::create([
-        //     'id' => 64,
-        //     'name' => 'Roundup for Partition Single-Sized Bedroom',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 1090.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 37,
+            'retail_price' => 220.00 * (2 / 5), // 88.00
+            'cogs' => 200.00 * (2 / 5), // 80.00
+            'excluded_price' => 200.00 * (2 / 5), // 80.00
+        ]);
 
-        // Product::create([
-        //     'id' => 65,
-        //     'name' => 'Roundup for Queen-Sized Bedroom',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 920.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        // Product 38
+        Product::create([
+            'id' => 38,
+            'name' => 'Supply and install branded ceiling fan',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '(Living Space & Dining Space)',
+            'uom' => 'unit',
+        ]);
 
-        // Product::create([
-        //     'id' => 66,
-        //     'name' => 'Roundup for Single-Sized Bedroom',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 890.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 38,
+            'retail_price' => 200.00 * (3 / 5), // 120.00
+            'cogs' => 180.00 * (3 / 5), // 108.00
+            'excluded_price' => 180.00 * (3 / 5), // 108.00
+        ]);
 
-        // Product::create([
-        //     'id' => 67,
-        //     'name' => 'Roundup for Kitchen',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 320.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductInstall::create([
+            'product_id' => 38,
+            'retail_price' => 200.00 * (2 / 5), // 80.00
+            'cogs' => 180.00 * (2 / 5), // 72.00
+            'excluded_price' => 180.00 * (2 / 5), // 72.00
+        ]);
 
-        // Product::create([
-        //     'id' => 68,
-        //     'name' => 'Roundup for Dining, Yard & Foyer',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 1610.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        // Product 40
+        Product::create([
+            'id' => 40,
+            'name' => 'Curtain (semi blackout full length) with track',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
 
-        // Product::create([
-        //     'id' => 69,
-        //     'name' => 'Roundup for Commune Living Space',
-        //     'category_id' => 1,
-        //     'type' => 'service',
-        //     'status' => 'available',
-        //     'product_retail_price' => 3250.00,
-        //     'product_cost_of_good_sold' => 0.00,
-        //     'product_excluded_price' => 0.00,
-        //     'description' => '',
-        // ]);
+        ProductSupply::create([
+            'product_id' => 40,
+            'retail_price' => 550.00 * (3 / 5), // 330.00
+            'cogs' => 500.00 * (3 / 5), // 300.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 40,
+            'retail_price' => 550.00 * (2 / 5), // 220.00
+            'cogs' => 500.00 * (2 / 5), // 200.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 41
+        Product::create([
+            'id' => 41,
+            'name' => 'Tatami Living Platform',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '(W: 910mm x L: 1900mm x H: 300mm)',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 41,
+            'retail_price' => 800.00 * (3 / 5), // 480.00
+            'cogs' => 780.00 * (3 / 5), // 468.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 41,
+            'retail_price' => 800.00 * (2 / 5), // 320.00
+            'cogs' => 780.00 * (2 / 5), // 312.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 42
+        Product::create([
+            'id' => 42,
+            'name' => 'Convertible Tatami Bench',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '(W: 2400mm x H: 450mm x D: 400mm)',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 42,
+            'retail_price' => 750.00 * (3 / 5), // 450.00
+            'cogs' => 730.00 * (3 / 5), // 438.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 42,
+            'retail_price' => 750.00 * (2 / 5), // 300.00
+            'cogs' => 730.00 * (2 / 5), // 292.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 43
+        Product::create([
+            'id' => 43,
+            'name' => 'Coffee Table',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '(W: 2400mm x H: 450mm x D: 400mm)',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 43,
+            'retail_price' => 750.00 * (3 / 5), // 450.00
+            'cogs' => 250.00 * (3 / 5), // 150.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 43,
+            'retail_price' => 750.00 * (2 / 5), // 300.00
+            'cogs' => 250.00 * (2 / 5), // 100.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+
+        // // ===================================================================
+        // // ===================================================================
+        // // ===================================================================
+
+        // Product 44
+        Product::create([
+            'id' => 44,
+            'name' => 'Supply and install downlight',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 44,
+            'retail_price' => 0.00,
+            'cogs' => 0.00,
+            'excluded_price' => 0.00,
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 44,
+            'retail_price' => 0.00,
+            'cogs' => 0.00,
+            'excluded_price' => 0.00,
+        ]);
+
+        // Product 45
+        Product::create([
+            'id' => 45,
+            'name' => 'Supply and install on wall mirror',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 45,
+            'retail_price' => 0.00,
+            'cogs' => 0.00,
+            'excluded_price' => 0.00,
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 45,
+            'retail_price' => 0.00,
+            'cogs' => 0.00,
+            'excluded_price' => 0.00,
+        ]);
+
+        // Product 46
+        Product::create([
+            'id' => 46,
+            'name' => 'Supply and install water heater',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 46,
+            'retail_price' => 0.00,
+            'cogs' => 180.00,
+            'excluded_price' => 0.00,
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 46,
+            'retail_price' => 0.00,
+            'cogs' => 180.00,
+            'excluded_price' => 0.00,
+        ]);
+
+        // Product 47
+        Product::create([
+            'id' => 47,
+            'name' => 'Supply and install on clothes hanger',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 47,
+            'retail_price' => 0.00,
+            'cogs' => 0.00,
+            'excluded_price' => 0.00,
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 47,
+            'retail_price' => 0.00,
+            'cogs' => 0.00,
+            'excluded_price' => 0.00,
+        ]);
+
+
+        // // ===================================================================
+        // // ===================================================================
+        // // ===================================================================
+
+        // Product 48
+        Product::create([
+            'id' => 48,
+            'name' => 'Supply & install 8kg washer front load with IoT Enabled',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 48,
+            'retail_price' => 1500.00 * (3 / 5), // 900.00
+            'cogs' => 1100.00 * (3 / 5), // 660.00
+            'excluded_price' => 1100.00 * (3 / 5), // 660.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 48,
+            'retail_price' => 1500.00 * (2 / 5), // 600.00
+            'cogs' => 1100.00 * (2 / 5), // 440.00
+            'excluded_price' => 1100.00 * (2 / 5), // 440.00
+        ]);
+
+
+        // Product 49
+        Product::create([
+            'id' => 49,
+            'name' => 'Supply & install 8kg dryer front load with IoT Enabled',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 49,
+            'retail_price' => 1500.00 * (3 / 5), // 900.00
+            'cogs' => 1100.00 * (3 / 5), // 660.00
+            'excluded_price' => 1100.00 * (3 / 5), // 660.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 49,
+            'retail_price' => 1500.00 * (2 / 5), // 600.00
+            'cogs' => 1100.00 * (2 / 5), // 440.00
+            'excluded_price' => 1100.00 * (2 / 5), // 440.00
+        ]);
+
+        // Product 50
+        Product::create([
+            'id' => 50,
+            'name' => 'Supply & install Combo 2 In 1 Washer Dryer with IoT Enabled',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 50,
+            'retail_price' => 0.00 * (3 / 5), // 0.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 50,
+            'retail_price' => 0.00 * (2 / 5), // 0.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 51
+        Product::create([
+            'id' => 51,
+            'name' => 'Supply and Install hood and hob',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 51,
+            'retail_price' => 2000.00 * (3 / 5), // 1200.00
+            'cogs' => 1500.00 * (3 / 5), // 900.00
+            'excluded_price' => 1500.00 * (3 / 5), // 900.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 51,
+            'retail_price' => 2000.00 * (2 / 5), // 800.00
+            'cogs' => 1500.00 * (2 / 5), // 600.00
+            'excluded_price' => 1500.00 * (2 / 5), // 600.00
+        ]);
+
+        // Product 52
+        Product::create([
+            'id' => 52,
+            'name' => 'Supply & Install iBilikPlus IoT Enabled Smart Main Door Lock',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => 'with double latches',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 52,
+            'retail_price' => 545.00 * (3 / 5), // 327.00
+            'cogs' => 600.00 * (3 / 5), // 360.00
+            'excluded_price' => 600.00 * (3 / 5), // 360.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 52,
+            'retail_price' => 545.00 * (2 / 5), // 218.00
+            'cogs' => 600.00 * (2 / 5), // 240.00
+            'excluded_price' => 600.00 * (2 / 5), // 240.00
+        ]);
+
+        // Product 53
+        Product::create([
+            'id' => 53,
+            'name' => 'Supply and install CCTV in dining area',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 53,
+            'retail_price' => 250.00 * (3 / 5), // 150.00
+            'cogs' => 180.00 * (3 / 5), // 108.00
+            'excluded_price' => 180.00 * (3 / 5), // 108.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 53,
+            'retail_price' => 250.00 * (2 / 5), // 100.00
+            'cogs' => 180.00 * (2 / 5), // 72.00
+            'excluded_price' => 180.00 * (2 / 5), // 72.00
+        ]);
+
+        // Product 54
+        Product::create([
+            'id' => 54,
+            'name' => 'Microwave',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 54,
+            'retail_price' => 400.00 * (3 / 5), // 240.00
+            'cogs' => 230.00 * (3 / 5), // 138.00
+            'excluded_price' => 230.00 * (3 / 5), // 138.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 54,
+            'retail_price' => 400.00 * (2 / 5), // 160.00
+            'cogs' => 230.00 * (2 / 5), // 92.00
+            'excluded_price' => 230.00 * (2 / 5), // 92.00
+        ]);
+
+        // Product 55
+        Product::create([
+            'id' => 55,
+            'name' => 'Hot & Warm Water Dispenser c/w 4 Layer Korea Technology Filtration',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 55,
+            'retail_price' => 380.00 * (3 / 5), // 228.00
+            'cogs' => 266.00 * (3 / 5), // 159.60
+            'excluded_price' => 266.00 * (3 / 5), // 159.60
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 55,
+            'retail_price' => 380.00 * (2 / 5), // 152.00
+            'cogs' => 266.00 * (2 / 5), // 106.40
+            'excluded_price' => 266.00 * (2 / 5), // 106.40
+        ]);
+
+        // Product 56
+        Product::create([
+            'id' => 56,
+            'name' => '2 door mini bar Fridge',
+            'category_id' => 1,
+            'type' => 'component',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 56,
+            'retail_price' => 500.00 * (3 / 5), // 300.00
+            'cogs' => 400.00 * (3 / 5), // 240.00
+            'excluded_price' => 400.00 * (3 / 5), // 240.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 56,
+            'retail_price' => 500.00 * (2 / 5), // 200.00
+            'cogs' => 400.00 * (2 / 5), // 160.00
+            'excluded_price' => 400.00 * (2 / 5), // 160.00
+        ]);
+
+
+        // // ===================================================================
+        // // ===================================================================
+        // // ===================================================================
+
+        // Product 57
+        Product::create([
+            'id' => 57,
+            'name' => 'Supply and install 1 hp aircond without copper piping - midea/ gree/ hisense',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 57,
+            'retail_price' => 1300.00 * (3 / 5), // 780.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 57,
+            'retail_price' => 1300.00 * (2 / 5), // 520.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 58
+        Product::create([
+            'id' => 58,
+            'name' => 'Relocation of aircond to the partitioned room',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 58,
+            'retail_price' => 250.00 * (3 / 5), // 150.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 58,
+            'retail_price' => 250.00 * (2 / 5), // 100.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+
+        // // ===================================================================
+        // // ===================================================================
+        // // ===================================================================
+
+        // Product 59
+        Product::create([
+            'id' => 59,
+            'name' => 'Supply & Install iBilikPlus IoT Enabled Smart Room Door Lock',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 59,
+            'retail_price' => 350.00 * (3 / 5), // 210.00
+            'cogs' => 297.00 * (3 / 5), // 178.20
+            'excluded_price' => 297.00 * (3 / 5), // 178.20
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 59,
+            'retail_price' => 350.00 * (2 / 5), // 140.00
+            'cogs' => 297.00 * (2 / 5), // 118.80
+            'excluded_price' => 297.00 * (2 / 5), // 118.80
+        ]);
+
+        // Product 60
+        Product::create([
+            'id' => 60,
+            'name' => 'Supply & Install iBilikPlus IoT Enabled Smart Meter connected to WHOLE room',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 60,
+            'retail_price' => 500.00 * (3 / 5), // 300.00
+            'cogs' => 199.00 * (3 / 5), // 119.40
+            'excluded_price' => 199.00 * (3 / 5), // 119.40
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 60,
+            'retail_price' => 500.00 * (2 / 5), // 200.00
+            'cogs' => 199.00 * (2 / 5), // 79.60
+            'excluded_price' => 199.00 * (2 / 5), // 79.60
+        ]);
+
+        // Product 61
+        Product::create([
+            'id' => 61,
+            'name' => 'Supply & Install Smart WIFI G2 Gateway Hub',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 61,
+            'retail_price' => 168.00 * (3 / 5), // 100.80
+            'cogs' => 168.00 * (3 / 5), // 100.80
+            'excluded_price' => 168.00 * (3 / 5), // 100.80
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 61,
+            'retail_price' => 168.00 * (2 / 5), // 67.20
+            'cogs' => 168.00 * (2 / 5), // 67.20
+            'excluded_price' => 168.00 * (2 / 5), // 67.20
+        ]);
+
+        // Product 62
+        Product::create([
+            'id' => 62,
+            'name' => 'Manpower cost for M&E AND Painting',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 62,
+            'retail_price' => 700.00 * (3 / 5), // 420.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 62,
+            'retail_price' => 700.00 * (2 / 5), // 280.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 63
+        Product::create([
+            'id' => 63,
+            'name' => 'Roudup for Partition Queen-Sized Bedroom',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 63,
+            'retail_price' => 920.00 * (3 / 5), // 552.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 63,
+            'retail_price' => 920.00 * (2 / 5), // 368.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 64
+        Product::create([
+            'id' => 64,
+            'name' => 'Roundup for Partition Single-Sized Bedroom',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 64,
+            'retail_price' => 1090.00 * (3 / 5), // 654.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 64,
+            'retail_price' => 1090.00 * (2 / 5), // 436.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 65
+        Product::create([
+            'id' => 65,
+            'name' => 'Roundup for Queen-Sized Bedroom',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 65,
+            'retail_price' => 920.00 * (3 / 5), // 552.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 65,
+            'retail_price' => 920.00 * (2 / 5), // 368.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 66
+        Product::create([
+            'id' => 66,
+            'name' => 'Roundup for Single-Sized Bedroom',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 66,
+            'retail_price' => 890.00 * (3 / 5), // 534.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 66,
+            'retail_price' => 890.00 * (2 / 5), // 356.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 67
+        Product::create([
+            'id' => 67,
+            'name' => 'Roundup for Kitchen',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 67,
+            'retail_price' => 320.00 * (3 / 5), // 192.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 67,
+            'retail_price' => 320.00 * (2 / 5), // 128.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 68
+        Product::create([
+            'id' => 68,
+            'name' => 'Roundup for Dining, Yard & Foyer',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 68,
+            'retail_price' => 1610.00 * (3 / 5), // 966.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 68,
+            'retail_price' => 1610.00 * (2 / 5), // 644.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
+        // Product 69
+        Product::create([
+            'id' => 69,
+            'name' => 'Roundup for Commune Living Space',
+            'category_id' => 1,
+            'type' => 'service',
+            'status' => 'available',
+            'description' => '',
+            'uom' => 'unit',
+        ]);
+
+        ProductSupply::create([
+            'product_id' => 69,
+            'retail_price' => 3250.00 * (3 / 5), // 1950.00
+            'cogs' => 0.00 * (3 / 5), // 0.00
+            'excluded_price' => 0.00 * (3 / 5), // 0.00
+        ]);
+
+        ProductInstall::create([
+            'product_id' => 69,
+            'retail_price' => 3250.00 * (2 / 5), // 1300.00
+            'cogs' => 0.00 * (2 / 5), // 0.00
+            'excluded_price' => 0.00 * (2 / 5), // 0.00
+        ]);
+
 
         // $package1 = Package::create([
         //     'name' => 'Partition Queen-Sized Bedroom',
