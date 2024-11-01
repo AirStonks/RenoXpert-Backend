@@ -95,6 +95,8 @@ class ProductController extends BaseController
 
             // Now we can safely validate and transform data
             $validatedData = $validator->validated();
+            
+            return $this->sendError('Error.', $validatedData['provisioning']['supply']);
 
             // Transform 'category' to 'category_id'
             $validatedData['category_id'] = (int) $validatedData['category'];
@@ -124,7 +126,7 @@ class ProductController extends BaseController
             return $this->sendError('Error.', $th);
         }
     }
-    
+
     /**
      * Display the specified resource.
      *
@@ -157,17 +159,17 @@ class ProductController extends BaseController
         $validator = Validator::make($input, [
             'name' => 'required|string|max:255',
             'SKU' => 'nullable|string',
-            'category' => 'required|numeric',
+            'category_id' => 'required|numeric',
             'type' => 'required|string',
             'description' => 'nullable|string',
             'status' => 'nullable|string',
             'uom' => 'required|string',
-            'product_retail_price' => 'required|numeric|min:0',
-            'product_cost_of_good_sold' => 'required|numeric|min:0',
-            'product_excluded_price' => 'required|numeric|min:0',
-            'supply_cost' => 'nullable|numeric|min:0',
-            'install_cost' => 'nullable|numeric|min:0',
-            'premium_price' => 'nullable|numeric|min:0',
+            'provisioning.supply.retail_price' => 'required|numeric|min:0',
+            'provisioning.supply.cogs' => 'required|numeric|min:0',
+            'provisioning.supply.excluded_price' => 'required|numeric|min:0',
+            'provisioning.install.retail_price' => 'required|numeric|min:0',
+            'provisioning.install.cogs' => 'required|numeric|min:0',
+            'provisioning.install.excluded_price' => 'required|numeric|min:0',
         ]);
 
         // Apply unique validation for SKU only if it's provided
@@ -184,36 +186,19 @@ class ProductController extends BaseController
 
         $validatedData = $validator->validated();
 
-        // Transform 'category' to 'category_id'
-        $validatedData['category_id'] = (int) $validatedData['category'];
-        unset($validatedData['category']);
-
-
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors(), 422);
-        }
-
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors(), 422);
-        }
-
         // Update the product
-        $product->name = $validatedData['name'];
-        $product->SKU = $validatedData['SKU'];
-        $product->category_id = $validatedData['category_id'];
-        $product->type = $validatedData['type'];
-        $product->description = $validatedData['description'] ?? null;
-        $product->uom = $validatedData['uom'] ?? null;
-        $product->product_retail_price = $validatedData['product_retail_price'];
-        $product->product_cost_of_good_sold = $validatedData['product_cost_of_good_sold'];
-        $product->product_excluded_price = $validatedData['product_excluded_price'];
-        $product->supply_cost = $validatedData['supply_cost'];
-        $product->install_cost = $validatedData['install_cost'];
-        $product->status = $validatedData['status'] ?? null;
-
+        $product->fill($validatedData);
+        $product->productSupply->retail_price = $validatedData['provisioning']['supply']['retail_price'];
+        $product->productSupply->cogs = $validatedData['provisioning']['supply']['cogs'];
+        $product->productSupply->excluded_price = $validatedData['provisioning']['supply']['excluded_price'];
+        $product->productInstall->retail_price = $validatedData['provisioning']['install']['retail_price'];
+        $product->productInstall->cogs = $validatedData['provisioning']['install']['cogs'];
+        $product->productInstall->excluded_price = $validatedData['provisioning']['install']['excluded_price'];
 
         // Save the updated product
         $product->save();
+        $product->productSupply->save();
+        $product->productInstall->save();
 
         return $this->sendResponse(new ProductResource($product), 'Product updated successfully.');
     }
