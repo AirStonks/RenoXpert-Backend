@@ -95,7 +95,7 @@ class ProductController extends BaseController
 
             // Now we can safely validate and transform data
             $validatedData = $validator->validated();
-            
+
             // Transform 'category' to 'category_id'
             $validatedData['category_id'] = (int) $validatedData['category'];
             unset($validatedData['category']);
@@ -212,6 +212,8 @@ class ProductController extends BaseController
     {
         $product = Product::find($id);
 
+        $product->productSupply->delete();
+        $product->productInstall->delete();
         $product->delete();
 
         return $this->sendResponse([], 'Product deleted successfully.');
