@@ -96,8 +96,6 @@ class ProductController extends BaseController
             // Now we can safely validate and transform data
             $validatedData = $validator->validated();
             
-            return $this->sendError('Error.', $validatedData['provisioning']['supply']);
-
             // Transform 'category' to 'category_id'
             $validatedData['category_id'] = (int) $validatedData['category'];
             unset($validatedData['category']);
