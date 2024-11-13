@@ -47,4 +47,9 @@ class QCForm extends Model
             $model->updated_by = auth()->id(); // or your logic to get the user ID
         });
     }
+
+    public function renoProgress()
+    {
+        return $this->belongsTo(RenoProgress::class, 'reno_progress_id', 'id');
+    }
 }

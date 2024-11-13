@@ -55,6 +55,17 @@ class PropertyController extends BaseController
         return $this->sendResponse(PropertyResource::collection($properties), 'Properties retrieved successfully.');
     }
 
+    public function getOperationProperties()
+    {
+        $properties = Property::get();
+
+        if (is_null($properties)) {
+            return $this->sendError('Properties not found.');
+        }
+
+        return $this->sendResponse(PropertyResource::collection($properties), 'Properties retrieved successfully.');
+    }
+
     /**
      * Store a newly created resource in storage.
      */

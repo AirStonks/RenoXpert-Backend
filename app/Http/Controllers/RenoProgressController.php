@@ -62,6 +62,23 @@ class RenoProgressController extends BaseController
         return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
+    public function getProgressFormDetail($id)
+    {
+        $renoProgress = RenoProgress::find($id);
+
+        $sale = $renoProgress->sale;
+
+        $order = $sale->order;
+
+        $property = $order->property;
+
+        return $this->sendResponse([
+            'property' => $property,
+            'bedroom_count' => 
+
+        ], 'Reno Progress Detail retrieved successfully.');        
+    }
+
     /**
      * Update the specified resource in storage.
      */

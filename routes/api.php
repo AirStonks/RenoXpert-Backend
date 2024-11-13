@@ -49,8 +49,6 @@ Route::get('/owner/check/list/user/{phone}', [UserController::class, 'verifyExis
 // PUBLIC PROPERTIES
 Route::get('/public/properties', [PropertyController::class, 'getPublicProperties']);
 Route::post('/owner/reno-registration-form/overview/submit', [RegistrationFormController::class, 'submitForm']);
-Route::post('/reno/defect-inspection-form/submit', [DefectInspectionFormController::class, 'submitForm']);
-Route::get('/reno/defect-inspection-form/{id}', [DefectInspectionFormController::class, 'show']);
 
 // Confirm Order
 Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
@@ -101,9 +99,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reno-progress/{id}/task/{taskId}/install/toggle', [JobTaskController::class, 'toggleInstallStatus']);
 
 
-    Route::post('/reno/qc-form/submit', [QCFormController::class, 'submitForm']);
-    Route::get('/reno/qc-forms', [QCFormController::class, 'index']);
-    Route::get('/reno/qc-forms/{id}/fetch', [QCFormController::class, 'fetch']);
+    Route::post('/op/reno/qc-form/submit', [QCFormController::class, 'submitForm']);
+    Route::get('/op/reno/qc-forms', [QCFormController::class, 'index']);
+    Route::get('/op/reno/qc-forms/{id}/fetch', [QCFormController::class, 'fetch']);
+    Route::get('/op/properties', [PropertyController::class, 'getOperationProperties']);
+
+    Route::post('/op/reno/defect-inspection-form/submit', [DefectInspectionFormController::class, 'submitForm']);
+    Route::get('/op/reno/defect-inspection-form/{id}', [DefectInspectionFormController::class, 'show']);
+    Route::get('/op/reno/progress/{id}/properties', [RenoProgressController::class, 'getProgressFormDetail']);
 
     // TEST
     Route::get('/data', [MyController::class, 'getData']);
