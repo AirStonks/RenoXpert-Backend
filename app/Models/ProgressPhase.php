@@ -4,20 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 
-class ProductCategory extends Model
+class ProgressPhase extends Model
 {
     use HasFactory;
-  
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
+
     protected $fillable = [
+        'progress_id',
         'name',
-        'description',
+        'status',
+        'completed_at',
         'created_by',
         'updated_by',
     ];
@@ -33,5 +29,14 @@ class ProductCategory extends Model
         static::updating(function ($model) {
             $model->updated_by = auth()->id(); // or your logic to get the user ID
         });
+    }
+
+    public function renoProgress()
+    {
+        return $this->belongsTo(RenoProgress::class, 'progress_id', 'id');
+    }
+
+    public function jobs() {
+        return $this->hasMany(PhaseJob::class, 'phase_id', 'id');
     }
 }

@@ -20,6 +20,8 @@ class SaleResource extends JsonResource
             'sales_no' => $this->sales_no,
             'order_id' => $this->order_id,
             'order' => new OrderResource(Order::find($this->order_id)),
+            // 'reno_progress' => new RenoProgressResource($this->renoProgress),
+            'reno_progress_id' => $this->renoProgress ? $this->renoProgress->id : null,
             'user_id' => $this->user_id,
             'user' => null,
             'invoices' => $this->invoices,

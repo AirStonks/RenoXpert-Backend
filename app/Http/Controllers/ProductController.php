@@ -68,7 +68,7 @@ class ProductController extends BaseController
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
                 'SKU' => 'nullable|string',
-                'category' => 'required|numeric',
+                'pm_category' => 'required|numeric',
                 'type' => 'required|string',
                 'description' => 'nullable|string',
                 'status' => 'nullable|string',
@@ -97,8 +97,8 @@ class ProductController extends BaseController
             $validatedData = $validator->validated();
 
             // Transform 'category' to 'category_id'
-            $validatedData['category_id'] = (int) $validatedData['category'];
-            unset($validatedData['category']);
+            $validatedData['pm_category_id'] = (int) $validatedData['pm_category'];
+            unset($validatedData['pm_category']);
 
             // Create the product
             $product = Product::create($validatedData);
@@ -157,7 +157,7 @@ class ProductController extends BaseController
         $validator = Validator::make($input, [
             'name' => 'required|string|max:255',
             'SKU' => 'nullable|string',
-            'category_id' => 'required|numeric',
+            'pm_category_id' => 'required|numeric',
             'type' => 'required|string',
             'description' => 'nullable|string',
             'status' => 'nullable|string',

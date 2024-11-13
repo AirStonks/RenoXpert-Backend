@@ -1,29 +1,31 @@
 <?php
 
-// app/models/Product.php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class DefectInspectionForm extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        'name',
-        'pm_category_id',
-        'SKU',
-        'type',
-        'description',
-        'uom',
+        'id',
+        'reno_progress_id',
+        'date',
+        'time',
+        'owner_email',
+        'property_name',
+        'other_property_name',
+        'block',
+        'level',
+        'unit',
+        'contractor_name',
+        'contractor_email',
+        'bedroom_count',
+        'bathroom_count',
         'status',
+        'metadata',
         'created_by',
         'updated_by',
     ];
@@ -41,18 +43,8 @@ class Product extends Model
         });
     }
 
-    public function pmCategory()
+    public function renoProgress()
     {
-        return $this->belongsTo(PMCategory::class, 'pm_category_id', 'id');
-    }
-
-    public function productSupply()
-    {
-        return $this->hasOne(ProductSupply::class, 'product_id', 'id');
-    }
-
-    public function productInstall()
-    {
-        return $this->hasOne(ProductInstall::class, 'product_id', 'id');
+        return $this->belongsTo(RenoProgress::class, 'reno_progress_id', 'id');
     }
 }

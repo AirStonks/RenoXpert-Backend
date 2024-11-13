@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\ProductCategory;
+use App\Models\PMCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Resources\ProductCategoryResource;
+use App\Http\Resources\PMCategoryResource;
 
-class ProductCategoryController extends BaseController
+class PMCategoryController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -22,7 +22,7 @@ class ProductCategoryController extends BaseController
         $search = $request->input('search', '');
 
         // Build the query to retrieve product categories
-        $query = ProductCategory::query();
+        $query = PMCategory::query();
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {
@@ -39,7 +39,7 @@ class ProductCategoryController extends BaseController
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
             "totalCount" => $prodCat->total(),  // Total number of items
-            "data" => ProductCategoryResource::collection($prodCat->items()) // Transformed product data
+            "data" => PMCategoryResource::collection($prodCat->items()) // Transformed product data
         ];
 
         return response()->json($response, 200);
@@ -63,9 +63,9 @@ class ProductCategoryController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            $productCat = ProductCategory::create($input);
+            $pmCat = PMCategory::create($input);
 
-            return $this->sendResponse(new ProductCategoryResource($productCat), 'Product Category added successfully.');
+            return $this->sendResponse(new PMCategoryResource($pmCat), 'PM Category added successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th);
         }
@@ -92,10 +92,10 @@ class ProductCategoryController extends BaseController
      */
     public function destroy(string $id)
     {
-        $productCategory = ProductCategory::find($id);
+        $productCategory = PMCategory::find($id);
 
         $productCategory->delete();
 
-        return $this->sendResponse([], 'Product Category deleted successfully.');
+        return $this->sendResponse([], 'PM Category deleted successfully.');
     }
 }

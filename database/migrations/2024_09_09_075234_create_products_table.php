@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedBigInteger('category_id')->nullable();
+            $table->unsignedBigInteger('pm_category_id')->nullable();
             $table->string('SKU')->unique()->nullable();
             $table->string('type')->nullable();
             $table->string('description')->nullable();
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
 
-            $table->foreign('category_id')->references('id')->on('product_categories')->onDelete('set null');
+            $table->foreign('pm_category_id')->references('id')->on('pm_categories')->onDelete('set null');
         });
     }
 

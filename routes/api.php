@@ -8,22 +8,26 @@ use App\Http\Controllers\MyController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DefectInspectionFormController;
 use App\Http\Controllers\DiscountFeeController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\JobTaskController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\OTPRequestController;
+use App\Http\Controllers\PMCategoryController;
+use App\Http\Controllers\QCFormController;
 use App\Http\Controllers\RegistrationFormController;
+use App\Http\Controllers\RenoProgressController;
 use App\Http\Controllers\UserController;
 use App\Http\Resources\UserResource;
 use App\Models\Package;
-use App\Models\RegistrationForm;
+use App\Models\Sale;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 
@@ -45,6 +49,8 @@ Route::get('/owner/check/list/user/{phone}', [UserController::class, 'verifyExis
 // PUBLIC PROPERTIES
 Route::get('/public/properties', [PropertyController::class, 'getPublicProperties']);
 Route::post('/owner/reno-registration-form/overview/submit', [RegistrationFormController::class, 'submitForm']);
+Route::post('/reno/defect-inspection-form/submit', [DefectInspectionFormController::class, 'submitForm']);
+Route::get('/reno/defect-inspection-form/{id}', [DefectInspectionFormController::class, 'show']);
 
 // Confirm Order
 Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
@@ -52,6 +58,7 @@ Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->na
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login', 'login');
+    Route::post('operation/login', 'operationLogin');
     Route::post('credential/verify', 'isAuthenticated');
 });
 
@@ -73,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
 
     Route::apiResource('/products', ProductController::class);
-    Route::apiResource('/product/category', ProductCategoryController::class);
+    Route::apiResource('/product/category', PMCategoryController::class);
     Route::apiResource('/packages', PackageController::class);
     Route::apiResource('/quotations', QuotationController::class);
     Route::apiResource('/contacts', ContactController::class);
@@ -84,10 +91,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/invoices', InvoiceController::class);
     Route::apiResource('/users', UserController::class);
     Route::apiResource('/owner/reno-registration-form', RegistrationFormController::class);
+    Route::apiResource('/reno-progress', RenoProgressController::class);
 
     Route::get('/users/type/{type}', [UserController::class, 'getUsersWithType']);
     Route::get('/owner/reno-registration-form/{id}/status/approve', [RegistrationFormController::class, 'approveForm']);
     Route::get('/owner/reno-registration-form/{id}/status/reject', [RegistrationFormController::class, 'rejectForm']);
+
+    Route::get('/reno-progress/{id}/task/{taskId}/supply/toggle', [JobTaskController::class, 'toggleSupplyStatus']);
+    Route::get('/reno-progress/{id}/task/{taskId}/install/toggle', [JobTaskController::class, 'toggleInstallStatus']);
+
+
+    Route::post('/reno/qc-form/submit', [QCFormController::class, 'submitForm']);
+    Route::get('/reno/qc-forms', [QCFormController::class, 'index']);
+    Route::get('/reno/qc-forms/{id}/fetch', [QCFormController::class, 'fetch']);
 
     // TEST
     Route::get('/data', [MyController::class, 'getData']);
@@ -103,7 +119,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         return $package;
     });
-
 
     // DEV TOOLS
     Route::get('/dev/database/refresh', function () {
@@ -121,4 +136,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
         return 'Uploads directory cleared successfully!';
     });
+});
+
+
+Route::get('/tmp/progress/generate', function () {
+    $sale = Sale::find(1);
+
+    $sale->status = 'partial-paid';
+
+    $sale->save();
 });

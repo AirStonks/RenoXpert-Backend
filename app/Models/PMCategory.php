@@ -1,16 +1,17 @@
 <?php
 
-// app/models/Product.php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
-class Product extends Model
+class PMCategory extends Model
 {
     use HasFactory;
 
+    protected $table = 'pm_categories';
+  
     /**
      * The attributes that are mass assignable.
      *
@@ -18,12 +19,7 @@ class Product extends Model
      */
     protected $fillable = [
         'name',
-        'pm_category_id',
-        'SKU',
-        'type',
         'description',
-        'uom',
-        'status',
         'created_by',
         'updated_by',
     ];
@@ -39,20 +35,5 @@ class Product extends Model
         static::updating(function ($model) {
             $model->updated_by = auth()->id(); // or your logic to get the user ID
         });
-    }
-
-    public function pmCategory()
-    {
-        return $this->belongsTo(PMCategory::class, 'pm_category_id', 'id');
-    }
-
-    public function productSupply()
-    {
-        return $this->hasOne(ProductSupply::class, 'product_id', 'id');
-    }
-
-    public function productInstall()
-    {
-        return $this->hasOne(ProductInstall::class, 'product_id', 'id');
     }
 }

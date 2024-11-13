@@ -11,13 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pm_categories', function (Blueprint $table) {
+        Schema::create('progress_phases', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('description')->nullable();
+            $table->unsignedBigInteger('progress_id')->nullable();
+            $table->string('name')->nullable();
+            $table->string('status');
+            $table->timestamp('completed_at')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
+
+            $table->foreign('progress_id')->references('id')->on('reno_progress')->onDelete('set null');
         });
     }
 
@@ -26,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pm_categories');
+        Schema::dropIfExists('progress_phases');
     }
 };

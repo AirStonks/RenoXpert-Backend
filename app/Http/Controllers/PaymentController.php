@@ -187,6 +187,8 @@ class PaymentController extends Controller
                     $sale->status = 'fully-paid';
                 } elseif (!$allPaid && $sale->remaining_percentage > 0) {
                     $sale->status = 'partial-paid';
+                } elseif ($allPaid && $sale->remaining_percentage < 100) {
+                    $sale->status = 'partial-paid';
                 }
 
                 // Save the sale status if it has changed

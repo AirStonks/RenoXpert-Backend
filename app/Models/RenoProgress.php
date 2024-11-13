@@ -1,29 +1,18 @@
 <?php
 
-// app/models/Product.php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class RenoProgress extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        'name',
-        'pm_category_id',
-        'SKU',
-        'type',
-        'description',
-        'uom',
+        'sale_id',
         'status',
+        'completed_at',
         'created_by',
         'updated_by',
     ];
@@ -41,18 +30,16 @@ class Product extends Model
         });
     }
 
-    public function pmCategory()
+    public function sale()
     {
-        return $this->belongsTo(PMCategory::class, 'pm_category_id', 'id');
+        return $this->belongsTo(Sale::class, 'sale_id', 'id');
     }
 
-    public function productSupply()
-    {
-        return $this->hasOne(ProductSupply::class, 'product_id', 'id');
+    public function progressPhases() {
+        return $this->hasMany(ProgressPhase::class, 'progress_id', 'id');
     }
 
-    public function productInstall()
-    {
-        return $this->hasOne(ProductInstall::class, 'product_id', 'id');
+    public function defectInspectionForm() {
+        return $this->hasOne(DefectInspectionForm::class, 'reno_progress_id', 'id');
     }
 }

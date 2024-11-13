@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Events\SaleStatusUpdated; // Updated event name
+use App\Listeners\TriggerCreateRenoProgress;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -9,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class Sale extends Model
 {
     use HasFactory;
-  
+
     /**
      * The attributes that are mass assignable.
      *
@@ -38,6 +40,13 @@ class Sale extends Model
 
         static::updating(function ($model) {
             $model->updated_by = auth()->id(); // or your logic to get the user ID
+
+            if ($model->isDirty('status') && $model->status === 'partial-paid') {
+                // Dispatch the event
+                if ($model->renoProgress === null) {
+                    event(new SaleStatusUpdated($model));
+                }
+            }
         });
     }
 
@@ -49,5 +58,10 @@ class Sale extends Model
     public function invoices()
     {
         return $this->hasMany(Invoice::class, 'sale_id', 'id');
+    }
+
+    public function renoProgress()
+    {
+        return $this->hasOne(RenoProgress::class, 'sale_id', 'id');
     }
 }

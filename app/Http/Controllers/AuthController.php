@@ -93,26 +93,63 @@ class AuthController extends BaseController
         }
     }
 
+    public function operationLogin(Request $request): JsonResponse
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'mobile' => 'required',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        // mobile become phone_no
+        $request->merge(['phone_no' => $request->mobile]);
+
+        // Attempt login
+        if (Auth::attempt($request->only('phone_no', 'password'))) {
+            $user = Auth::user();
+
+            if ($user->type === 'technician') {
+                $success['token'] = $user->createToken('OperationSite')->plainTextToken;
+                $success['name'] = $user->name;
+    
+                return $this->sendResponse($success, 'User logged in successfully.');
+            } else {
+                return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
+            }
+        } else {
+            return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
+        }
+    }
+
     public function changePassword(Request $request): JsonResponse
     {
         // Validate the request
-        $request->validate([
-            'current_password' => 'required',
-            'new_password' => 'required|min:8|confirmed',
+        $validator = Validator::make($request->all(), [
+            'old_pass' => 'required|string',
+            'new_pass' => 'required|string|min:8',
+            'confirm_pass' => 'required|string|min:8|same:new_pass',
         ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
 
         $user = auth()->user();
 
         // Check if the current password is correct
-        if (!Hash::check($request->current_password, $user->password)) {
-            return response()->json(['error' => 'Current password is incorrect.'], 401);
+        if (!Hash::check($request->old_pass, $user->password)) {
+            return  $this->sendError('Credential Error', 'The current password is incorrect.', 422);
         }
 
         // Update the user's password
-        $user->password = Hash::make($request->new_password);
+        $user->password = Hash::make($request->new_pass);
         $user->save();
 
-        return response()->json(['message' => 'Password changed successfully.']);
+        return $this->sendResponse('Success', 'Password changed successfully.');
     }
 
 

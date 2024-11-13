@@ -1,29 +1,20 @@
 <?php
 
-// app/models/Product.php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class PhaseJob extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
+        'phase_id',
         'name',
-        'pm_category_id',
-        'SKU',
-        'type',
-        'description',
-        'uom',
+        'priority',
         'status',
+        'completed_at',
         'created_by',
         'updated_by',
     ];
@@ -41,18 +32,12 @@ class Product extends Model
         });
     }
 
-    public function pmCategory()
+    public function phase()
     {
-        return $this->belongsTo(PMCategory::class, 'pm_category_id', 'id');
+        return $this->belongsTo(ProgressPhase::class, 'phase_id', 'id');
     }
 
-    public function productSupply()
-    {
-        return $this->hasOne(ProductSupply::class, 'product_id', 'id');
-    }
-
-    public function productInstall()
-    {
-        return $this->hasOne(ProductInstall::class, 'product_id', 'id');
+    public function tasks() {
+        return $this->hasMany(JobTask::class, 'job_id', 'id');
     }
 }

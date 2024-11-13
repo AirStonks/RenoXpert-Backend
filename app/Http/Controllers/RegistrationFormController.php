@@ -109,6 +109,7 @@ class RegistrationFormController extends BaseController
             $uploadedFiles = [];
             if ($request->has('attachments')) {
                 foreach ($request->attachments as $attachment) {
+                    return $this->sendError('error', $attachment);
                     $path = $attachment->store($directory, 'public'); // Specify the public disk
                     $uploadedFiles[] = [
                         'file_url' => Storage::url($path),
