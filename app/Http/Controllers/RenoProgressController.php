@@ -67,14 +67,17 @@ class RenoProgressController extends BaseController
         $renoProgress = RenoProgress::find($id);
 
         $sale = $renoProgress->sale;
-
         $order = $sale->order;
-
         $property = $order->property;
 
         return $this->sendResponse([
             'property' => $property,
-            'bedroom_count' => 
+            'block' => $order->block,
+            'level' => $order->floor,
+            'unit' => $order->unit_no,
+            'bedroom_count' => $order->bedroom_count,
+            'bathroom_count' => $order->bathroom_count,
+            'owner' => $order->user,
 
         ], 'Reno Progress Detail retrieved successfully.');        
     }

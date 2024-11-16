@@ -22,6 +22,8 @@ class Order extends Model
         'block',
         'floor',
         'unit_no',
+        'bedroom_count',
+        'bathroom_count',
         'total_amount',
         'description',
         'status',

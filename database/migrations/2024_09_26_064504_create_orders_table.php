@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('block')->nullable();
             $table->string('floor')->nullable();
             $table->string('unit_no')->nullable();
+            $table->integer('bedroom_count')->nullable();
+            $table->integer('bathroom_count')->nullable();
             $table->double('total_amount')->nullable();
             $table->string('description')->nullable();
             $table->string('status')->default('pending');

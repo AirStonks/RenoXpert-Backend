@@ -6,6 +6,7 @@ use App\Models\JobTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Http\Resources\JobTaskResource;
+use Illuminate\Support\Facades\Storage;
 
 class JobTaskController extends BaseController
 {
@@ -25,12 +26,54 @@ class JobTaskController extends BaseController
         //
     }
 
+    public function uploadDocuments(Request $request, $id, $taskId)
+    {
+        $input = $request->input();
+
+        $task = JobTask::find($taskId);
+        $job = $task->job;
+
+        $directory = 'uploads/files/reno/progress/' . $id . '/jobs/' . $job->id;
+        Storage::makeDirectory('public/' . $directory);
+
+        if ($request->hasFile('attachments')) {
+            $files = $request->file('attachments'); // This should be an array of uploaded files
+            $newAttachments = $task->attachments ?? [];
+
+            foreach ($files as $file) {
+                // Store each file and perform necessary operations
+                $path = $file->store($directory, 'public');
+
+                // Prepare new attachment data
+                $newAttachments[] = [
+                    'file_url' => Storage::url($path), // Get the URL for the uploaded file
+                    'size' => $file->getSize(),
+                    'original_name' => $file->getClientOriginalName(), // Original file name
+                ];
+            }
+
+            // Update task's attachments field with the new data
+            $task->attachments = $newAttachments;
+            $task->save(); // Save the task with the updated attachments
+
+            return $this->sendResponse($task->attachments, 'Documents uploaded successfully.');
+        }
+
+        return $this->sendError('Upload Failed.', 'something error occurred.');
+    }
     /**
      * Display the specified resource.
      */
     public function show(JobTask $jobTask)
     {
         //
+    }
+
+    public function fetchTaskDocuments($id, $taskId)
+    {
+        $task = JobTask::find($taskId);
+
+        return $this->sendResponse($task->attachments, 'Task Documents retrieved successfully.');
     }
 
     /**
@@ -75,11 +118,70 @@ class JobTaskController extends BaseController
         return $this->sendResponse(new JobTaskResource($task), 'Task Install toggled successfully.');
     }
 
+    public function changeOwnerComment(Request $request, $id, $taskId)
+    {
+        $task = JobTask::find($taskId);
+
+        $task->owner_comment = $request->input('owner_comment');
+
+        $task->save();
+
+        return $this->sendResponse(null, 'Owner comment updated successfully.');
+    }
+
+    public function changeInternalComment(Request $request, $id, $taskId)
+    {
+        $task = JobTask::find($taskId);
+
+        $task->internal_comment = $request->input('internal_comment');
+
+        $task->save();
+
+        return $this->sendResponse(null, 'Internal comment updated successfully.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(JobTask $jobTask)
     {
         //
+    }
+
+    public function removeTaskDocument($id, $taskId, $documentIndex)
+    {
+        $task = JobTask::find($taskId);
+        $documentIndex = (int) $documentIndex;
+        $newTaskAttachments = $task->attachments;
+
+        // Get the file URL from attachments
+        $fileUrl = $newTaskAttachments[$documentIndex]['file_url'];
+
+        // Convert the full storage URL to the correct relative path
+        // Remove "/storage/" from the beginning of the path
+        $relativePath = str_replace('/storage/', '', $fileUrl);
+
+        // Try to delete the file
+        $deleted = Storage::disk('public')->delete($relativePath);
+
+        if (!$deleted || Storage::disk('public')->exists($relativePath)) {
+            return $this->sendError('File not found in storage.', 'File could not be deleted.');
+        }
+
+        // Remove the document from the array
+        unset($newTaskAttachments[$documentIndex]);
+
+        // Reorder the remaining attachments
+        $newTaskAttachments = array_values($newTaskAttachments);
+
+        // If array empty, null it
+        if (empty($newTaskAttachments)) {
+            $newTaskAttachments = null;
+        }
+
+        $task->attachments = $newTaskAttachments;
+        $task->save();
+
+        return $this->sendResponse($task->attachments, 'Document removed successfully.');
     }
 }

@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 
 Route::get('/user', function (Request $request) {
-    return 'new UserResource($request->user())';
+    return new UserResource($request->user());
 })->middleware('auth:sanctum');
 
 Route::get('/invoices/public/view/{id}', [InvoiceController::class, 'showPublicInvoice'])->name('invoice.public.show');
@@ -97,16 +97,24 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/reno-progress/{id}/task/{taskId}/supply/toggle', [JobTaskController::class, 'toggleSupplyStatus']);
     Route::get('/reno-progress/{id}/task/{taskId}/install/toggle', [JobTaskController::class, 'toggleInstallStatus']);
+    Route::post('/reno-progress/{id}/task/{taskId}/owner-comment/change', [JobTaskController::class, 'changeOwnerComment']);
+    Route::post('/reno-progress/{id}/task/{taskId}/internal-comment/change', [JobTaskController::class, 'changeInternalComment']);
+    Route::post('/reno-progress/{id}/task/{taskId}/documents/upload', [JobTaskController::class, 'uploadDocuments']);
+    Route::get('/reno-progress/{id}/task/{taskId}/documents/fetch', [JobTaskController::class, 'fetchTaskDocuments']);
+    Route::get('/reno-progress/{id}/task/{taskId}/documents/{documentIndex}/remove', [JobTaskController::class, 'removeTaskDocument']);
 
+
+    Route::get('/op/properties', [PropertyController::class, 'getOperationProperties']);
+    Route::get('/op/reno/progress/{id}/properties', [RenoProgressController::class, 'getProgressFormDetail']);
 
     Route::post('/op/reno/qc-form/submit', [QCFormController::class, 'submitForm']);
     Route::get('/op/reno/qc-forms', [QCFormController::class, 'index']);
     Route::get('/op/reno/qc-forms/{id}/fetch', [QCFormController::class, 'fetch']);
-    Route::get('/op/properties', [PropertyController::class, 'getOperationProperties']);
 
     Route::post('/op/reno/defect-inspection-form/submit', [DefectInspectionFormController::class, 'submitForm']);
     Route::get('/op/reno/defect-inspection-form/{id}', [DefectInspectionFormController::class, 'show']);
-    Route::get('/op/reno/progress/{id}/properties', [RenoProgressController::class, 'getProgressFormDetail']);
+    Route::get('/op/reno/defect-inspection-forms', [DefectInspectionFormController::class, 'index']);
+    Route::get('/op/reno/defect-inspection-forms/{id}/fetch', [DefectInspectionFormController::class, 'fetch']);
 
     // TEST
     Route::get('/data', [MyController::class, 'getData']);
@@ -125,19 +133,25 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // DEV TOOLS
     Route::get('/dev/database/refresh', function () {
-        Artisan::call('migrate:fresh --seed');
+        Artisan::call('migrate:refresh --seed');
 
         return 'Database migrated and seeded successfully!';
     });
 
     Route::get('/dev/storage/clear', function () {
-        $path = storage_path('app/public/uploads');
 
-        if (File::exists($path)) {
-            File::deleteDirectory($path);
+        try {
+            $path = storage_path('app/public/uploads');
+
+            if (File::exists($path)) {
+                File::deleteDirectory($path);
+            }
+
+            return 'Uploads directory cleared successfully!';
+
+        } catch (\Exception $e) {
+            return $e->getMessage();
         }
-
-        return 'Uploads directory cleared successfully!';
     });
 });
 

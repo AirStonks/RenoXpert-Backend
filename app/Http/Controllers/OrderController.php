@@ -81,6 +81,8 @@ class OrderController extends BaseController
                 'block' => 'nullable|string|max:255',
                 'floor' => 'nullable|string|max:255',
                 'unit_no' => 'nullable|string|max:255',
+                'bedroom_count' => 'nullable',
+                'bathroom_count' => 'nullable',
                 'total_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:255',
                 'metadata' => 'nullable|array', // Added validation for metadata

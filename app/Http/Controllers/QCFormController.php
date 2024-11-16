@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\QCFormResource;
 use App\Models\QCForm;
+use App\Models\RenoProgress;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -106,10 +108,18 @@ class QCFormController extends BaseController
             $input['inspector_last_name'] = $user->name_last;
             $input['metadata'] = json_encode($updatedArea);
 
-
             $metadata = json_decode($input['metadata']);
 
             $form = QCForm::create($input);
+
+            
+            $renoProgress = RenoProgress::find($input['reno_progress_id']);
+            $qcTask = $renoProgress->progressPhases[2]->jobs[0]->tasks[0];
+
+            $qcTask->is_installed = 1;
+            $qcTask->install_date = Carbon::now();
+
+            $qcTask->save();
 
             return $this->sendResponse(new QCFormResource($form), 'QC Form submitted successfully.');
         } catch (\Throwable $th) {

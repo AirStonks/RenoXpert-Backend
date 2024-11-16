@@ -21,6 +21,9 @@ return new class extends Migration
             $table->timestamp('supply_date')->nullable();
             $table->timestamp('install_date')->nullable();
             $table->boolean('is_defect_form')->default(false);
+            $table->boolean('is_qc_form')->default(false);
+            $table->string('owner_comment')->nullable();
+            $table->string('internal_comment')->nullable();
             $table->string('status');
             $table->json('attachments')->nullable();
             $table->timestamp('completed_at')->nullable();

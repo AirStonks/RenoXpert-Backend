@@ -45,6 +45,8 @@ class OrderResource extends JsonResource
                 'state' => $this->property->state,
                 'description' => $this->property->description,
             ],
+            'bedroom_count' => $this->bedroom_count,
+            'bathroom_count' => $this->bathroom_count,
             'latest_quotation_test' => $latestQuotation ? new OrderQuotationResource($latestQuotation) : null,
             'order_quotations' => $orderQuotations, // This is now sorted in descending order
             'latest_quotation' => $latestQuotation ? $latestQuotation : null,

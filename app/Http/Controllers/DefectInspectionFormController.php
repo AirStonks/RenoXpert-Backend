@@ -6,6 +6,7 @@ use App\Models\RenoProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\DefectInspectionForm;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\DefectInspectionFormResource;
 
@@ -16,7 +17,11 @@ class DefectInspectionFormController extends BaseController
      */
     public function index()
     {
-        //
+        $user = Auth::user();
+
+        $diForms = DefectInspectionForm::where('created_by', $user->id)->get();
+
+        return $this->sendResponse(DefectInspectionFormResource::collection($diForms), 'Defect forms retrieved successfully.');
     }
 
     /**
@@ -120,6 +125,17 @@ class DefectInspectionFormController extends BaseController
         return $this->sendResponse(new DefectInspectionFormResource($form), 'Form retrieved successfully.');
     }
 
+    public function fetch($id)
+    {
+        $user = Auth::user();
+
+        $diForm = DefectInspectionForm::where('created_by', $user->id)
+            ->where('id', $id)
+            ->first();
+
+        return $this->sendResponse(new DefectInspectionFormResource($diForm), 'QC Form retrieved successfully.');
+    }
+
     /**
      * Update the specified resource in storage.
      */
@@ -136,3 +152,7 @@ class DefectInspectionFormController extends BaseController
         //
     }
 }
+
+
+// Invoice status
+// paid, overdue, pending

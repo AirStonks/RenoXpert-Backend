@@ -174,6 +174,20 @@ class TriggerCreateRenoProgress
                     }
                 }
             }
+
+            $postRenoJob = PhaseJob::create([
+                'phase_id' => $postRenoPhase->id,
+                'name' => 'Post Reno Phrase',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $postRenoJob->id,
+                'name' => 'QC [QC Form]',
+                'is_qc_form' => true,
+                'status' => 'not_started',
+            ]);
+
         } catch (\Exception $e) {
             Log::error('Error triggering RenoProgress creation for sale ID ' . $sale->id . ': ' . $e->getMessage());
             // Optionally rethrow or handle the exception as needed

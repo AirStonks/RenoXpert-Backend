@@ -18,7 +18,10 @@ class JobTask extends Model
         'supply_date',
         'install_date',
         'is_defect_form',
+        'is_qc_form',
         'status',
+        'owner_comment',
+        'internal_comment',
         'attachments',
         'completed_at',
         'created_by',
@@ -28,6 +31,7 @@ class JobTask extends Model
     protected $casts = [
         'supply_date' => 'datetime',
         'install_date' => 'datetime',
+        'attachments' => 'array',
     ];
 
     protected static function boot()
