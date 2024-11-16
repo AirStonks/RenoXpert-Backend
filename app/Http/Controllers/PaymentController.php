@@ -77,7 +77,7 @@ class PaymentController extends Controller
 
         // $returnUrl = $clientDomain . '/invoice/' . $invoice->id . '/view';
         // $returnUrl = 'http://' . $clientHost . ':8000/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
-        $returnUrl = $clientDomain . '/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
+        $returnUrl = 'https://api.renoxpert.my/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
 
         $headers = [
             'Content-Type' => 'application/json',
