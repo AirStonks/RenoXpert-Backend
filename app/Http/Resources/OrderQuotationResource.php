@@ -17,6 +17,7 @@ class OrderQuotationResource extends JsonResource
         return [
             'id' => $this->id,
             'order_id' => $this->order_id,
+            'form_id' => $this->order->form_id,
             'quotation_id' => $this->quotation_id,
             'quotation_name' => $this->quotation_name,
             'version' => $this->version,

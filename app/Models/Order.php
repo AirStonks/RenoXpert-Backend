@@ -18,6 +18,7 @@ class Order extends Model
     protected $fillable = [
         'order_no',
         'user_id',
+        'form_id',
         'property_id',
         'block',
         'floor',
@@ -47,6 +48,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function form()
+    {
+        return $this->belongsTo(RegistrationForm::class, 'form_id', 'id');
     }
 
     public function property()

@@ -92,7 +92,7 @@ class DatabaseSeeder extends Seeder
             'unit' => '15',
             'layout_type' => 'A',
             'sqft' => '1000',
-            'metadata' => '{"furnishing":{"foyer_entrance":{"grille_door":"furnished","digital_lock":"furnished","shoe_cabinet":"furnished","lights":"furnished","other":""},"kitchen":{"kitchen_cabinet":"furnished","kitchen_island":"furnished","sink_tap":"furnished","hood_hob":"furnished","microwave":"not_furnish","oven":"not_furnish","water_dispenser":"furnished","fridge":"furnished","lights":"furnished","other":""},"yard":{"washer":"furnished","dryer":"furnished","lights":"furnished","other":""},"dining":{"dining_table_chairs":"furnished","lights":"furnished","fan":"furnished","other":""},"living":{"sofa":"furnished","coffee_table":"furnished","tv":"furnished","tv_cabinet":"furnished","fan":"furnished","lights":"furnished","ac":"furnished","other":""}},"questions":{"quest_1":"3","quest_2":"2","quest_3":"done","quest_4":"done","quest_5":"done","quest_6":"done","quest_7":"done","quest_8":"yes"}}',
+            'metadata' => '{"furnishing":{"foyer_entrance":{"grille_door":"furnished","digital_lock":"furnished","shoe_cabinet":"furnished","lights":"furnished","other":""},"kitchen":{"kitchen_cabinet":"furnished","kitchen_island":"furnished","sink_tap":"furnished","hood_hob":"furnished","microwave":"not-furnish","oven":"not-furnish","water_dispenser":"furnished","fridge":"furnished","lights":"furnished","other":""},"yard":{"washer":"furnished","dryer":"furnished","lights":"furnished","other":""},"dining":{"dining_table_chairs":"furnished","lights":"furnished","fan":"furnished","other":""},"living":{"sofa":"furnished","coffee_table":"furnished","tv":"furnished","tv_cabinet":"furnished","fan":"furnished","lights":"furnished","ac":"furnished","other":""}},"questions":{"quest_1":"3","quest_2":"2","quest_3":"done","quest_4":"done","quest_5":"done","quest_6":"done","quest_7":"done","quest_8":"yes"}}',
             'attachments' => null,
             'status' => 'approved'
         ]);
@@ -2087,6 +2087,7 @@ class DatabaseSeeder extends Seeder
 
         Order::create([
             'id' => 1,
+            'form_id' => 1,
             'order_no' => 'OR-202411060001',
             'user_id' => 3,
             'property_id' => 2,

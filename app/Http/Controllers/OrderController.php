@@ -76,6 +76,7 @@ class OrderController extends BaseController
             // Validate the input
             $validator = Validator::make($input, [
                 'user_id' => 'required|numeric|max:255',
+                'form_id' => 'required',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
                 'block' => 'nullable|string|max:255',
@@ -221,9 +222,12 @@ class OrderController extends BaseController
                 'user_id' => 'required|numeric|max:255',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
+                'total_amount' => 'nullable|numeric|min:0',
                 'block' => 'nullable|string|max:255',
                 'floor' => 'nullable|string|max:255',
                 'unit_no' => 'nullable|string|max:255',
+                'bedroom_count' => 'nullable|numeric|min:1',
+                'bathroom_count' => 'nullable|numeric|min:1',
                 'description' => 'nullable|string|max:255',
                 'metadata' => 'nullable|array', // Added validation for metadata
             ]);
@@ -236,9 +240,12 @@ class OrderController extends BaseController
 
             $order->user_id = $validatedData['user_id'];
             $order->property_id = $validatedData['property_id'];
+            $order->total_amount = $input['total_amount'];
             $order->block = $validatedData['block'];
             $order->floor = $validatedData['floor'];
             $order->unit_no = $validatedData['unit_no'];
+            $order->bedroom_count = $validatedData['bedroom_count'];
+            $order->bathroom_count = $validatedData['bathroom_count'];
             $order->description = $validatedData['description'];
             $order->status = 'pending';
 

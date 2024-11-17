@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('order_no')->unique();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('property_id')->nullable();
+            $table->unsignedBigInteger('form_id')->nullable();
             $table->string('block')->nullable();
             $table->string('floor')->nullable();
             $table->string('unit_no')->nullable();
