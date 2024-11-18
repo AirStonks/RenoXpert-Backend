@@ -13,6 +13,7 @@ class JobTask extends Model
         'job_id',
         'name',
         'priority',
+        'task_weightage',
         'is_supplied',
         'is_installed',
         'supply_date',

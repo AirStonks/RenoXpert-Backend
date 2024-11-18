@@ -23,6 +23,7 @@ class Product extends Model
         'type',
         'description',
         'uom',
+        'task_weightage',
         'status',
         'created_by',
         'updated_by',

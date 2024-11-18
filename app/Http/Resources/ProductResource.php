@@ -23,6 +23,7 @@ class ProductResource extends JsonResource
             'type' => $this->type,
             'description' => $this->description,
             'uom' => $this->uom,
+            'task_weightage' => $this->task_weightage,
             'provisioning' => [
                 'supply' => $this->productSupply,
                 'install' => $this->productInstall,

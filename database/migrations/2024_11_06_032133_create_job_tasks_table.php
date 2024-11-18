@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('job_id')->nullable();
             $table->string('name')->nullable();
             $table->integer('priority')->default(1);
+            $table->integer('task_weightage')->default(1);
             $table->boolean('is_supplied')->default(false);
             $table->boolean('is_installed')->default(false);
             $table->timestamp('supply_date')->nullable();

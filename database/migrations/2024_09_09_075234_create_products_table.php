@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('type')->nullable();
             $table->string('description')->nullable();
             $table->string('uom')->nullable();
+            $table->integer('task_weightage')->nullable();
             $table->string('status')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

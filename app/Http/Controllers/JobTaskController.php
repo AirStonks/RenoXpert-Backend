@@ -118,6 +118,18 @@ class JobTaskController extends BaseController
         return $this->sendResponse(new JobTaskResource($task), 'Task Install toggled successfully.');
     }
 
+    public function changeTaskStatus($id, $taskId, $status)
+    {
+        $task = JobTask::find($taskId); 
+
+        $task->status = $status;
+        $task->install_date = Carbon::now();
+
+        $task->save();
+
+        return $this->sendResponse(new JobTaskResource($task), 'Task status updated successfully.');
+    }
+
     public function changeOwnerComment(Request $request, $id, $taskId)
     {
         $task = JobTask::find($taskId);

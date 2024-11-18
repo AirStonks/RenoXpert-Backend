@@ -134,6 +134,7 @@ class TriggerCreateRenoProgress
                         $task = JobTask::create([
                             'job_id' => $job->id,
                             'name' => $product->name . ' (' . $pkg->name . ')',
+                            'task_weightage' => $product->task_weightage,
                             'status' => 'not_started',
                         ]);
                     } elseif ($product->pm_category_id === 4) {
@@ -152,6 +153,7 @@ class TriggerCreateRenoProgress
                         $task = JobTask::create([
                             'job_id' => $job->id,
                             'name' => $product->name . ' (' . $pkg->name . ')',
+                            'task_weightage' => $product->task_weightage,
                             'status' => 'not_started',
                         ]);
                     } else {
@@ -169,6 +171,7 @@ class TriggerCreateRenoProgress
                         $task = JobTask::create([
                             'job_id' => $job->id,
                             'name' => $product->name,
+                            'task_weightage' => $product->task_weightage,
                             'status' => 'not_started',
                         ]);
                     }
