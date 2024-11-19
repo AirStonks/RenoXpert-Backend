@@ -12,9 +12,47 @@ class RenoProgressController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // Retrieve the size parameter from the request with a default value of 5
+        $size = $request->input('size', 5);
+
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
+
+        // Build the query to retrieve products
+        $query = RenoProgress::query();
+
+        // Apply search filter if a search term is provided
+        if (!empty($search)) {
+            // Assuming 'name' is the field you want to search, adjust as necessary
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+
+        // Apply sorting if a sort field is provided
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        // Paginate the results
+        $renoProgress = $query->paginate($size);
+
+        // Custom response to fit with Tailwind DataTable JSON format
+        $response = [
+            "page" => $renoProgress->currentPage(),  // Current page number
+            "pageCount" => $renoProgress->lastPage(), // Total number of pages
+            "sortField" => null,                 // Sorting field, if applicable
+            "sortOrder" => null,                 // Sorting order, if applicable
+            "totalCount" => $renoProgress->total(),  // Total number of items
+            "data" => RenoProgressResource::collection($renoProgress) // Transformed product data
+        ];
+
+        return response()->json($response, 200);
     }
 
     /**
@@ -79,7 +117,7 @@ class RenoProgressController extends BaseController
             'bathroom_count' => $order->bathroom_count,
             'owner' => $order->user,
 
-        ], 'Reno Progress Detail retrieved successfully.');        
+        ], 'Reno Progress Detail retrieved successfully.');
     }
 
     /**
@@ -89,6 +127,65 @@ class RenoProgressController extends BaseController
     {
         //
     }
+
+    public function changeStartDate(Request $request, $id)
+    {
+        try {
+            $renoProgress = RenoProgress::find($id);
+
+            // Ensure both dates are provided and valid
+            if (!$renoProgress) {
+                return $this->sendError('Reno progress not found.');
+            }
+
+            // Validate that start_date does not exceed end_date
+            $startDate = $request->input('start_date'); // '2024-11-19'
+            $endDate = $renoProgress->end_date->format('Y-m-d'); // Convert end_date to Y-m-d format
+
+            if ($startDate > $endDate) {
+                return $this->sendError('Start date cannot exceed the end date.', null, 400);
+            }
+
+            // Update the start_date
+            $renoProgress->start_date = $startDate;
+            $renoProgress->save();
+
+            return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress updated successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError('Error.', $th->getMessage());
+        }
+    }
+
+
+    public function changeEndDate(Request $request, $id)
+    {
+        try {
+            $renoProgress = RenoProgress::find($id);
+
+            // Ensure both dates are provided and valid
+            if (!$renoProgress) {
+                return $this->sendError('Reno progress not found.');
+            }
+
+            // Retrieve start_date and end_date from request and model
+            $startDate = $renoProgress->start_date->format('Y-m-d'); // Convert start_date to Y-m-d format
+            $endDate = $request->input('end_date'); // '2024-11-19' or any date format from request
+
+            // Validate that end_date does not precede start_date
+            if ($endDate < $startDate) {
+                return $this->sendError('End date cannot be earlier than the start date.', null, 400);
+            }
+
+            // Update the end_date
+            $renoProgress->end_date = $endDate;
+            $renoProgress->save();
+
+            return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress updated successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError('Error.', $th->getMessage());
+        }
+    }
+
 
     /**
      * Remove the specified resource from storage.

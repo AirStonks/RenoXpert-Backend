@@ -12,10 +12,18 @@ class RenoProgress extends Model
     protected $fillable = [
         'sale_id',
         'status',
+        'start_date',
+        'end_date',
         'completed_at',
         'created_by',
         'updated_by',
     ];
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+    ];
+
 
     protected static function boot()
     {

@@ -117,6 +117,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/op/reno/defect-inspection-forms', [DefectInspectionFormController::class, 'index']);
     Route::get('/op/reno/defect-inspection-forms/{id}/fetch', [DefectInspectionFormController::class, 'fetch']);
 
+    
+    Route::post('/reno-progress/{id}/start-date', [RenoProgressController::class, 'changeStartDate']);
+    Route::post('/reno-progress/{id}/end-date', [RenoProgressController::class, 'changeEndDate']);
+
     // TEST
     Route::get('/data', [MyController::class, 'getData']);
     Route::get('/test', function () {
