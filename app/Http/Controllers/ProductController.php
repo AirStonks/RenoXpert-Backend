@@ -37,6 +37,16 @@ class ProductController extends BaseController
             $query->where('name', 'like', '%' . $search . '%');
         }
 
+
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+
+        // Apply sorting if a sort field is provided
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
         // Paginate the results
         $products = $query->paginate($size);
 

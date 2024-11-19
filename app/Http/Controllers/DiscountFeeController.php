@@ -14,24 +14,38 @@ class DiscountFeeController extends BaseController
      */
     public function index(Request $request)
     {
-        // Retrieve parameters with defaults
-        $size = $request->input('size', 10);
+        // Retrieve the size parameter from the request with a default value of 5
+        $size = $request->input('size', 5);
+
+        // Retrieve the search term from the request
         $search = $request->input('search', '');
+        
         $type = $request->input('type');
 
-        // Build the query to retrieve product categories
+        // Build the query to retrieve products
         $query = DiscountFee::query();
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {
-            $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+            // Assuming 'name' is the field you want to search, adjust as necessary
+            $query->where('name', 'like', '%' . $search . '%');
         }
-
+        
         // Apply type filter if provided
         if (!empty($type)) {
             $query->where('type', $type);
         }
 
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+
+        // Apply sorting if a sort field is provided
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        // Paginate the results
         $discountFees = $query->paginate($size);
 
         // Custome response to fit with Tailwind DataTable JSON format

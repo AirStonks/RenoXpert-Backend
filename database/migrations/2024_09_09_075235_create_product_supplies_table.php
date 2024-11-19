@@ -18,6 +18,8 @@ return new class extends Migration
             $table->double('cogs')->nullable();
             $table->double('excluded_price')->nullable();
             $table->string('status')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
 
             $table->foreign('product_id')->references('id')->on('products');

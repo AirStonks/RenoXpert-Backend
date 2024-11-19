@@ -18,4 +18,17 @@ class ProductInstall extends Model
         'created_by',
         'updated_by',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->created_by = auth()->id(); // or your logic to get the user ID
+        });
+
+        static::updating(function ($model) {
+            $model->updated_by = auth()->id(); // or your logic to get the user ID
+        });
+    }
 }

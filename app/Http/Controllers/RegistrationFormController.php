@@ -36,6 +36,7 @@ class RegistrationFormController extends BaseController
         // Paginate the results
         $form = $query->paginate($size);
 
+
         // Custom response to fit with Tailwind DataTable JSON format
         $response = [
             "page" => $form->currentPage(),  // Current page number

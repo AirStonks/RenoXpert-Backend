@@ -36,6 +36,8 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->json('attachments')->nullable();
             $table->string('status')->default('pending');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
         });
     }
