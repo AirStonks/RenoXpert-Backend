@@ -133,13 +133,24 @@ class RenoProgressController extends BaseController
         try {
             $renoProgress = RenoProgress::find($id);
 
-            // Ensure both dates are provided and valid
+            // Ensure the RenoProgress record exists
             if (!$renoProgress) {
                 return $this->sendError('Reno progress not found.');
             }
 
-            // Validate that start_date does not exceed end_date
+            // Get the start_date from the request
             $startDate = $request->input('start_date'); // '2024-11-19'
+
+            // If end_date is null, skip the validation and directly update the start_date
+            if (!$renoProgress->end_date) {
+                // Update the start_date if end_date is not set
+                $renoProgress->start_date = $startDate;
+                $renoProgress->save();
+
+                return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress updated successfully.');
+            }
+
+            // Otherwise, ensure start_date does not exceed end_date
             $endDate = $renoProgress->end_date->format('Y-m-d'); // Convert end_date to Y-m-d format
 
             if ($startDate > $endDate) {
@@ -162,14 +173,25 @@ class RenoProgressController extends BaseController
         try {
             $renoProgress = RenoProgress::find($id);
 
-            // Ensure both dates are provided and valid
+            // Ensure the RenoProgress record exists
             if (!$renoProgress) {
                 return $this->sendError('Reno progress not found.');
             }
 
-            // Retrieve start_date and end_date from request and model
+            // If start_date is null, skip the validation and update the end_date
+            if (!$renoProgress->start_date) {
+                $endDate = $request->input('end_date'); // Get end_date from request
+
+                // Update the end_date without validation since start_date is missing
+                $renoProgress->end_date = $endDate;
+                $renoProgress->save();
+
+                return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress updated successfully.');
+            }
+
+            // Otherwise, validate that end_date does not precede start_date
             $startDate = $renoProgress->start_date->format('Y-m-d'); // Convert start_date to Y-m-d format
-            $endDate = $request->input('end_date'); // '2024-11-19' or any date format from request
+            $endDate = $request->input('end_date'); // Get end_date from request
 
             // Validate that end_date does not precede start_date
             if ($endDate < $startDate) {
@@ -185,6 +207,7 @@ class RenoProgressController extends BaseController
             return $this->sendError('Error.', $th->getMessage());
         }
     }
+
 
 
     /**
