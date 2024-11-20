@@ -29,6 +29,7 @@ class User extends Authenticatable
         'password',
         'phone_no',
         'type',
+        'status',
         'created_by',
         'updated_by',
     ];

@@ -91,7 +91,8 @@ class UserController extends BaseController
             $input = $request->all();
 
             $validator = Validator::make($input, [
-                'name' => 'required|string|max:255',
+                'name_first' => 'required|string|max:255',
+                'name_last' => 'required|string|max:255',
                 'email' => 'required|email|max:255|unique:users,email',
                 'type' => 'required|string|max:30',
                 'phone_no' => 'required|string|max:15',
@@ -101,8 +102,9 @@ class UserController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            // Generate a random password of 18 characters
+            // Generate a random password of 16 characters
             $input['password'] = Str::random(16);
+            $input['name'] = $input['name_first'] . ' ' . $input['name_last'];
 
             $user = User::create($input);
 
@@ -144,11 +146,43 @@ class UserController extends BaseController
     {
         //
     }
+
+    public function resetPassword($id)
+    {
+        $user = User::find($id);
+
+        if (is_null($user)) {
+            return $this->sendError('User not found.');
+        }
+
+        // Generate a random password of 18 characters
+        $newPassword = Str::random(16);
+
+        $user->password = $newPassword;
+        $user->save();
+
+        return $this->sendResponse([new UserResource($user), 'new_password' => $newPassword], 'Password reset successfully.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
         //
+    }
+
+    public function deactivateUser($id)
+    {
+        $user = User::find($id);
+
+        if (is_null($user)) {
+            return $this->sendError('User not found.');
+        }
+
+        $user->status = 'deactivated';
+        $user->save();
+
+        return $this->sendResponse(null, 'User deactivated successfully.');
     }
 }

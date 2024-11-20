@@ -72,6 +72,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         RegistrationForm::create([
+            'form_no' => '12091795',
             'salutations' => 'mr',
             'name_first' => 'Test',
             'name_last' => 'User',

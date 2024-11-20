@@ -36,6 +36,7 @@ class RegistrationFormResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'form_no' => $this->form_no,
             'user' => [
                 'id' => $user->id,
                 'salutations' => $salutationOptions[$this->salutations] ?? null,

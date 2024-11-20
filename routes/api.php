@@ -91,6 +91,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/owner/reno-registration-form', RegistrationFormController::class);
     Route::apiResource('/reno-progress', RenoProgressController::class);
 
+    Route::get('users/{id}/password/reset', [UserController::class, 'resetPassword']);
+    Route::get('users/{id}/deactivate', [UserController::class, 'deactivateUser']);
+
     Route::get('/users/type/{type}', [UserController::class, 'getUsersWithType']);
     Route::get('/owner/reno-registration-form/{id}/status/approve', [RegistrationFormController::class, 'approveForm']);
     Route::get('/owner/reno-registration-form/{id}/status/reject', [RegistrationFormController::class, 'rejectForm']);

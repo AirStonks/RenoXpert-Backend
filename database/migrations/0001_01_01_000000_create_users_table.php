@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('ic')->nullable();
             $table->string('email')->nullable()->unique();
             $table->string('type', 30);
+            $table->string('status')->default('active');
             $table->string('phone_no', 15)->nullable();
             $table->unsignedBigInteger('address_id')->nullable();
             $table->timestamp('email_verified_at')->nullable();

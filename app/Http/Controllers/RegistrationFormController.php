@@ -122,6 +122,10 @@ class RegistrationFormController extends BaseController
             $input['metadata'] = json_encode(['furnishing' => json_decode($input['furnishing']), 'questions' => json_decode($input['questions'])]);
             $input['attachments'] = json_encode($uploadedFiles);
 
+            // Generate form number with timestamp (string)
+            $input['form_no'] = substr(strval(time()), 2);
+
+
             $metadata = json_decode($input['metadata']);
 
             // // Now you can save $uploadedFiles to your database or return a response
