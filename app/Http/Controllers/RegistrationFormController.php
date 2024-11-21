@@ -30,7 +30,15 @@ class RegistrationFormController extends BaseController
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {
-            $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+            $query->where(function ($query) use ($search) {
+                // Search across individual fields
+                $query->where('name_first', 'like', '%' . $search . '%')
+                    ->orWhere('name_last', 'like', '%' . $search . '%')
+                    ->orWhere('form_no', 'like', '%' . $search . '%')
+
+                    // Also search in the concatenation of name_first + name_last
+                    ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%']);
+            });
         }
 
         // Paginate the results
