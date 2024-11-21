@@ -40,8 +40,7 @@ class QCFormController extends BaseController
 
             $updatedArea = $input['area'];
 
-            $directory = 'uploads/files/form/qc/' . now()->format('Y-m-d_H-i-s');
-            Storage::makeDirectory('public/' . $directory);
+            $directory = 'form/qc/' . now()->format('Y-m-d_H-i-s');
 
             foreach ($updatedArea as $areaIndex => $sections) {
                 if ($areaIndex === 'bedrooms' || $areaIndex === 'bathrooms') {
@@ -60,11 +59,17 @@ class QCFormController extends BaseController
                             if (isset($questions['attachments']) && is_array($questions['attachments'])) {
                                 foreach ($questions['attachments'] as $key => $attachment) {
                                     // Store the file in the public storage
-                                    $path = $attachment['file']->store($directory, 'public');
+                                    $filename = uniqid() . '.' . $attachment->getClientOriginalExtension();
+                                    $path = Storage::disk('s3')->putFileAs(
+                                        $directory,
+                                        $attachment,
+                                        $filename,
+                                        'public'
+                                    );
 
                                     // Update the attachment details
                                     $updatedArea[$areaIndex][$dynamicKey][$questionIndex]['attachments'][$key] = [
-                                        'file_url' => Storage::url($path), // Get the public URL of the stored file
+                                        'file_url' => Storage::disk('s3')->path($path),
                                         'original_name' => $attachment['file']->getClientOriginalName(),
                                     ];
                                 }
@@ -112,7 +117,7 @@ class QCFormController extends BaseController
 
             $form = QCForm::create($input);
 
-            
+
             $renoProgress = RenoProgress::find($input['reno_progress_id']);
             $qcTask = $renoProgress->progressPhases[2]->jobs[0]->tasks[0];
 

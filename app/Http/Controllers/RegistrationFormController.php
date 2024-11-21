@@ -104,15 +104,20 @@ class RegistrationFormController extends BaseController
                 'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf|max:2048',
             ]);
 
-            $directory = 'uploads/files/form/reno'; // No 'public/' prefix here
-            Storage::makeDirectory('public/' . $directory); // Create the directory in the public disk
+            $directory = 'form/reno'; // No 'public/' prefix here
 
             $uploadedFiles = [];
             if ($request->has('attachments')) {
                 foreach ($request->attachments as $attachment) {
-                    $path = $attachment->store($directory, 'public'); // Specify the public disk
+                    $filename = uniqid() . '.' . $attachment->getClientOriginalExtension();
+                    $path = Storage::disk('s3')->putFileAs(
+                        $directory,
+                        $attachment,
+                        $filename,
+                        'public'
+                    );
                     $uploadedFiles[] = [
-                        'file_url' => Storage::url($path),
+                        'file_url' => Storage::disk('s3')->path($path),
                         'original_name' => $attachment->getClientOriginalName(),
                     ];
                 }

@@ -39,8 +39,7 @@ class DefectInspectionFormController extends BaseController
 
             $updatedArea = $input['area'];
 
-            $directory = 'uploads/files/form/defect/inspection/' . now()->format('Y-m-d_H-i-s');
-            Storage::makeDirectory('public/' . $directory);
+            $directory = 'form/defect/inspection/' . now()->format('Y-m-d_H-i-s');
 
             foreach ($updatedArea as $areaIndex => $questions) {
                 if ($areaIndex === 'bedrooms' || $areaIndex === 'bathrooms') {
@@ -52,11 +51,17 @@ class DefectInspectionFormController extends BaseController
                             if (isset($question['attachments']) && is_array($question['attachments'])) {
                                 foreach ($question['attachments'] as $key => $attachment) {
                                     // Store the file in the public storage
-                                    $path = $attachment['file']->store($directory, 'public');
+                                    $filename = uniqid() . '.' . $attachment->getClientOriginalExtension();
+                                    $path = Storage::disk('s3')->putFileAs(
+                                        $directory,
+                                        $attachment,
+                                        $filename,
+                                        'public'
+                                    );
 
                                     // Update the attachment details
                                     $updatedArea[$areaIndex][$dynamicKey][$questionIndex]['attachments'][$key] = [
-                                        'file_url' => Storage::url($path), // Get the public URL of the stored file
+                                        'file_url' => Storage::disk('s3')->path($path),
                                         'original_name' => $attachment['file']->getClientOriginalName(),
                                     ];
                                 }
