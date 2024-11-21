@@ -10,6 +10,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DefectInspectionFormController;
 use App\Http\Controllers\DiscountFeeController;
+use App\Http\Controllers\DiskController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobTaskController;
 use App\Http\Controllers\OrderController;
@@ -30,6 +31,7 @@ use App\Models\Package;
 use App\Models\Sale;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -120,7 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/op/reno/defect-inspection-forms', [DefectInspectionFormController::class, 'index']);
     Route::get('/op/reno/defect-inspection-forms/{id}/fetch', [DefectInspectionFormController::class, 'fetch']);
 
-    
+
     Route::post('/reno-progress/{id}/start-date', [RenoProgressController::class, 'changeStartDate']);
     Route::post('/reno-progress/{id}/end-date', [RenoProgressController::class, 'changeEndDate']);
 
@@ -148,20 +150,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/dev/storage/clear', function () {
 
-        try {
-            $path = storage_path('app/public/uploads');
+        // Clear S3 data
+        $files = Storage::disk('s3')->allFiles();
 
-            if (File::exists($path)) {
-                File::deleteDirectory($path);
-            }
-
-            return 'Uploads directory cleared successfully!';
-
-        } catch (\Exception $e) {
-            return $e->getMessage();
+        foreach ($files as $file) {
+            Storage::disk('s3')->delete($file);
         }
+
+        return 'Storage cleared successfully!';
     });
 });
+
+
+Route::get('/disk', [DiskController::class, 'index']);
 
 
 Route::get('/tmp/progress/generate', function () {

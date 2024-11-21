@@ -33,22 +33,30 @@ class JobTaskController extends BaseController
         $task = JobTask::find($taskId);
         $job = $task->job;
 
-        $directory = 'uploads/files/reno/progress/' . $id . '/jobs/' . $job->id;
-        Storage::makeDirectory('public/' . $directory);
+        $directory = 'reno/progress/' . $id . '/jobs/' . $job->id;
 
         if ($request->hasFile('attachments')) {
             $files = $request->file('attachments'); // This should be an array of uploaded files
             $newAttachments = $task->attachments ?? [];
 
             foreach ($files as $file) {
-                // Store each file and perform necessary operations
-                $path = $file->store($directory, 'public');
+                // Generate a unique filename to prevent conflicts
+                $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+
+                // Store the file in the specified directory on the S3 disk
+                $path = Storage::disk('s3')->putFileAs(
+                    $directory,
+                    $file,
+                    $filename,
+                    'public'
+                );
 
                 // Prepare new attachment data
                 $newAttachments[] = [
-                    'file_url' => Storage::url($path), // Get the URL for the uploaded file
+                    // Use the full URL path for S3
+                    'file_url' => Storage::disk('s3')->path($path),
                     'size' => $file->getSize(),
-                    'original_name' => $file->getClientOriginalName(), // Original file name
+                    'original_name' => $file->getClientOriginalName(),
                 ];
             }
 
@@ -120,7 +128,7 @@ class JobTaskController extends BaseController
 
     public function changeTaskStatus($id, $taskId, $status)
     {
-        $task = JobTask::find($taskId); 
+        $task = JobTask::find($taskId);
 
         $task->status = $status;
         $task->install_date = Carbon::now();
