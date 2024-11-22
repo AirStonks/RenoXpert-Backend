@@ -31,11 +31,21 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::factory()->create([
-            'name' => 'Super Admin',
-            'name_first' => 'Super',
-            'name_last' => 'Admin',
-            'email' => 'dev@belive.asia',
-            'password' => '12345678',
+            'name' => 'Developer (CK)',
+            'name_first' => 'Developer',
+            'name_last' => '(CK)',
+            'email' => 'developer@belive.asia',
+            'password' => 'Belive8888',
+            'phone_no' => '1136647745',
+            'type' => 'super-admin',
+        ]);
+
+        User::factory()->create([
+            'name' => 'Test Super Admin',
+            'name_first' => 'Test',
+            'name_last' => 'Super Admin',
+            'email' => 'testsuperadmin@belive.asia',
+            'password' => 'Belive8888',
             'phone_no' => '123456789',
             'type' => 'super-admin',
         ]);
@@ -59,14 +69,14 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::create([
-            'name' => 'Test User',
+            'name' => 'Test Owner',
             'name_first' => 'Test',
-            'name_last' => 'User',
+            'name_last' => 'Owner',
             'salutations' => 'mr',
             'ic' => '001111-22-3333',
             'email' => 'testuser@gmail.com',
             'password' => '12345678',
-            'phone_no' => '1122223333',
+            'phone_no' => '1111476550',
             'type' => 'owner',
             'address_id' => 1,
         ]);
@@ -79,7 +89,7 @@ class DatabaseSeeder extends Seeder
             'name_preferred' => 'TestUser',
             'email' => 'testuser@gmail.com',
             'country_code' => '+60',
-            'phone_no' => '1122223333',
+            'phone_no' => '1111476550',
             'address_1' => 'abcd1234',
             'address_2' => 'abcd1234',
             'city' => 'PJ',

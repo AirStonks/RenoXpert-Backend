@@ -25,6 +25,10 @@ class Invoice extends Model
         'updated_by',
     ];
 
+    protected $casts = [
+        'due_date' => 'datetime'
+    ];
+
     protected static function boot()
     {
         parent::boot();

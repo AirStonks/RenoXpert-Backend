@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Invoice;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 
 class HandleInvoiceStatus extends Command
 {
@@ -29,13 +30,15 @@ class HandleInvoiceStatus extends Command
         $invoices = Invoice::where('status', '!=', 'paid')->get();
 
         foreach ($invoices as $invoice) {
-            if ($invoice->due_date->lte(now())) {
+            // Convert string to Carbon instance
+            $dueDate = Carbon::parse($invoice->due_date);
+
+            if ($dueDate->endOfDay()->lte(now())) {
                 $invoice->status = 'overdue';
                 $invoice->save();
             }
         }
 
-        info("HandleInvoiceStatus Cron Job running at ". now());
+        info("HandleInvoiceStatus Cron Job running at " . now());
     }
 }
-
