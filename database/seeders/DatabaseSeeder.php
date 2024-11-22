@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
             'name_first' => 'Test',
             'name_last' => 'Super Admin',
             'email' => 'testsuperadmin@belive.asia',
-            'password' => 'Belive8888',
+            'password' => '12345678',
             'phone_no' => '123456789',
             'type' => 'super-admin',
         ]);
@@ -2145,7 +2145,7 @@ class DatabaseSeeder extends Seeder
             'id' => 1,
             'form_id' => 1,
             'order_no' => 'OR-202411060001',
-            'user_id' => 3,
+            'user_id' => 4,
             'property_id' => 2,
             'block' => 'B',
             'floor' => '15',
