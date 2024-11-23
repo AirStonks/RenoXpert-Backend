@@ -94,11 +94,7 @@ class OrderController extends BaseController
             }
 
             // Generate order number
-            $today = date('Ymd');
-            $lastOrder = Order::where('order_no', 'like', 'OR-' . $today . '%')->orderBy('id', 'desc')->first();
-            $sequence = $lastOrder ? (intval(substr($lastOrder->order_no, -4)) + 1) : 1; // Increment or start at 1
-
-            $input['order_no'] = 'OR-' . $today . str_pad($sequence, 4, '0', STR_PAD_LEFT); // Format the sequence to 4 digits
+            $input['order_no'] = 'QUO-' . now()->format('y') . str_pad(Order::count() + 1, 5, '0', STR_PAD_LEFT);
 
             // Create the Order
             $order = Order::create($input);
@@ -253,12 +249,10 @@ class OrderController extends BaseController
             $latestQuotation = OrderQuotation::where('order_id', $order->id)->orderBy('version', 'desc')->first();
             $nextVersion = $latestQuotation ? ($latestQuotation->version + 1) : 1;
 
-            $quotation = Quotation::find($input['quotation_id']);
-
             OrderQuotation::create([
                 'order_id' => $order->id,
                 'quotation_id' => $validatedData['quotation_id'],
-                'quotation_name' => $quotation->name,
+                'quotation_name' => $latestQuotation->quotation_name,
                 'version' => $nextVersion,
                 'total_amount' => $order->total_amount, // CHANGE IT LATER TO REAL DATA
                 'metadata' => json_encode($input['metadata']) ?? null,
@@ -268,7 +262,10 @@ class OrderController extends BaseController
 
             return $this->sendResponse(new OrderResource($order), 'Order updated successfully.');
         } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th);
+            return $this->sendError('Database Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
         }
     }
 
@@ -309,6 +306,7 @@ class OrderController extends BaseController
 
                 // Generate new sales number
                 $newSalesNo = $this->generateNewSalesNo($latestSaleNo);
+                $input['sales_no'] = 'RSO-' . now()->format('y') . str_pad(Sale::count() + 1, 5, '0', STR_PAD_LEFT);
 
                 // CREATE NEW SALE
                 Sale::create([

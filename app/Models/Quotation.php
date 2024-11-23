@@ -6,10 +6,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class Quotation extends Model
 {
+    use SoftDeletes;
     use HasFactory;
   
     /**
@@ -26,6 +28,7 @@ class Quotation extends Model
         'metadata',
         'created_by',
         'updated_by',
+        'deleted_at',
     ];
 
     protected static function boot()

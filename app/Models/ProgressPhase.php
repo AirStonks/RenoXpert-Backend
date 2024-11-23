@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProgressPhase extends Model
 {
+    use SoftDeletes;
     use HasFactory;
 
     protected $fillable = [
@@ -16,6 +18,7 @@ class ProgressPhase extends Model
         'completed_at',
         'created_by',
         'updated_by',
+        'deleted_at',
     ];
 
     protected static function boot()

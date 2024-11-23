@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class DiscountFee extends Model
 {
+    
+    use SoftDeletes;
     use HasFactory;
 
     protected $fillable = [
@@ -18,6 +21,7 @@ class DiscountFee extends Model
         'status',
         'created_by',
         'updated_by',
+        'deleted_at',
     ];
 
     protected static function boot()

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('pm_category_id')->references('id')->on('pm_categories')->onDelete('set null');
         });

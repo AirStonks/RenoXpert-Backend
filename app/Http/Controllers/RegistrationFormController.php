@@ -135,9 +135,8 @@ class RegistrationFormController extends BaseController
             $input['metadata'] = json_encode(['furnishing' => json_decode($input['furnishing']), 'questions' => json_decode($input['questions'])]);
             $input['attachments'] = json_encode($uploadedFiles);
 
-            // Generate form number with timestamp (string)
-            $input['form_no'] = substr(strval(time()), 2);
-
+            // form_no format RRF-[yy][5 digits]
+            $input['form_no'] = 'RRF-' . now()->format('y') . str_pad(RegistrationForm::count() + 1, 5, '0', STR_PAD_LEFT);
 
             $metadata = json_decode($input['metadata']);
 

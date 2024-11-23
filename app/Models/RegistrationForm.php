@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RegistrationForm extends Model
 {
+    use SoftDeletes;
     use HasFactory;
 
     protected $fillable = [
@@ -37,6 +39,7 @@ class RegistrationForm extends Model
         'status',
         'created_by',
         'updated_by',
+        'deleted_at',
     ];
 
     protected static function boot()

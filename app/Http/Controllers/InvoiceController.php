@@ -58,13 +58,8 @@ class InvoiceController extends BaseController
                     $newVersion = $selectedSaleLatestInvoice->version + 1;
                 }
 
-                // Extract the last invoice number
-                preg_match('/(\d+)$/', $latestInvoice->invoice_no, $matches);
-                if (isset($matches[1])) {
-                    // Increment the number part
-                    $lastInvoiceNumber = (int)$matches[1];
-                    $newInvoiceNumber = 'INV-RNV-' . str_pad($lastInvoiceNumber + 1, 7, '0', STR_PAD_LEFT);
-                }
+                
+                $newInvoiceNumber = 'INV-' . $sale->sales_no . '-' . $sale->invoices->count() + 1;
             }
 
             // Set the new invoice number and version in the input array

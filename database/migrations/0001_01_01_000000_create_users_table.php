@@ -30,6 +30,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
         });

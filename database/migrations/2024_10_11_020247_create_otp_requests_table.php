@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('token')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
