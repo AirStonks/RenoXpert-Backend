@@ -24,6 +24,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
+            $table->softDeletes();
             
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('set null');
             // $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');

@@ -6,11 +6,13 @@ namespace App\Models;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
+    use SoftDeletes;
     use HasFactory, Notifiable, HasApiTokens;
 
     /**
@@ -32,6 +34,7 @@ class User extends Authenticatable
         'status',
         'created_by',
         'updated_by',
+        'deleted_at',
     ];
 
     protected static function boot()

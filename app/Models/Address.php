@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Address extends Model
 {
+    use SoftDeletes;
     use HasFactory;
 
     protected $fillable = [
@@ -18,6 +20,7 @@ class Address extends Model
         'postcode',
         'created_by',
         'updated_by',
+        'deleted_at',
     ];
 
     protected static function boot()

@@ -6,10 +6,12 @@ use App\Events\SaleStatusUpdated; // Updated event name
 use App\Listeners\TriggerCreateRenoProgress;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class Sale extends Model
 {
+    use SoftDeletes;
     use HasFactory;
 
     /**
@@ -28,6 +30,7 @@ class Sale extends Model
         'status',
         'created_by',
         'updated_by',
+        'deleted_at',
     ];
 
     protected static function boot()

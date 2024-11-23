@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class Order extends Model
 {
+    
+    use SoftDeletes;
     use HasFactory;
   
     /**
@@ -30,6 +33,7 @@ class Order extends Model
         'status',
         'created_by',
         'updated_by',
+        'deleted_at',
     ];
 
     protected static function boot()
