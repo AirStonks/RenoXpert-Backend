@@ -305,12 +305,11 @@ class OrderController extends BaseController
                 $latestSaleNo = Sale::orderBy('created_at', 'desc')->value('sales_no');
 
                 // Generate new sales number
-                $newSalesNo = $this->generateNewSalesNo($latestSaleNo);
                 $input['sales_no'] = 'RSO-' . now()->format('y') . str_pad(Sale::count() + 1, 5, '0', STR_PAD_LEFT);
 
                 // CREATE NEW SALE
                 Sale::create([
-                    'sales_no' => $newSalesNo,
+                    'sales_no' => $input['sales_no'],
                     'order_id' => $order->id,
                     'user_id' => null,
                     'sale_no' => $latestSaleNo,

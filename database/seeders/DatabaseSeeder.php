@@ -82,7 +82,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         RegistrationForm::create([
-            'form_no' => '12091795',
+            'form_no' => 'RRF-00001',
             'salutations' => 'mr',
             'name_first' => 'Test',
             'name_last' => 'User',
@@ -2144,7 +2144,7 @@ class DatabaseSeeder extends Seeder
         Order::create([
             'id' => 1,
             'form_id' => 1,
-            'order_no' => 'OR-202411060001',
+            'order_no' => 'QUO-2400001',
             'user_id' => 3,
             'property_id' => 2,
             'block' => 'B',
@@ -2175,7 +2175,7 @@ class DatabaseSeeder extends Seeder
         Sale::create([
             'id' => 1,
             'order_id' => 1,
-            'sales_no' => 'S000001',
+            'sales_no' => 'RSO-2400001',
             'description' => '',
             'total_amount' => 64543,
             'remaining_amount' => 51634.4,
@@ -2188,7 +2188,7 @@ class DatabaseSeeder extends Seeder
         Invoice::create([
             'id' => 1,
             'sale_id' => 1,
-            'invoice_no' => 'INV-RNV-1000001',
+            'invoice_no' => 'INV-RSO-2400001',
             'percentage' => 0.2,
             'amount' => 12908.6,
             'status' => 'paid',

@@ -112,6 +112,30 @@ class TriggerCreateRenoProgress
                 'status' => 'not_started',
             ]);
 
+            $permitJob = PhaseJob::create([
+                'phase_id' => $preRenoPhase->id,
+                'name' => 'Reno Permit',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $permitJob->id,
+                'name' => 'Permit Application',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $permitJob->id,
+                'name' => 'Permit Deposit Paid by Owner',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $permitJob->id,
+                'name' => 'Permit Issued by MO',
+                'status' => 'not_started',
+            ]);
+
             foreach ($packages as $pkg) {
                 foreach ($pkg->products as $product) {
                     if ($product->pm_category_id === 1) {

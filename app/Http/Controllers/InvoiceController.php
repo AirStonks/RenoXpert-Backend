@@ -68,17 +68,6 @@ class InvoiceController extends BaseController
 
             // Calculate due date based on version
             $dueDate = now()->addDays(3); // Current date
-            // switch ($newVersion) {
-            //     case 1:
-            //         $dueDate->addDays(14); // First invoice: 14 days
-            //         break;
-            //     case 2:
-            //         $dueDate->addDays(21); // Second invoice: 21 days
-            //         break;
-            //     default:
-            //         $dueDate->addMonth(); // Subsequent invoices: 1 month
-            //         break;
-            // }
             $input['due_date'] = $dueDate; // Add the due date to the input
 
             // Extract discount and fee into collection 
@@ -92,11 +81,12 @@ class InvoiceController extends BaseController
             // If there are discounts, deduct from balance amount
             $totalDiscount = 0;
             $totalFee = 0;
+            
 
             // Calculate total discounts
             foreach ($discounts as $discount) {
                 if ($discount['valueType'] === 'percentage') {
-                    $totalDiscount += $sale->total_amount * $discount['value'];
+                    $totalDiscount += ($sale->total_amount * $input['percentage']) * $discount['value'];
                 } else {
                     $totalDiscount += $discount['value'];
                 }
@@ -105,11 +95,12 @@ class InvoiceController extends BaseController
             // Calculate total fees
             foreach ($fees as $fee) {
                 if ($fee['valueType'] === 'percentage') {
-                    $totalFee += $sale->remaining_amount * $fee['value'];
+                    $totalFee += ($sale->total_amount * $input['percentage']) * $fee['value'];
                 } else {
                     $totalFee += $fee['value'];
                 }
             }
+
 
             // Calculate remaining percentage
             $sale->remaining_percentage -= $input['percentage'];
