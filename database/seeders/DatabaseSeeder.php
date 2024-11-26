@@ -50,64 +50,6 @@ class DatabaseSeeder extends Seeder
             'type' => 'super-admin',
         ]);
 
-        User::factory()->create([
-            'name' => 'Test Technician',
-            'name_first' => 'Test',
-            'name_last' => 'Technician',
-            'email' => 'testtechnician@gmail.com',
-            'password' => '12345678',
-            'phone_no' => '1122334455',
-            'type' => 'technician',
-        ]);
-
-        Address::create([
-            'address_1' => 'abcd1234',
-            'address_2' => 'abcd1234',
-            'city' => 'PJ',
-            'state' => 'Selangor',
-            'postcode' => '54300',
-        ]);
-
-        User::create([
-            'name' => 'Test Owner',
-            'name_first' => 'Test',
-            'name_last' => 'Owner',
-            'salutations' => 'mr',
-            'ic' => '001111-22-3333',
-            'email' => 'testuser@gmail.com',
-            'password' => '12345678',
-            'phone_no' => '1111476550',
-            'type' => 'owner',
-            'address_id' => 1,
-        ]);
-
-        RegistrationForm::create([
-            'form_no' => '12091795',
-            'salutations' => 'mr',
-            'name_first' => 'Test',
-            'name_last' => 'User',
-            'name_preferred' => 'TestUser',
-            'email' => 'testuser@gmail.com',
-            'country_code' => '+60',
-            'phone_no' => '1111476550',
-            'address_1' => 'abcd1234',
-            'address_2' => 'abcd1234',
-            'city' => 'PJ',
-            'state' => 'Selangor',
-            'postcode' => '54300',
-            'ic' => '001111-22-3333',
-            'property_name' => '2',
-            'other_property_name' => null,
-            'block' => 'B',
-            'level' => '15',
-            'unit' => '15',
-            'layout_type' => 'A',
-            'sqft' => '1000',
-            'metadata' => '{"furnishing":{"foyer_entrance":{"grille_door":"furnished","digital_lock":"furnished","shoe_cabinet":"furnished","lights":"furnished","other":""},"kitchen":{"kitchen_cabinet":"furnished","kitchen_island":"furnished","sink_tap":"furnished","hood_hob":"furnished","microwave":"not-furnish","oven":"not-furnish","water_dispenser":"furnished","fridge":"furnished","lights":"furnished","other":""},"yard":{"washer":"furnished","dryer":"furnished","lights":"furnished","other":""},"dining":{"dining_table_chairs":"furnished","lights":"furnished","fan":"furnished","other":""},"living":{"sofa":"furnished","coffee_table":"furnished","tv":"furnished","tv_cabinet":"furnished","fan":"furnished","lights":"furnished","ac":"furnished","other":""}},"questions":{"quest_1":"3","quest_2":"2","quest_3":"done","quest_4":"done","quest_5":"done","quest_6":"done","quest_7":"done","quest_8":"yes"}}',
-            'attachments' => null,
-            'status' => 'approved'
-        ]);
-
         PMCategory::create([
             'id' => 1,
             'name' => 'Others',
