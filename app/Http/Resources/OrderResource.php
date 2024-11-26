@@ -5,6 +5,8 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+use function Termwind\parse;
+
 class OrderResource extends JsonResource
 {
     /**
@@ -21,6 +23,9 @@ class OrderResource extends JsonResource
         $orderQuotations = $this->orderQuotations->sortByDesc('version')->values(); // Using values() to reindex the collection
 
         $latestQuotation = $orderQuotations->first(); // Get the latest quotation from sorted collection
+
+        // Remove the latest quotation from the collection
+        $orderQuotations = $orderQuotations->slice(1);
 
         return [
             'id' => $this->id,
@@ -48,9 +53,9 @@ class OrderResource extends JsonResource
             ],
             'bedroom_count' => $this->bedroom_count,
             'bathroom_count' => $this->bathroom_count,
-            'latest_quotation_test' => $latestQuotation ? new OrderQuotationResource($latestQuotation) : null,
-            'order_quotations' => $orderQuotations, // This is now sorted in descending order
-            'latest_quotation' => $latestQuotation ? $latestQuotation : null,
+            'latest_quotation' => $latestQuotation ? new OrderQuotationResource($latestQuotation) : null,
+            'order_quotations' => OrderQuotationResource::collection($orderQuotations), // This is now sorted in descending order
+            // 'latest_quotation' => $latestQuotation ? $latestQuotation : null,
             'block' => $this->block,
             'floor' => $this->floor,
             'unit_no' => $this->unit_no,

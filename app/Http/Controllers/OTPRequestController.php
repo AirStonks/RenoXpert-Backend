@@ -85,6 +85,10 @@ class OTPRequestController extends Controller
 
     public function verifyLoginOtp(Request $request)
     {
+        if (env('APP_BYPASS') === true) {
+            return $this->devVerifyLoginOtp($request);
+        }
+
         $input = $request->all();
 
         // $dectyptedMobile = Crypt::decryptString($input['mobH']);
@@ -164,10 +168,13 @@ class OTPRequestController extends Controller
 
     public function verifyOtp(Request $request)
     {
-        // return response()->json([
-        //     'status' => 'verified',
-        //     'message' => 'OTP verified',
-        // ], 200);
+        if (env('APP_BYPASS') === true) {
+            return response()->json([
+                'status' => 'verified',
+                'message' => 'OTP verified',
+            ], 200);
+        }
+
 
         $input = $request->all();
 

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+    protected $host;
     protected $username;
     protected $password;
     protected $auth;
@@ -18,6 +19,8 @@ class PaymentController extends Controller
 
     public function __construct()
     {
+        $this->host = env('APP_URL');
+
         $this->username = 'designnow.adm@gmail.com';
         $this->password = 'ruFMrLn5dxmoTjwJKRc2dAlip570gRSq';
 
@@ -77,7 +80,7 @@ class PaymentController extends Controller
 
         // $returnUrl = $clientDomain . '/invoice/' . $invoice->id . '/view';
         // $returnUrl = 'http://' . $clientHost . ':8000/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
-        $returnUrl = 'https://api.renoxpert.my/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
+        $returnUrl = $this->host . 'api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
 
         $headers = [
             'Content-Type' => 'application/json',
