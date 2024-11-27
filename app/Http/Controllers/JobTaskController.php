@@ -182,9 +182,9 @@ class JobTaskController extends BaseController
         $relativePath = str_replace('/storage/', '', $fileUrl);
 
         // Try to delete the file
-        $deleted = Storage::disk('public')->delete($relativePath);
+        $deleted = Storage::disk('s3')->delete($relativePath);
 
-        if (!$deleted || Storage::disk('public')->exists($relativePath)) {
+        if (!$deleted || Storage::disk('s3')->exists($relativePath)) {
             return $this->sendError('File not found in storage.', 'File could not be deleted.');
         }
 

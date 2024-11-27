@@ -52,9 +52,10 @@ class TriggerCreateRenoProgress
             ]);
 
             // Add Job part
-            $orderQuotation = $sale->order->orderQuotations->first();
+            $orderQuotations = $sale->order->orderQuotations->sortByDesc('version')->values();
+            $latestQuotation = $orderQuotations->first();
 
-            $packages = json_decode($orderQuotation->metadata);
+            $packages = json_decode($latestQuotation->metadata);
 
             // Hardcode for Pre Reno Jobs and Tasks
             $vpJob = PhaseJob::create([
@@ -214,7 +215,6 @@ class TriggerCreateRenoProgress
                 'is_qc_form' => true,
                 'status' => 'not_started',
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error triggering RenoProgress creation for sale ID ' . $sale->id . ': ' . $e->getMessage());
             // Optionally rethrow or handle the exception as needed
