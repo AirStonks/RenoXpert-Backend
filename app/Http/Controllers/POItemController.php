@@ -2,23 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Inventory;
 use App\Models\POItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
-class POItemController extends Controller
+class POItemController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
     {
         //
     }
@@ -40,19 +34,32 @@ class POItemController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(POItem $pOItem)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, POItem $pOItem)
     {
         //
+    }
+
+    public function markAsDelivered($id)
+    {
+        $poItem = POItem::find($id);
+
+        $poItem->status = 'delivered';
+
+        $poItem->delivered_date = Carbon::now();
+
+        $poItem->save();
+
+        // Update Inventory
+        $inventory = Inventory::where('product_id', $poItem->product_id)->first();
+
+        $inventory->current_stock += $poItem->qty;
+        $inventory->coming_stock -= $poItem->qty;
+
+        $inventory->save();
+
+        return $this->sendResponse($poItem, 'PO Item mark as delivered successfully.');
     }
 
     /**

@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
             'name_first' => 'Test',
             'name_last' => 'Super Admin',
             'email' => 'testsuperadmin@belive.asia',
-            'password' => '123456789',
+            'password' => '12345678',
             'phone_no' => '123456789',
             'type' => 'super-admin',
         ]);
@@ -58,6 +58,16 @@ class DatabaseSeeder extends Seeder
             'password' => '12345678',
             'phone_no' => '1122334455',
             'type' => 'technician',
+        ]);
+
+        User::factory()->create([
+            'name' => 'Test Vendor',
+            'name_first' => 'Test',
+            'name_last' => 'Vendor',
+            'email' => 'testvendor@gmail.com',
+            'password' => '12345678',
+            'phone_no' => '1111111111',
+            'type' => 'vendor',
         ]);
 
         Address::create([
@@ -2145,7 +2155,7 @@ class DatabaseSeeder extends Seeder
             'id' => 1,
             'form_id' => 1,
             'order_no' => 'QUO-2400001',
-            'user_id' => 4,
+            'user_id' => 5,
             'property_id' => 2,
             'block' => 'B',
             'floor' => '15',

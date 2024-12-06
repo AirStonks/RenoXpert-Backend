@@ -15,10 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('po_no')->unique();
             $table->unsignedBigInteger('sale_id')->nullable();
+            $table->unsignedBigInteger('vendor_id')->nullable();
             $table->double('total_amount')->nullable();
+            $table->timestamp('shipping_date')->nullable();
+            $table->timestamp('shipped_date')->nullable();
+            $table->timestamp('delivery_date')->nullable();
+            $table->timestamp('delivered_date')->nullable();
+            $table->string('payment_status')->default('unpaid');
+            $table->string('order_status')->default('pending');
             $table->string('description')->nullable();
-            $table->string('description_internal')->nullable();
-            $table->string('status')->default('pending');
+            $table->string('internal_note')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();

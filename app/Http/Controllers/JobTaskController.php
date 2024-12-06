@@ -6,6 +6,7 @@ use App\Models\JobTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Http\Resources\JobTaskResource;
+use App\Models\Inventory;
 use Illuminate\Support\Facades\Storage;
 
 class JobTaskController extends BaseController
@@ -134,6 +135,18 @@ class JobTaskController extends BaseController
         $task->install_date = Carbon::now();
 
         $task->save();
+
+        // If the status is "delivered", change the task
+        if ($task->product_id) {
+            $inventory = Inventory::where('product_id', $task->product_id)->first();
+
+            $inventory->total_required_stock -= $task->qty;
+            $inventory->current_stock -= $task->qty;
+            $inventory->utilized_stock += $task->qty;
+            $inventory->required_stock -= $task->qty;
+
+            $inventory->save();
+        }
 
         return $this->sendResponse(new JobTaskResource($task), 'Task status updated successfully.');
     }

@@ -24,7 +24,7 @@ class SaleController extends BaseController
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {
-            $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+            $query->where('sales_no', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
         }
 
         $sales = $query->paginate($size);

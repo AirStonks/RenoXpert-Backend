@@ -7,7 +7,10 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\UserResource;
+use App\Mail\UserCreatedEmail;
+use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends BaseController
@@ -107,6 +110,10 @@ class UserController extends BaseController
             $input['name'] = $input['name_first'] . ' ' . $input['name_last'];
 
             $user = User::create($input);
+
+            // Send the password to the user via email
+            $receiverEmailAddress = $input['email'];
+            Mail::to($receiverEmailAddress)->send(new UserCreatedEmail($input['name'], $input['email'], $input['password'], $input['type']));
 
             return $this->sendResponse([new UserResource($user), 'new_password' => $input['password']], 'User added successfully.');
         } catch (\Throwable $th) {

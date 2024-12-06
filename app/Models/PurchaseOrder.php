@@ -10,4 +10,53 @@ class PurchaseOrder extends Model
 {
     use SoftDeletes;
     use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'po_no',
+        'sale_id',
+        'vendor_id',
+        'total_amount',
+        'shipping_date',
+        'shipped_date',
+        'delivery_date',
+        'delivered_date',
+        'payment_status',
+        'order_status',
+        'description',
+        'internal_note',
+        'created_by',
+        'updated_by',
+        'deleted_at',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->created_by = auth()->id(); // or your logic to get the user ID
+        });
+
+        static::updating(function ($model) {
+            $model->updated_by = auth()->id(); // or your logic to get the user ID
+        });
+    }
+
+    public function sale() {
+        return $this->belongsTo(Sale::class, 'sale_id', 'id');
+    }
+
+    public function vendor() {
+        return $this->belongsTo(User::class, 'vendor_id', 'id');
+    }
+
+    public function poItems()
+    {
+        return $this->hasMany(POItem::class, 'po_id', 'id');
+    }
 }
