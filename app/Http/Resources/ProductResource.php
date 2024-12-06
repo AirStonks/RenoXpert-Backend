@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -28,6 +29,7 @@ class ProductResource extends JsonResource
                 'supply' => $this->productSupply,
                 'install' => $this->productInstall,
             ],
+            'created_by' => User::find($this->created_by),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
             'status' => $this->status,
