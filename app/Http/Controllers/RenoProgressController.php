@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\RenoProgressResource;
 use App\Models\RenoProgress;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class RenoProgressController extends BaseController
@@ -53,6 +54,15 @@ class RenoProgressController extends BaseController
         ];
 
         return response()->json($response, 200);
+    }
+
+    public function retrieveRenoProgresses(Request $request)
+    {
+        $user = Auth::user();
+
+        $forms = RenoProgress::where('sale_id', $user->phone_no)->get();
+
+        return $this->sendResponse(RegistrationFormResource::collection($forms), 'Registration Form retrieved successfully.');
     }
 
     /**

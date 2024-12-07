@@ -78,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/owner/orders', [OrderController::class, 'getOwnerOrders']);
     Route::get('/owner/form/reno-registration-forms', [RegistrationFormController::class, 'retrieveRegistrationForms']);
     Route::get('/owner/form/reno-registration-forms/{id}', [RegistrationFormController::class, 'showRegistrationForm']);
+    Route::get('/owner/reno-progresses', [RenoProgressController::class, 'retrieveRenoProgresses']);
 
     // Change Invoice Link Status
     Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
