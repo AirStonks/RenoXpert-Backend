@@ -6,38 +6,27 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class JobTask extends Model
+class Inventory extends Model
 {
     use SoftDeletes;
     use HasFactory;
 
     protected $fillable = [
-        'job_id',   
         'product_id',
-        'name',
-        'qty',
-        'priority',
-        'task_weightage',
-        'is_supplied',
-        'is_installed',
-        'supply_date',
-        'install_date',
-        'is_defect_form',
-        'is_qc_form',
+        'alert_level',
+        'total_stock',
+        'current_stock',
+        'coming_stock',
+        'total_available_stock',
+        'total_required_stock',
+        'utilized_stock',
+        'required_stock',
+        'current_balance',
+        'total_balance',
         'status',
-        'owner_comment',
-        'internal_comment',
-        'attachments',
-        'completed_at',
         'created_by',
         'updated_by',
         'deleted_at',
-    ];
-    
-    protected $casts = [
-        'supply_date' => 'datetime',
-        'install_date' => 'datetime',
-        'attachments' => 'array',
     ];
 
     protected static function boot()
@@ -53,8 +42,8 @@ class JobTask extends Model
         });
     }
 
-    public function job()
+    public function product()
     {
-        return $this->belongsTo(PhaseJob::class, 'job_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 }

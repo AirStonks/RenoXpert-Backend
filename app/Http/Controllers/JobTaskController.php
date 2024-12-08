@@ -6,6 +6,7 @@ use App\Models\JobTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Http\Resources\JobTaskResource;
+use App\Models\Inventory;
 use Illuminate\Support\Facades\Storage;
 
 class JobTaskController extends BaseController
@@ -135,6 +136,18 @@ class JobTaskController extends BaseController
 
         $task->save();
 
+        // If the status is "delivered", change the task
+        if ($task->product_id) {
+            $inventory = Inventory::where('product_id', $task->product_id)->first();
+
+            $inventory->total_required_stock -= $task->qty;
+            $inventory->current_stock -= $task->qty;
+            $inventory->utilized_stock += $task->qty;
+            $inventory->required_stock -= $task->qty;
+
+            $inventory->save();
+        }
+
         return $this->sendResponse(new JobTaskResource($task), 'Task status updated successfully.');
     }
 
@@ -182,9 +195,9 @@ class JobTaskController extends BaseController
         $relativePath = str_replace('/storage/', '', $fileUrl);
 
         // Try to delete the file
-        $deleted = Storage::disk('public')->delete($relativePath);
+        $deleted = Storage::disk('s3')->delete($relativePath);
 
-        if (!$deleted || Storage::disk('public')->exists($relativePath)) {
+        if (!$deleted || Storage::disk('s3')->exists($relativePath)) {
             return $this->sendError('File not found in storage.', 'File could not be deleted.');
         }
 

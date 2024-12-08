@@ -16,7 +16,10 @@ class JobTaskResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'job_id' => $this->job_id,
+            'product_id' => $this->product_id,
             'name' => $this->name,
+            'qty' => $this->qty,
             'priority' => $this->priority,
             'task_weightage' => $this->task_weightage,
             'is_supplied' => $this->is_supplied ? true : false,

@@ -11,6 +11,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DefectInspectionFormController;
 use App\Http\Controllers\DiscountFeeController;
 use App\Http\Controllers\DiskController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobTaskController;
 use App\Http\Controllers\OrderController;
@@ -22,6 +23,8 @@ use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\OTPRequestController;
 use App\Http\Controllers\PMCategoryController;
+use App\Http\Controllers\POItemController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\QCFormController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\RenoProgressController;
@@ -75,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/owner/orders', [OrderController::class, 'getOwnerOrders']);
     Route::get('/owner/form/reno-registration-forms', [RegistrationFormController::class, 'retrieveRegistrationForms']);
     Route::get('/owner/form/reno-registration-forms/{id}', [RegistrationFormController::class, 'showRegistrationForm']);
+    Route::get('/owner/reno-progresses', [RenoProgressController::class, 'retrieveRenoProgresses']);
 
     // Change Invoice Link Status
     Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
@@ -92,6 +96,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/users', UserController::class);
     Route::apiResource('/owner/reno-registration-form', RegistrationFormController::class);
     Route::apiResource('/reno-progress', RenoProgressController::class);
+    Route::apiResource('/purchase-orders', PurchaseOrderController::class);
+    Route::apiResource('/inventory', InventoryController::class);
 
     Route::get('users/{id}/password/reset', [UserController::class, 'resetPassword']);
     Route::get('users/{id}/deactivate', [UserController::class, 'deactivateUser']);
@@ -125,6 +131,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/reno-progress/{id}/start-date', [RenoProgressController::class, 'changeStartDate']);
     Route::post('/reno-progress/{id}/end-date', [RenoProgressController::class, 'changeEndDate']);
+
+    Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);
 
     // TEST
     Route::get('/data', [MyController::class, 'getData']);

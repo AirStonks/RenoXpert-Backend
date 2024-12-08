@@ -10,4 +10,51 @@ class POItem extends Model
 {
     use SoftDeletes;
     use HasFactory;
+
+    protected $table = 'po_items';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'po_id',
+        'product_id',
+        'product_name',
+        'product_desc',
+        'sku',
+        'qty',
+        'supply',
+        'install',
+        'unit_price',
+        'total_price',
+        'status',
+        'shipping_date',
+        'shipped_date',
+        'delivery_date',
+        'delivered_date',
+        'created_by',
+        'updated_by',
+        'deleted_at',
+    ];
+
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->created_by = auth()->id(); // or your logic to get the user ID
+        });
+
+        static::updating(function ($model) {
+            $model->updated_by = auth()->id(); // or your logic to get the user ID
+        });
+    }
+
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class, 'po_id', 'id');
+    }
 }

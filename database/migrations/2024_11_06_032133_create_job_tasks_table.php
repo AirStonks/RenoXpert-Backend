@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('job_tasks', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('job_id')->nullable();
+            $table->unsignedBigInteger('product_id')->nullable();
             $table->string('name')->nullable();
+            $table->integer('qty')->nullable();
             $table->integer('priority')->default(1);
             $table->integer('task_weightage')->default(1);
             $table->boolean('is_supplied')->default(false);
