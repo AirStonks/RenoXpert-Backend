@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('job_tasks', function (Blueprint $table) {
+        Schema::table('job_tasks', function (Blueprint $table) {
             $table->unsignedBigInteger('product_id')->nullable()->after('job_id');
             $table->integer('qty')->nullable()->after('name');
         });
