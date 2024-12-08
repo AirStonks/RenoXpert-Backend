@@ -2186,6 +2186,7 @@ class DatabaseSeeder extends Seeder
         Sale::create([
             'id' => 1,
             'order_id' => 1,
+            'user_id' => 5,
             'sales_no' => 'RSO-2400001',
             'description' => '',
             'total_amount' => 64543,

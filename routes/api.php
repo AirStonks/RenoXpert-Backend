@@ -78,7 +78,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/owner/orders', [OrderController::class, 'getOwnerOrders']);
     Route::get('/owner/form/reno-registration-forms', [RegistrationFormController::class, 'retrieveRegistrationForms']);
     Route::get('/owner/form/reno-registration-forms/{id}', [RegistrationFormController::class, 'showRegistrationForm']);
-    Route::get('/owner/reno-progresses', [RenoProgressController::class, 'retrieveRenoProgresses']);
+    Route::get('/owner/reno/progresses', [RenoProgressController::class, 'ownerIndex']);
+    Route::get('/owner/reno/progresses/{id}', [RenoProgressController::class, 'showOwnerRenoProgress']);
 
     // Change Invoice Link Status
     Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
@@ -133,6 +134,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/end-date', [RenoProgressController::class, 'changeEndDate']);
 
     Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);
+
 
     // TEST
     Route::get('/data', [MyController::class, 'getData']);

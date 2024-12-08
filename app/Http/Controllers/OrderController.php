@@ -311,7 +311,7 @@ class OrderController extends BaseController
                 Sale::create([
                     'sales_no' => $input['sales_no'],
                     'order_id' => $order->id,
-                    'user_id' => null,
+                    'user_id' => $order->user_id,
                     'sale_no' => $latestSaleNo,
                     'description' => '',
                     'total_amount' => $order->total_amount,
