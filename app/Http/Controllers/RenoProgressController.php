@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\OwnerRenoProgressResource;
 use App\Http\Resources\RenoProgressResource;
 use App\Models\RenoProgress;
+use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -56,14 +58,58 @@ class RenoProgressController extends BaseController
         return response()->json($response, 200);
     }
 
-    public function retrieveRenoProgresses(Request $request)
+    public function ownerIndex(Request $request)
     {
         $user = Auth::user();
+        $sale = Sale::where('user_id', $user->id)->first();
 
-        $forms = RenoProgress::where('sale_id', $user->phone_no)->get();
+        // Default empty response if no sale or reno progress exists
+        if (!$sale || !$sale->renoProgress) {
+            return response()->json([
+                "page" => 1,
+                "pageCount" => 1,
+                "sortField" => null,
+                "sortOrder" => null,
+                "totalCount" => 0,
+                "data" => []
+            ], 200);
+        }
 
-        return $this->sendResponse(RegistrationFormResource::collection($forms), 'Registration Form retrieved successfully.');
+        $size = $request->input('size', 5);
+        $search = $request->input('search', '');
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'id');
+
+        $query = RenoProgress::query();
+
+        if (!empty($search)) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        $query->orderBy($sortField, $sortOrder);
+        $renoProgress = $query->paginate($size);
+
+
+
+        return response()->json([
+            "page" => $renoProgress->currentPage(),
+            "pageCount" => $renoProgress->lastPage(),
+            "sortField" => $sortField,
+            "sortOrder" => $sortOrder,
+            "totalCount" => $renoProgress->total(),
+            "data" => OwnerRenoProgressResource::collection($renoProgress, false),
+        ], 200);
     }
+
+
+    // public function retrieveRenoProgresses(Request $request)
+    // {
+    //     $user = Auth::user();
+
+    //     $forms = RenoProgress::where('sale_id', $user->phone_no)->get();
+
+    //     return $this->sendResponse(RegistrationFormResource::collection($forms), 'Registration Form retrieved successfully.');
+    // }
 
     /**
      * Store a newly created resource in storage.
@@ -108,6 +154,17 @@ class RenoProgressController extends BaseController
         }
 
         return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
+    }
+
+    public function showOwnerRenoProgress($id)
+    {
+        $renoProgress = RenoProgress::find($id);
+
+        if (is_null($renoProgress)) {
+            return $this->sendError('Reno Progress not found.');
+        }
+
+        return $this->sendResponse(new OwnerRenoProgressResource($renoProgress, true), 'Reno Progress retrieved successfully.');
     }
 
     public function getProgressFormDetail($id)
