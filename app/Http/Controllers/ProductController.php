@@ -84,6 +84,12 @@ class ProductController extends BaseController
                 'status' => 'nullable|string',
                 'uom' => 'required|string',
                 'task_weightage' => 'nullable|numeric',
+                'color' => 'nullable|string',
+                'material' => 'nullable|string',
+                'width' => 'nullable|string',
+                'height' => 'nullable|string',
+                'depth' => 'nullable|string',
+                'internal_desc' => 'nullable|string',
                 'provisioning.supply.retail_price' => 'required|numeric|min:0',
                 'provisioning.supply.cogs' => 'required|numeric|min:0',
                 'provisioning.supply.excluded_price' => 'required|numeric|min:0',
@@ -91,7 +97,6 @@ class ProductController extends BaseController
                 'provisioning.install.cogs' => 'required|numeric|min:0',
                 'provisioning.install.excluded_price' => 'required|numeric|min:0',
             ]);
-
             // Apply unique validation for SKU only if it's provided
             if (!empty($input['SKU'])) {
                 $validator->sometimes('SKU', 'unique:products,SKU', function ($input) {
@@ -174,6 +179,12 @@ class ProductController extends BaseController
             'status' => 'nullable|string',
             'uom' => 'required|string',
             'task_weightage' => 'nullable|numeric',
+            'color' => 'nullable|string',
+            'material' => 'nullable|string',
+            'width' => 'nullable|string',
+            'height' => 'nullable|string',
+            'depth' => 'nullable|string',
+            'internal_desc' => 'nullable|string',
             'provisioning.supply.retail_price' => 'required|numeric|min:0',
             'provisioning.supply.cogs' => 'required|numeric|min:0',
             'provisioning.supply.excluded_price' => 'required|numeric|min:0',
