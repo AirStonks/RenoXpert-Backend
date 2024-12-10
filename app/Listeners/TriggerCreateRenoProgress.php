@@ -129,13 +129,19 @@ class TriggerCreateRenoProgress
 
             JobTask::create([
                 'job_id' => $permitJob->id,
-                'name' => 'Permit Application',
+                'name' => 'Permit Application & Submission',
                 'status' => 'not_started',
             ]);
 
             JobTask::create([
                 'job_id' => $permitJob->id,
                 'name' => 'Permit Deposit Paid by Owner',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $permitJob->id,
+                'name' => 'Reno Permit Approval',
                 'status' => 'not_started',
             ]);
 
@@ -229,6 +235,37 @@ class TriggerCreateRenoProgress
                 'is_qc_form' => true,
                 'status' => 'not_started',
             ]);
+
+            JobTask::create([
+                'job_id' => $postRenoJob->id,
+                'name' => 'Lock Transfer',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $postRenoJob->id,
+                'name' => 'Meter Commissioning and Testing',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $postRenoJob->id,
+                'name' => 'WiFi Pairing',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $postRenoJob->id,
+                'name' => 'Account and Password',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $postRenoJob->id,
+                'name' => 'Deposit Refund Monitoring',
+                'status' => 'not_started',
+            ]);
+
         } catch (\Exception $e) {
             Log::error('Error triggering RenoProgress creation for sale ID ' . $sale->id . ': ' . $e->getMessage());
             // Optionally rethrow or handle the exception as needed

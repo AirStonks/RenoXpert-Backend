@@ -49,6 +49,7 @@ class OwnerRenoProgressResource extends JsonResource
                 'floor' => $this->sale->order->floor,
                 'unit_no' => $this->sale->order->unit_no,
             ],
+            'user' => $this->sale->user,
             'start_date' => $this->start_date ? Carbon::parse($this->start_date)->format('Y-m-d') : null,
             'end_date' => $this->end_date ? Carbon::parse($this->end_date)->format('Y-m-d') : null,
             'status' => $this->status,
@@ -62,7 +63,7 @@ class OwnerRenoProgressResource extends JsonResource
 
         // Include phases if flag is set to true
         if ($this->includePhases) {
-            $data['phases'] = ProgressPhaseResource::collection($this->progressPhases);
+            $data['phases'] = $this->filterPhasesWithVisibleTasks();
         }
 
         return $data;
@@ -108,5 +109,61 @@ class OwnerRenoProgressResource extends JsonResource
         }
         // Calculate the phase completion percentage (average of job completion percentages)
         return $totalJobCompletionPercentage / $totalJobs;
+    }
+
+    private function calculateJobProgress($job) {
+        // Define the status weightages
+        $statusWeights = [
+            'not_started' => 0,
+            'started' => 0.25,
+            'in_progress' => 0.75,
+            'completed' => 1,
+        ];
+    
+        // Initialize the weighted sum and total weight
+        $weightedSum = 0;
+        $totalWeight = 0;
+    
+        // Loop through the tasks to calculate the weighted sum and total weight
+        foreach ($job->tasks as $task) {
+            $statusWeight = isset($statusWeights[$task->status]) ? $statusWeights[$task->status] : 0;
+            $taskWeight = isset($task->task_weightage) ? $task->task_weightage : 1; // Default to 1 if not provided
+    
+            // Add to the weighted sum
+            $weightedSum += $taskWeight * $statusWeight;
+    
+            // Add to the total weight
+            $totalWeight += $taskWeight;
+        }
+    
+        // Return the progress percentage (multiply by 100 to get percentage)
+        return $totalWeight > 0 ? ($weightedSum / $totalWeight) * 100 : 0;
+    }
+
+    /**
+     * Filter tasks where is_visible === true and return the phases.
+     *
+     * @return AnonymousResourceCollection
+     */
+    private function filterPhasesWithVisibleTasks()
+    {
+        return ProgressPhaseResource::collection(
+            $this->progressPhases->map(function ($phase) {
+                // Filter jobs and their tasks
+                
+                $phase->jobs = $phase->jobs->map(function ($job) {
+
+                    $job->completion = $this->calculateJobProgress($job);
+                    $filteredTasks = collect($job->tasks)->where('is_visible', true)->values();
+
+                    // Reassign filtered tasks to the job
+                    $job->tasks = $filteredTasks->values();
+                    
+                    return $job;
+                });
+
+                return $phase;
+            })
+        );
     }
 }

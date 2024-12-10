@@ -127,6 +127,17 @@ class JobTaskController extends BaseController
         return $this->sendResponse(new JobTaskResource($task), 'Task Install toggled successfully.');
     }
 
+    public function toggleTaskVisibility($id, $taskId)
+    {
+        $task = JobTask::find($taskId);
+
+        $task->is_visible = !$task->is_visible;
+
+        $task->save();
+
+        return $this->sendResponse(new JobTaskResource($task), 'Task Visibility toggled successfully.');
+    }
+
     public function changeTaskStatus($id, $taskId, $status)
     {
         $task = JobTask::find($taskId);
