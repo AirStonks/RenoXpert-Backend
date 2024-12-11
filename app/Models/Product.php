@@ -33,6 +33,7 @@ class Product extends Model
         'depth',
         'internal_desc',
         'status',
+        'attachments',
         'created_by',
         'updated_by',
         'deleted_at',

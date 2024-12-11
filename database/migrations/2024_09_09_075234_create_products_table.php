@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('depth')->nullable();
             $table->string('internal_desc')->nullable();
             $table->string('status')->nullable();
+            $table->json('attachments')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();

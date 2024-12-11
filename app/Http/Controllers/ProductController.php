@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ProductResource;
 use App\Models\ProductInstall;
 use App\Models\ProductSupply;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -75,6 +76,7 @@ class ProductController extends BaseController
         try {
             $input = $request->all();
 
+
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
                 'SKU' => 'nullable|string',
@@ -135,9 +137,68 @@ class ProductController extends BaseController
                 'excluded_price' => $validatedData['provisioning']['install']['excluded_price'],
             ]);
 
+            // Product attachment handling
+            $directory = 'products/' . $product->id;
+
+            $uploadedFiles = [
+                'thumbnail' => null,
+                'photos' => []
+            ];
+            
+
+            if ($request->has('attachments')) {
+                $uploadedFiles = [];
+
+                // Handle thumbnail file upload
+                if ($request->has('attachments.thumbnail')) {
+                    $attachment = $request->attachments['thumbnail'];
+                    if ($attachment) {
+                        $filename = uniqid() . '.' . $attachment->getClientOriginalExtension();
+                        $path = Storage::disk('s3')->putFileAs(
+                            $directory,
+                            $attachment,
+                            $filename,
+                            'public'
+                        );
+
+                        $uploadedFiles['thumbnail'] = [
+                            'file_url' => Storage::disk('s3')->path($path),
+                            'original_name' => $attachment->getClientOriginalName(),
+                        ];
+                    }
+                }
+
+                // Handle multiple photos file upload
+                if ($request->has('attachments.photos') && is_array($request->attachments['photos'])) {
+                    foreach ($request->attachments['photos'] as $attachment) {
+                        if ($attachment) {
+                            $filename = uniqid() . '.' . $attachment->getClientOriginalExtension();
+                            $path = Storage::disk('s3')->putFileAs(
+                                $directory,
+                                $attachment,
+                                $filename,
+                                'public'
+                            );
+
+                            $uploadedFiles['photos'][] = [
+                                'file_url' => Storage::disk('s3')->path($path),
+                                'original_name' => $attachment->getClientOriginalName(),
+                            ];
+                        }
+                    }
+                }
+            }
+
+
+            $product->attachments = json_encode($uploadedFiles);
+            $product->save();
+
             return $this->sendResponse(new ProductResource($product), 'Product created successfully.');
         } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th);
+            return $this->sendError('Database Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
         }
     }
 
@@ -168,6 +229,7 @@ class ProductController extends BaseController
     public function update(Request $request, Product $product): JsonResponse
     {
         $input = $request->all();
+        return $this->sendError('Validation Error.', $input);
 
         // Validate input data
         $validator = Validator::make($input, [
@@ -220,6 +282,9 @@ class ProductController extends BaseController
         $product->save();
         $product->productSupply->save();
         $product->productInstall->save();
+
+        // Update Attachments
+
 
         return $this->sendResponse(new ProductResource($product), 'Product updated successfully.');
     }

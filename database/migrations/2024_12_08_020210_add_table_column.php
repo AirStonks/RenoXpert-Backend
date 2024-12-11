@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->string('internal_desc')->nullable()->after('task_weightage');
-            $table->string('depth')->nullable()->after('task_weightage');
-            $table->string('height')->nullable()->after('task_weightage');
-            $table->string('width')->nullable()->after('task_weightage');
-            $table->string('material')->nullable()->after('task_weightage');
-            $table->string('color')->nullable()->after('task_weightage');
-        });
+        // Schema::table('products', function (Blueprint $table) {
+        //     $table->json('attachments')->nullable()->after('status');
+        // });
     }
 
     /**
