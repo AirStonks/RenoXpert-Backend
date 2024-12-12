@@ -75,6 +75,7 @@ class ProductController extends BaseController
     {
         try {
             $input = $request->all();
+            return $this->sendError('Validation Error.', ['yes' => $input]);
 
 
             $validator = Validator::make($input, [
@@ -144,7 +145,7 @@ class ProductController extends BaseController
                 'thumbnail' => null,
                 'photos' => []
             ];
-            
+
 
             if ($request->has('attachments')) {
                 $uploadedFiles = [];
@@ -202,6 +203,55 @@ class ProductController extends BaseController
         }
     }
 
+    public function uploadProductPhotos(Request $request, $id): JsonResponse
+    {
+        $product = Product::find($id);
+
+        $directory = 'products/' . $product->id;
+
+        $product->attachments = $product->attachments;
+
+        $uploadedFiles = json_decode($product->attachments) ?? (object) [
+            'thumbnail' => null,
+            'photos' => []
+        ];
+
+        if ($request->hasFile('attachments')) {
+            $files = $request->file('attachments'); // This should be an array of uploaded files
+            $newAttachments = $uploadedFiles->photos ?? [];
+
+            foreach ($files as $file) {
+                // Generate a unique filename to prevent conflicts
+                $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+
+                // Store the file in the specified directory on the S3 disk
+                $path = Storage::disk('s3')->putFileAs(
+                    $directory,
+                    $file,
+                    $filename,
+                    'public'
+                );
+
+                // Prepare new attachment data
+                $newAttachments[] = [
+                    // Use the full URL path for S3
+                    'file_url' => Storage::disk('s3')->path($path),
+                    'size' => $file->getSize(),
+                    'original_name' => $file->getClientOriginalName(),
+                ];
+            }
+
+            // Update attachments field with the new data
+            $uploadedFiles->photos = $newAttachments;
+            $product->attachments = json_encode($uploadedFiles);
+            $product->save();
+
+            return $this->sendResponse($uploadedFiles->photos, 'Photos uploaded successfully.');
+        }
+
+        return $this->sendError('Upload Failed.', $uploadedFiles->photos);
+    }
+
     /**
      * Display the specified resource.
      *
@@ -229,7 +279,8 @@ class ProductController extends BaseController
     public function update(Request $request, Product $product): JsonResponse
     {
         $input = $request->all();
-        return $this->sendError('Validation Error.', $input);
+
+        return $this->sendError('Test Value.', ['test' => $input]);
 
         // Validate input data
         $validator = Validator::make($input, [
@@ -283,10 +334,68 @@ class ProductController extends BaseController
         $product->productSupply->save();
         $product->productInstall->save();
 
-        // Update Attachments
-
-
         return $this->sendResponse(new ProductResource($product), 'Product updated successfully.');
+    }
+
+    public function changeThumbnail(Request $request, $id): JsonResponse
+    {
+        $product = Product::find($id);
+
+        $directory = 'products/' . $product->id;
+        $product->attachments = $product->attachments;
+
+        $uploadedFiles = json_decode($product->attachments) ?? (object) [
+            'thumbnail' => null,
+            'photos' => []
+        ];
+        $selectedPhoto = $uploadedFiles->thumbnail ?? null;
+
+        if (!is_null($selectedPhoto)) {
+            // Get the file URL from attachments
+            $fileUrl = $selectedPhoto->file_url;
+
+            // Convert the full storage URL to the correct relative path
+            // Remove "/storage/" from the beginning of the path
+            $relativePath = str_replace('/storage/', '', $fileUrl);
+
+            // Try to delete the file
+            $deleted = Storage::disk('s3')->delete($relativePath);
+
+            if (!$deleted || Storage::disk('s3')->exists($relativePath)) {
+                return $this->sendError('File not found in storage.', 'File could not be deleted.');
+            }
+        } else {
+            $selectedPhoto = (object) [
+                'file_url' => null,
+                'size' => null,
+                'original_name' => null
+            ];
+        }
+
+        // return $this->sendError('Upload Failed.', $selectedPhoto);
+
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+
+            $path = Storage::disk('s3')->putFileAs(
+                $directory,
+                $file,
+                $filename,
+                'public'
+            );
+
+            $selectedPhoto->file_url = Storage::disk('s3')->path($path);
+            $selectedPhoto->original_name = $file->getClientOriginalName();
+
+            $uploadedFiles->thumbnail = $selectedPhoto;
+            $product->attachments = json_encode($uploadedFiles);
+            $product->save();
+
+            return $this->sendResponse($uploadedFiles->thumbnail, 'Thumbnail updated successfully.');
+        }
+
+        return $this->sendError('Upload Failed.', $selectedPhoto);
     }
 
 
@@ -305,5 +414,46 @@ class ProductController extends BaseController
         $product->delete();
 
         return $this->sendResponse([], 'Product deleted successfully.');
+    }
+
+    public function removeProductPhoto($id, $photoIndex): JsonResponse
+    {
+        $product = Product::find($id);
+
+        $phototIndex = (int) $photoIndex;
+        $uploadedFiles = json_decode($product->attachments);
+
+        $selectedPhoto = $uploadedFiles->photos[$phototIndex];
+
+        // Get the file URL from attachments
+        $fileUrl = $selectedPhoto->file_url;
+
+        // Convert the full storage URL to the correct relative path
+        // Remove "/storage/" from the beginning of the path
+        $relativePath = str_replace('/storage/', '', $fileUrl);
+
+        // Try to delete the file
+        $deleted = Storage::disk('s3')->delete($relativePath);
+
+        if (!$deleted || Storage::disk('s3')->exists($relativePath)) {
+            return $this->sendError('File not found in storage.', 'File could not be deleted.');
+        }
+
+        // Remove the document from the array
+        unset($uploadedFiles->photos[$phototIndex]);
+
+        // Reorder the remaining attachments
+        $newPhotos = array_values($uploadedFiles->photos);
+
+        // If array empty, null it
+        if (empty($newPhotos)) {
+            $newPhotos = null;
+        }
+
+        $uploadedFiles->photos = $newPhotos;
+        $product->attachments = json_encode($uploadedFiles);
+        $product->save();
+
+        return $this->sendResponse($uploadedFiles->photos, 'Photo removed successfully.');
     }
 }

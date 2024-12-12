@@ -146,6 +146,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);
 
+    Route::post('/products/{id}/attachments/thumbnail/change', [ProductController::class, 'changeThumbnail']);
+    Route::get('/products/{id}/attachments/photos/{photoIndex}/remove', [ProductController::class, 'removeProductPhoto']);
+    Route::post('/products/{id}/attachments/photos/upload', [ProductController::class, 'uploadProductPhotos']);
+
 
     // TEST
     Route::get('/data', [MyController::class, 'getData']);
