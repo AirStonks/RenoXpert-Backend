@@ -24,6 +24,7 @@ class JobTask extends Model
         'install_date',
         'is_defect_form',
         'is_qc_form',
+        'is_visible',
         'status',
         'owner_comment',
         'internal_comment',

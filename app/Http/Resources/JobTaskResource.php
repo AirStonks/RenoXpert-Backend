@@ -28,6 +28,7 @@ class JobTaskResource extends JsonResource
             'install_date' => $this->install_date ? $this->install_date->format('m/d/Y') : null,
             'is_defect_form' => $this->is_defect_form ? true : false,
             'is_qc_form' => $this->is_qc_form ? true : false,
+            'is_visible' => $this->is_visible ? true : false,
             'status' => $this->status,
             'owner_comment' => $this->owner_comment,
             'internal_comment' => $this->internal_comment,

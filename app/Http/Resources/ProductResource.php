@@ -15,6 +15,8 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $attachments = json_decode($this->attachments);
+
         $array = [
             'id' => $this->id,
             'name' => $this->name,
@@ -40,6 +42,7 @@ class ProductResource extends JsonResource
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
             'status' => $this->status,
+            'attachments' => $attachments,
         ];
 
         // Include pivot data if it exists

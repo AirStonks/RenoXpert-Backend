@@ -19,6 +19,7 @@ class PhaseJobResource extends JsonResource
             'name' => $this->name,
             'priority' => $this->priority,
             'status' => $this->status,
+            'completion' => $this->completion,
             'tasks' => JobTaskResource::collection($this->tasks),
             // 'completed_at' => $this->completed_at->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),

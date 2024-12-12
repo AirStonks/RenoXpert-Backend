@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::table('products', function (Blueprint $table) {
-        //     $table->json('attachments')->nullable()->after('status');
-        // });
+        Schema::create('owner_inspection_forms', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -21,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('owner_inspection_forms');
     }
 };
