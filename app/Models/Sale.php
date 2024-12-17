@@ -72,4 +72,9 @@ class Sale extends Model
     {
         return $this->hasOne(RenoProgress::class, 'sale_id', 'id');
     }
+
+    public function purchaseOrders()
+    {
+        return $this->hasMany(PurchaseOrder::class, 'sale_id', 'id');
+    }
 }

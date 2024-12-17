@@ -158,10 +158,13 @@ class RenoProgressController extends BaseController
 
     public function showOwnerRenoProgress($id)
     {
+        $user = Auth::user();
+
         $renoProgress = RenoProgress::find($id);
 
-        if (is_null($renoProgress)) {
-            return $this->sendError('Reno Progress not found.');
+        // Check if the reno progress is retrieve by the current user
+        if (is_null($renoProgress) || $renoProgress->sale->user->id != $user->id) {
+            return $this->sendError('Invalid Credential.', null, 403);
         }
 
         return $this->sendResponse(new OwnerRenoProgressResource($renoProgress, true), 'Reno Progress retrieved successfully.');

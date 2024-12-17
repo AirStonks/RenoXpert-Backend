@@ -118,6 +118,9 @@ class InvoiceController extends BaseController
             $input['discountsData'] = json_encode($discounts);
             $input['feesData'] = json_encode($fees);
 
+            // Set invoice to unpaid
+            $input['status'] = 'unpaid';
+
             // Create the Invoice
             $invoice = Invoice::create($input);
 

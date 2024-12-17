@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProgressPhase;
+use App\Models\RenoProgress;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class ProgressPhaseController extends Controller
+class ProgressPhaseController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -13,6 +15,44 @@ class ProgressPhaseController extends Controller
     public function index()
     {
         //
+    }
+
+    public function retrieveRenoProgressPhaseAttachments($renoProgressId, $phase)
+    {
+        $user = Auth::user();
+
+        // find selected reno progress
+        $renoProgress = RenoProgress::find($renoProgressId);
+
+        // Check if the reno progress is retrieve by the current user
+        if ($renoProgress->sale->user->id != $user->id) {
+            return $this->sendError('Invalid Credential.', null, 403);
+        }
+
+        $selectedPhase = null;
+
+        if ($phase === 'pre_reno') {
+            $selectedPhase = $renoProgress->progressPhases[0];
+        } elseif ($phase === 'reno') {
+            $selectedPhase = $renoProgress->progressPhases[1];
+        } elseif ($phase === 'post_reno') {
+            $selectedPhase = $renoProgress->progressPhases[2];
+        }
+
+        $attachments = [];
+
+        // loop through phaseJobs->jobTasks and find attachments
+        foreach ($selectedPhase->jobs as $job) {
+            foreach ($job->tasks as $task) {
+                if (isset($task->attachments)) {
+                    foreach ($task->attachments as $attachment) {
+                        $attachments[] = $attachment;
+                    }
+                }
+            }
+        }
+
+        return $this->sendError('Error.', $attachments);
     }
 
     /**

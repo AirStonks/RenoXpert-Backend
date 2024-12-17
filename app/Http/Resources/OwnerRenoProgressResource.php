@@ -158,6 +158,7 @@ class OwnerRenoProgressResource extends JsonResource
 
                     // Reassign filtered tasks to the job
                     $job->tasks = $filteredTasks->values();
+
                     
                     return $job;
                 });

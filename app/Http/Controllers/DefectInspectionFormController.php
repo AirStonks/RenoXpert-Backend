@@ -51,10 +51,10 @@ class DefectInspectionFormController extends BaseController
                             if (isset($question['attachments']) && is_array($question['attachments'])) {
                                 foreach ($question['attachments'] as $key => $attachment) {
                                     // Store the file in the public storage
-                                    $filename = uniqid() . '.' . $attachment->getClientOriginalExtension();
+                                    $filename = uniqid() . '.' . $attachment['file']->getClientOriginalExtension();
                                     $path = Storage::disk('s3')->putFileAs(
                                         $directory,
-                                        $attachment,
+                                        $attachment['file'],
                                         $filename,
                                         'public'
                                     );
@@ -73,11 +73,17 @@ class DefectInspectionFormController extends BaseController
                         if (isset($question['attachments']) && is_array($question['attachments'])) {
                             foreach ($question['attachments'] as $key => $attachment) {
                                 // Store the file in the public storage
-                                $path = $attachment['file']->store($directory, 'public');
+                                $filename = uniqid() . '.' . $attachment['file']->getClientOriginalExtension();
+                                $path = Storage::disk('s3')->putFileAs(
+                                    $directory,
+                                    $attachment['file'],
+                                    $filename,
+                                    'public'
+                                );
 
                                 // Update the attachment details
                                 $updatedArea[$areaIndex][$questionIndex]['attachments'][$key] = [
-                                    'file_url' => Storage::url($path), // Get the public URL of the stored file
+                                    'file_url' => Storage::disk('s3')->path($path), // Get the public URL of the stored file
                                     'original_name' => $attachment['file']->getClientOriginalName(),
                                 ];
                             }
@@ -107,7 +113,8 @@ class DefectInspectionFormController extends BaseController
 
             $diTask->save();
 
-            return $this->sendError('error', $form);
+            return $this->sendResponse('success', 'Form submitted successfully.');
+            
         } catch (\Throwable $th) {
             return $this->sendError('Database Error.', [
                 'message' => $th->getMessage(),

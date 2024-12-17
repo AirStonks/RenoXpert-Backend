@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Property;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,6 +21,7 @@ class DefectInspectionFormResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'reno_progress_id' => $this->reno_progress_id,
             'date' => $this->date,
             'time' => $this->time,
             'owner_email' => $this->owner_email,
@@ -42,6 +44,7 @@ class DefectInspectionFormResource extends JsonResource
             'bathroom_count' => $this->bathroom_count,
             'area' => $metadata,
             'status' => $this->status,
+            'created_by' => User::find($this->created_by),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

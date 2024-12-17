@@ -9,18 +9,17 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        // Schema::table('products', function (Blueprint $table) {
-        //     $table->json('attachments')->nullable()->after('status');
-        // });
+        Schema::table('job_tasks', function (Blueprint $table) {
+            $table->boolean('is_visible')->default(false)->change();
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        //
+        Schema::table('job_tasks', function (Blueprint $table) {
+            $table->boolean('is_visible')->default(true)->change();
+        });
     }
 };

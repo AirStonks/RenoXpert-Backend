@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Order;
+use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -31,6 +32,7 @@ class SaleResource extends JsonResource
             'remaining_percentage' => $this->remaining_percentage,
             // get the sum percentage of status==='paid' invoice of $this->invoices
             'paid_percentage' => $this->invoices->where('status', 'paid')->sum('percentage'),
+            'purchase_orders' => PurchaseOrderResource::collection($this->purchaseOrders),
             'status' => $this->status,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),

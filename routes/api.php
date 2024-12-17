@@ -22,8 +22,10 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\OTPRequestController;
+use App\Http\Controllers\PhaseJobController;
 use App\Http\Controllers\PMCategoryController;
 use App\Http\Controllers\POItemController;
+use App\Http\Controllers\ProgressPhaseController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\QCFormController;
 use App\Http\Controllers\RegistrationFormController;
@@ -80,6 +82,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/owner/form/reno-registration-forms/{id}', [RegistrationFormController::class, 'showRegistrationForm']);
     Route::get('/owner/reno/progresses', [RenoProgressController::class, 'ownerIndex']);
     Route::get('/owner/reno/progresses/{id}', [RenoProgressController::class, 'showOwnerRenoProgress']);
+    Route::get('/owner/reno/progresses/{renoProgressId}/phase/{phase}/attachments', [ProgressPhaseController::class, 'retrieveRenoProgressPhaseAttachments']);
+    Route::get('/owner/reno/progresses/{renoProgressId}/job/{jobId}/attachments', [PhaseJobController::class, 'retrieveJobAttachments']);
 
     // Change Invoice Link Status
     Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
@@ -99,6 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/reno-progress', RenoProgressController::class);
     Route::apiResource('/purchase-orders', PurchaseOrderController::class);
     Route::apiResource('/inventory', InventoryController::class);
+    Route::apiResource('/defect-inspection-forms', DefectInspectionFormController::class);
 
     Route::get('users/{id}/password/reset', [UserController::class, 'resetPassword']);
     Route::get('users/{id}/deactivate', [UserController::class, 'deactivateUser']);
