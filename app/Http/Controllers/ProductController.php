@@ -280,8 +280,6 @@ class ProductController extends BaseController
     {
         $input = $request->all();
 
-        return $this->sendError('Test Value.', ['test' => $input]);
-
         // Validate input data
         $validator = Validator::make($input, [
             'name' => 'required|string|max:255',
