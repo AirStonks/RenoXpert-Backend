@@ -52,7 +52,7 @@ class ProgressPhaseController extends BaseController
             }
         }
 
-        return $this->sendError('Error.', $attachments);
+        return $this->sendResponse($attachments, 'Attachments retrieved successfully.');
     }
 
     /**

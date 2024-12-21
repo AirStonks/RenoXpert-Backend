@@ -50,8 +50,10 @@ class OwnerRenoProgressResource extends JsonResource
                 'unit_no' => $this->sale->order->unit_no,
             ],
             'user' => $this->sale->user,
-            'start_date' => $this->start_date ? Carbon::parse($this->start_date)->format('Y-m-d') : null,
-            'end_date' => $this->end_date ? Carbon::parse($this->end_date)->format('Y-m-d') : null,
+            'contractual_start_date' => $this->contractual_start_date ? Carbon::parse($this->contractual_start_date)->format('Y-m-d') : null,
+            'contractual_end_date' => $this->contractual_end_date ? Carbon::parse($this->contractual_end_date)->format('Y-m-d') : null,
+            'contractor_start_date' => $this->contractor_start_date ? Carbon::parse($this->contractor_start_date)->format('Y-m-d') : null,
+            'contractor_end_date' => $this->contractor_end_date ? Carbon::parse($this->contractor_end_date)->format('Y-m-d') : null,
             'status' => $this->status,
             'pre_reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[0] ?? null),
             'reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[1] ?? null),
@@ -111,7 +113,8 @@ class OwnerRenoProgressResource extends JsonResource
         return $totalJobCompletionPercentage / $totalJobs;
     }
 
-    private function calculateJobProgress($job) {
+    private function calculateJobProgress($job)
+    {
         // Define the status weightages
         $statusWeights = [
             'not_started' => 0,
@@ -119,23 +122,23 @@ class OwnerRenoProgressResource extends JsonResource
             'in_progress' => 0.75,
             'completed' => 1,
         ];
-    
+
         // Initialize the weighted sum and total weight
         $weightedSum = 0;
         $totalWeight = 0;
-    
+
         // Loop through the tasks to calculate the weighted sum and total weight
         foreach ($job->tasks as $task) {
             $statusWeight = isset($statusWeights[$task->status]) ? $statusWeights[$task->status] : 0;
             $taskWeight = isset($task->task_weightage) ? $task->task_weightage : 1; // Default to 1 if not provided
-    
+
             // Add to the weighted sum
             $weightedSum += $taskWeight * $statusWeight;
-    
+
             // Add to the total weight
             $totalWeight += $taskWeight;
         }
-    
+
         // Return the progress percentage (multiply by 100 to get percentage)
         return $totalWeight > 0 ? ($weightedSum / $totalWeight) * 100 : 0;
     }
@@ -150,16 +153,20 @@ class OwnerRenoProgressResource extends JsonResource
         return ProgressPhaseResource::collection(
             $this->progressPhases->map(function ($phase) {
                 // Filter jobs and their tasks
-                
+
                 $phase->jobs = $phase->jobs->map(function ($job) {
 
                     $job->completion = $this->calculateJobProgress($job);
-                    $filteredTasks = collect($job->tasks)->where('is_visible', true)->values();
+                    $filteredTasks = collect($job->tasks)->where('is_visible', true)->map(function ($task) {
+                        // Remove 'internal_comment' from each task
+                        unset($task->internal_comment);
+                        return $task;
+                    });
 
                     // Reassign filtered tasks to the job
                     $job->tasks = $filteredTasks->values();
 
-                    
+
                     return $job;
                 });
 

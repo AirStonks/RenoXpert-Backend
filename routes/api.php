@@ -122,6 +122,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reno-progress/{id}/task/{taskId}/documents/{documentIndex}/remove', [JobTaskController::class, 'removeTaskDocument']);
 
 
+    Route::get('/op/reno/progresses', [RenoProgressController::class, 'index']);
+    
     Route::get('/op/properties', [PropertyController::class, 'getOperationProperties']);
     Route::get('/op/reno/progress/{id}/properties', [RenoProgressController::class, 'getProgressFormDetail']);
 
@@ -135,12 +137,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/op/reno/defect-inspection-forms/{id}/fetch', [DefectInspectionFormController::class, 'fetch']);
 
 
+    Route::post('/reno-progress/{id}/contractual/overall/date', [RenoProgressController::class, 'changeContractualDate']);
     Route::post('/reno-progress/{id}/contractual/p1/date', [RenoProgressController::class, 'changeContractualP1Date']);
     Route::post('/reno-progress/{id}/contractual/p2/date', [RenoProgressController::class, 'changeContractualP2Date']);
     Route::post('/reno-progress/{id}/contractual/qc/date', [RenoProgressController::class, 'changeContractualQCDate']);
     Route::post('/reno-progress/{id}/contractual/pc/date', [RenoProgressController::class, 'changeContractualPCDate']);
     Route::post('/reno-progress/{id}/contractual/handover/date', [RenoProgressController::class, 'changeContractualHandoverDate']);
 
+    Route::post('/reno-progress/{id}/contractor/overall/date', [RenoProgressController::class, 'changeContractorDate']);
     Route::post('/reno-progress/{id}/contractor/p1/date', [RenoProgressController::class, 'changeContractorP1Date']);
     Route::post('/reno-progress/{id}/contractor/p2/date', [RenoProgressController::class, 'changeContractorP2Date']);
     Route::post('/reno-progress/{id}/contractor/qc/date', [RenoProgressController::class, 'changeContractorQCDate']);

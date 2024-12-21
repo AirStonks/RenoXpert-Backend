@@ -29,13 +29,13 @@ class RenoProgressController extends BaseController
         // Apply search filter if a search term is provided
         if (!empty($search)) {
             // Assuming 'name' is the field you want to search, adjust as necessary
-            $query->where('name', 'like', '%' . $search . '%');
+            // $query->where('name', 'like', '%' . $search . '%');
         }
 
 
         // Retrieve the sort order and field from the request
         $sortOrder = $request->input('sortOrder', 'asc');
-        $sortField = $request->input('sortField', 'name');
+        // $sortField = $request->input('sortField', 'name');
 
         // Apply sorting if a sort field is provided
         if (!empty($sortField)) {
@@ -198,6 +198,11 @@ class RenoProgressController extends BaseController
         //
     }
 
+    public function changeContractualDate(Request $request, $id)
+    {
+        return $this->changeContractDate($request, $id, 'contractual');
+    }
+
     public function changeContractualP1Date(Request $request, $id)
     {
         return $this->changeContractDate($request, $id, 'contractual_p1');
@@ -234,6 +239,11 @@ class RenoProgressController extends BaseController
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th->getMessage());
         }
+    }
+
+    public function changeContractorDate(Request $request, $id)
+    {
+        return $this->changeContractDate($request, $id, 'contractor');
     }
 
     public function changeContractorP1Date(Request $request, $id)

@@ -160,7 +160,10 @@ class TriggerCreateRenoProgress
                     if ($product->pm_category_id === 3) {
                         // FindOrCreate Wiring Job
                         $job = PhaseJob::firstOrCreate(
-                            ['name' => 'House Electrical & Wiring'],
+                            [
+                                'name' => 'House Electrical & Wiring',
+                                'phase_id' => $renoPhase->id
+                            ],
                             [
                                 'phase_id' => $renoPhase->id,
                                 'name' => 'House Electrical & Wiring',
@@ -181,7 +184,10 @@ class TriggerCreateRenoProgress
                     } elseif ($product->pm_category_id === 4) {
                         // FindOrCreate Wiring Job
                         $job = PhaseJob::firstOrCreate(
-                            ['name' => 'House Painting'],
+                            [
+                                'name' => 'House Painting',
+                                'phase_id' => $renoPhase->id
+                            ],
                             [
                                 'phase_id' => $renoPhase->id,
                                 'name' => 'House Painting',
@@ -202,7 +208,10 @@ class TriggerCreateRenoProgress
                     } else {
                         // FindOrCreate Package Job
                         $job = PhaseJob::firstOrCreate(
-                            ['name' => $pkg->name],
+                            [
+                                'name' => $pkg->name,
+                                'phase_id' => $renoPhase->id
+                            ],
                             [
                                 'phase_id' => $renoPhase->id,
                                 'name' => $pkg->name,
@@ -263,6 +272,12 @@ class TriggerCreateRenoProgress
             JobTask::create([
                 'job_id' => $postRenoJob->id,
                 'name' => 'Deposit Refund Monitoring',
+                'status' => 'not_started',
+            ]);
+
+            JobTask::create([
+                'job_id' => $postRenoJob->id,
+                'name' => 'RPM Handover',
                 'status' => 'not_started',
             ]);
 
