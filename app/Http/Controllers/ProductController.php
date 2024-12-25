@@ -75,8 +75,6 @@ class ProductController extends BaseController
     {
         try {
             $input = $request->all();
-            return $this->sendError('Validation Error.', ['yes' => $input]);
-
 
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
