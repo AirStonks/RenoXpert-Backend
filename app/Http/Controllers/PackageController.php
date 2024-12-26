@@ -54,7 +54,8 @@ class PackageController extends BaseController
 
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
-                'description' => 'nullable|string|max:255',
+                'description' => 'nullable|string',
+                'description_internal' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -63,13 +64,13 @@ class PackageController extends BaseController
 
             $package = Package::create($input);
 
-            // $totalAmount = 0.0;
+            $totalAmount = 0.0;
 
             foreach ($input['products'] as $productInput) {
 
                 $product = Product::find($productInput['id']);
 
-                // $totalAmount += $product->product_retail_price * $productInput['quantity'];
+                $totalAmount += $product->product_retail_price * $productInput['quantity'];
 
                 $package->products()->attach($productInput['id'], [
                     'quantity' => $productInput['quantity'],
@@ -82,7 +83,7 @@ class PackageController extends BaseController
                 ]);
             }
 
-            // $package->total_price = $totalAmount;
+            $package->total_price = $totalAmount;
 
             $package->save();
 
@@ -122,7 +123,8 @@ class PackageController extends BaseController
 
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
-                'description' => 'nullable|string|max:255',
+                'description' => 'nullable|string',
+                'description_internal' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -133,6 +135,7 @@ class PackageController extends BaseController
 
             $package->name = $validatedData['name'];
             $package->description = $validatedData['description'];
+            $package->description_internal = $validatedData['description_internal'];
 
             // OPTION 1: Remove all associated product_package and Insert the newest product_package
 
