@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('pm_category_id')->nullable();
             $table->string('SKU')->unique()->nullable();
             $table->string('type')->nullable();
-            $table->string('description')->nullable();
+            $table->text('description')->nullable();
             $table->string('uom')->nullable();
             $table->integer('task_weightage')->nullable();
             $table->string('color')->nullable();
