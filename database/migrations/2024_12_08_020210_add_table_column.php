@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('reno_progress', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table) {
             $table->text('description')->nullable();
         });
     }
