@@ -35,7 +35,10 @@ class ProductController extends BaseController
         // Apply search filter if a search term is provided
         if (!empty($search)) {
             // Assuming 'name' is the field you want to search, adjust as necessary
-            $query->where('name', 'like', '%' . $search . '%');
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('SKU', 'like', '%' . $search . '%');
+            });
         }
 
 
@@ -100,7 +103,7 @@ class ProductController extends BaseController
             ]);
             // Apply unique validation for SKU only if it's provided
             if (!empty($input['SKU'])) {
-                $validator->sometimes('SKU', 'unique:products,SKU', function ($input) {
+                $validator->sometimes('SKU', Rule::unique('products', 'SKU')->whereNull('deleted_at'), function ($input) {
                     return !empty($input['SKU']);
                 });
             }
@@ -308,7 +311,7 @@ class ProductController extends BaseController
         // Pass SKU checking if the SKU is not being updated
         if ($prevProd->SKU != $input['SKU']) {
             if (!empty($input['SKU'])) {
-                $validator->sometimes('SKU', 'unique:products,SKU', function ($input) {
+                $validator->sometimes('SKU', Rule::unique('products', 'SKU')->whereNull('deleted_at'), function ($input) {
                     return !empty($input['SKU']);
                 });
             }
@@ -412,6 +415,11 @@ class ProductController extends BaseController
 
         $product->productSupply->delete();
         $product->productInstall->delete();
+
+        // Set product sku to null to prevent duplicate sku
+        $product->SKU = null;
+        $product->save();
+
         $product->delete();
 
         return $this->sendResponse([], 'Product deleted successfully.');
