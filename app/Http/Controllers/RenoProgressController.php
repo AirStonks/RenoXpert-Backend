@@ -29,13 +29,13 @@ class RenoProgressController extends BaseController
         // Apply search filter if a search term is provided
         if (!empty($search)) {
             // Assuming 'name' is the field you want to search, adjust as necessary
-            $query->where('name', 'like', '%' . $search . '%');
+            // $query->where('name', 'like', '%' . $search . '%');
         }
 
 
         // Retrieve the sort order and field from the request
         $sortOrder = $request->input('sortOrder', 'asc');
-        $sortField = $request->input('sortField', 'name');
+        // $sortField = $request->input('sortField', 'name');
 
         // Apply sorting if a sort field is provided
         if (!empty($sortField)) {
@@ -158,10 +158,13 @@ class RenoProgressController extends BaseController
 
     public function showOwnerRenoProgress($id)
     {
+        $user = Auth::user();
+
         $renoProgress = RenoProgress::find($id);
 
-        if (is_null($renoProgress)) {
-            return $this->sendError('Reno Progress not found.');
+        // Check if the reno progress is retrieve by the current user
+        if (is_null($renoProgress) || $renoProgress->sale->user->id != $user->id) {
+            return $this->sendError('Invalid Credential.', null, 403);
         }
 
         return $this->sendResponse(new OwnerRenoProgressResource($renoProgress, true), 'Reno Progress retrieved successfully.');
@@ -193,6 +196,11 @@ class RenoProgressController extends BaseController
     public function update(Request $request, RenoProgress $renoProgress)
     {
         //
+    }
+
+    public function changeContractualDate(Request $request, $id)
+    {
+        return $this->changeContractDate($request, $id, 'contractual');
     }
 
     public function changeContractualP1Date(Request $request, $id)
@@ -231,6 +239,11 @@ class RenoProgressController extends BaseController
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th->getMessage());
         }
+    }
+
+    public function changeContractorDate(Request $request, $id)
+    {
+        return $this->changeContractDate($request, $id, 'contractor');
     }
 
     public function changeContractorP1Date(Request $request, $id)

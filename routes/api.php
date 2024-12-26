@@ -22,8 +22,10 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\OTPRequestController;
+use App\Http\Controllers\PhaseJobController;
 use App\Http\Controllers\PMCategoryController;
 use App\Http\Controllers\POItemController;
+use App\Http\Controllers\ProgressPhaseController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\QCFormController;
 use App\Http\Controllers\RegistrationFormController;
@@ -80,6 +82,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/owner/form/reno-registration-forms/{id}', [RegistrationFormController::class, 'showRegistrationForm']);
     Route::get('/owner/reno/progresses', [RenoProgressController::class, 'ownerIndex']);
     Route::get('/owner/reno/progresses/{id}', [RenoProgressController::class, 'showOwnerRenoProgress']);
+    Route::get('/owner/reno/progresses/{renoProgressId}/phase/{phase}/attachments', [ProgressPhaseController::class, 'retrieveRenoProgressPhaseAttachments']);
+    Route::get('/owner/reno/progresses/{renoProgressId}/job/{jobId}/attachments', [PhaseJobController::class, 'retrieveJobAttachments']);
 
     // Change Invoice Link Status
     Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
@@ -99,6 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/reno-progress', RenoProgressController::class);
     Route::apiResource('/purchase-orders', PurchaseOrderController::class);
     Route::apiResource('/inventory', InventoryController::class);
+    Route::apiResource('/defect-inspection-forms', DefectInspectionFormController::class);
 
     Route::get('users/{id}/password/reset', [UserController::class, 'resetPassword']);
     Route::get('users/{id}/deactivate', [UserController::class, 'deactivateUser']);
@@ -115,8 +120,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/task/{taskId}/documents/upload', [JobTaskController::class, 'uploadDocuments']);
     Route::get('/reno-progress/{id}/task/{taskId}/documents/fetch', [JobTaskController::class, 'fetchTaskDocuments']);
     Route::get('/reno-progress/{id}/task/{taskId}/documents/{documentIndex}/remove', [JobTaskController::class, 'removeTaskDocument']);
+    Route::post('/reno-progress/{id}/task/{taskId}/comments', [JobTaskController::class, 'changeComments']);
 
 
+    Route::get('/op/reno/progresses', [RenoProgressController::class, 'index']);
+    
     Route::get('/op/properties', [PropertyController::class, 'getOperationProperties']);
     Route::get('/op/reno/progress/{id}/properties', [RenoProgressController::class, 'getProgressFormDetail']);
 
@@ -130,12 +138,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/op/reno/defect-inspection-forms/{id}/fetch', [DefectInspectionFormController::class, 'fetch']);
 
 
+    Route::post('/reno-progress/{id}/contractual/overall/date', [RenoProgressController::class, 'changeContractualDate']);
     Route::post('/reno-progress/{id}/contractual/p1/date', [RenoProgressController::class, 'changeContractualP1Date']);
     Route::post('/reno-progress/{id}/contractual/p2/date', [RenoProgressController::class, 'changeContractualP2Date']);
     Route::post('/reno-progress/{id}/contractual/qc/date', [RenoProgressController::class, 'changeContractualQCDate']);
     Route::post('/reno-progress/{id}/contractual/pc/date', [RenoProgressController::class, 'changeContractualPCDate']);
     Route::post('/reno-progress/{id}/contractual/handover/date', [RenoProgressController::class, 'changeContractualHandoverDate']);
 
+    Route::post('/reno-progress/{id}/contractor/overall/date', [RenoProgressController::class, 'changeContractorDate']);
     Route::post('/reno-progress/{id}/contractor/p1/date', [RenoProgressController::class, 'changeContractorP1Date']);
     Route::post('/reno-progress/{id}/contractor/p2/date', [RenoProgressController::class, 'changeContractorP2Date']);
     Route::post('/reno-progress/{id}/contractor/qc/date', [RenoProgressController::class, 'changeContractorQCDate']);

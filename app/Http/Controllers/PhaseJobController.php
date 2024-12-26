@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\PhaseJob;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class PhaseJobController extends Controller
+class PhaseJobController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -15,12 +16,30 @@ class PhaseJobController extends Controller
         //
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function retrieveJobAttachments($id, $jobId)
     {
-        //
+        $user = Auth::user();
+
+        // find selected reno progress
+        $job = PhaseJob::find($jobId);
+
+        // Check if the reno progress is retrieve by the current user
+        if ($job->phase->renoProgress->sale->user->id != $user->id) {
+            return $this->sendError('Invalid Credential.', null, 403);
+        }
+
+        $attachments = [];
+
+        // loop through phaseJobs->jobTasks and find attachments
+        foreach ($job->tasks as $task) {
+            if (isset($task->attachments)) {
+                foreach ($task->attachments as $attachment) {
+                    $attachments[] = $attachment;
+                }
+            }
+        }
+
+        return $this->sendResponse($attachments, 'Job Documents retrieved successfully.');
     }
 
     /**
@@ -35,14 +54,6 @@ class PhaseJobController extends Controller
      * Display the specified resource.
      */
     public function show(PhaseJob $phaseJob)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(PhaseJob $phaseJob)
     {
         //
     }

@@ -75,8 +75,6 @@ class ProductController extends BaseController
     {
         try {
             $input = $request->all();
-            return $this->sendError('Validation Error.', ['yes' => $input]);
-
 
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
@@ -280,6 +278,8 @@ class ProductController extends BaseController
     {
         $input = $request->all();
 
+        $prevProd = Product::find($product->id);
+
         // Validate input data
         $validator = Validator::make($input, [
             'name' => 'required|string|max:255',
@@ -305,10 +305,13 @@ class ProductController extends BaseController
         ]);
 
         // Apply unique validation for SKU only if it's provided
-        if (!empty($input['SKU'])) {
-            $validator->sometimes('SKU', 'unique:products,SKU', function ($input) {
-                return !empty($input['SKU']);
-            });
+        // Pass SKU checking if the SKU is not being updated
+        if ($prevProd->SKU != $input['SKU']) {
+            if (!empty($input['SKU'])) {
+                $validator->sometimes('SKU', 'unique:products,SKU', function ($input) {
+                    return !empty($input['SKU']);
+                });
+            }
         }
 
         // Check if validation fails before attempting to access validated data

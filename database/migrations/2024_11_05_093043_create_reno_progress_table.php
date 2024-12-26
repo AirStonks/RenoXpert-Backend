@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('sale_id')->nullable();
             $table->string('status');
+            $table->timestamp('contractual_end_date')->nullable();
+            $table->timestamp('contractual_start_date')->nullable();
             $table->timestamp('contractual_p1_start_date')->nullable();
             $table->timestamp('contractual_p1_end_date')->nullable();
             $table->timestamp('contractual_p2_start_date')->nullable();
@@ -24,6 +26,8 @@ return new class extends Migration
             $table->timestamp('contractual_pc_start_date')->nullable();
             $table->timestamp('contractual_pc_end_date')->nullable();
             $table->timestamp('contractual_handover_date')->nullable();
+            $table->timestamp('contractor_end_date')->nullable();
+            $table->timestamp('contractor_start_date')->nullable();
             $table->timestamp('contractor_p1_start_date')->nullable();
             $table->timestamp('contractor_p1_end_date')->nullable();
             $table->timestamp('contractor_p2_start_date')->nullable();

@@ -184,6 +184,29 @@ class JobTaskController extends BaseController
         return $this->sendResponse(null, 'Internal comment updated successfully.');
     }
 
+    public function changeComments(Request $request, $id, $taskId)
+    {
+        $task = JobTask::find($taskId);
+        $isOriginal = true;
+
+        // Only update it when the comment is not the same as the previous one
+        if ($task->owner_comment !== $request->input('owner_comment')) {
+            $task->owner_comment = $request->input('owner_comment');
+            $isOriginal = false;
+        } 
+
+        if ($task->internal_comment !== $request->input('internal_comment')) {
+            $task->internal_comment = $request->input('internal_comment');
+            $isOriginal = false;
+        }
+
+        if (!$isOriginal) {
+            $task->save();
+        }
+
+        return $this->sendResponse(new JobTaskResource($task), 'Comments updated successfully.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */

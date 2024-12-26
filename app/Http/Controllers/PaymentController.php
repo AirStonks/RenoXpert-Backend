@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\PaymentResource;
+use GuzzleHttp\Client;
 use App\Models\Invoice;
 use App\Models\Payment;
-use GuzzleHttp\Client;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Http\Resources\PaymentResource;
 
 class PaymentController extends Controller
 {
@@ -16,6 +17,9 @@ class PaymentController extends Controller
     protected $password;
     protected $auth;
     protected $token;
+
+    private $invoiceId;
+    private $clientDomain;
 
     public function __construct()
     {
@@ -67,7 +71,15 @@ class PaymentController extends Controller
         $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
         $clientHost = request()->getHost();
 
-        if (!($invoice->status == 'pending' && $invoice->link_status == 'active')) {
+        if (env('APP_BYPASS') === true) {
+            // Set the properties before calling the method
+            $this->invoiceId = $invoice->id;
+            $this->clientDomain = $clientDomain;
+
+            return $this->paymentSuccess(new Request());
+        }
+
+        if (!($invoice->status == 'unpaid' && $invoice->link_status == 'active')) {
             // return 'error';
             // return new InvoiceResource($invoice);
             return $clientDomain . '/invoice/' . $invoice->id . '/view';
@@ -140,6 +152,69 @@ class PaymentController extends Controller
 
     public function paymentSuccess(Request $request)
     {
+        if (env('APP_BYPASS') === true) {
+            // Set the properties before calling the method
+            $invoiceId = $this->invoiceId;
+            $clientDomain = $this->clientDomain;
+
+            $invoice = Invoice::find($invoiceId);
+            $transactionNo = Str::random(24);
+
+            $payment = Payment::create([
+                'transaction_no' => $transactionNo,
+                'invoice_id' => $invoiceId,
+                'amount' => $invoice->amount,
+                'payment_method' => 'credit_card',
+                'currency' => 'MYR',
+                'description' => 'testing',
+                'status' => 'paid',
+            ]);
+
+            // Update Invoice Status
+            $invoice->status = 'paid';
+            $invoice->save();
+
+            // Check sale status based on invoice status
+            $sale = $invoice->sale;
+
+            if ($sale) {
+                // Get all invoices associated with the sale
+                $invoices = $sale->invoices;
+
+                // Check if all invoices are paid
+                $allPaid = $invoices->every(function ($inv) {
+                    return $inv->status === 'paid';
+                });
+
+                // Check if the sale percentage is greater than 0
+                if ($allPaid && $sale->remaining_percentage == 0) {
+                    $sale->status = 'fully-paid';
+                } elseif (!$allPaid && $sale->remaining_percentage > 0) {
+                    $sale->status = 'partial-paid';
+                } elseif ($allPaid && $sale->remaining_percentage < 100) {
+                    $sale->status = 'partial-paid';
+                }
+
+                // Save the sale status if it has changed
+                $sale->save();
+            }
+
+            // Prepare data to pass to client
+            $storageData = [
+                'transactionNo' => $transactionNo,
+                'invoiceNo' => $invoice->invoice_no,
+                'amount' => $invoice->amount,
+                'paymentDate' => now(), // You can format this as needed
+                'returnUrl' => $clientDomain . '/invoice/' . $invoiceId . '/view',
+            ];
+
+            // Encode the data as a JSON string
+            $jsonData = json_encode($storageData);
+
+            // Redirect to the success URL with encoded data as a query parameter
+            return redirect()->to($clientDomain . '/invoice/' . $invoiceId . '/payment/success?data=' . urlencode($jsonData));
+        }
+
         // Get all input data from the request
         $inputData = $request->all();
 
