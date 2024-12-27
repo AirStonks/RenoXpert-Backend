@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -28,6 +29,8 @@ class PackageResource extends JsonResource
                 'description_internal' => $this->description_internal,
                 'total_price' => $totalPrice,
                 'products' => ProductResource::collection($this->products),
+                'created_by' => User::find($this->created_by),
+                'updated_by' => User::find($this->updated_by),
                 'created_at' => $this->created_at->format('d/m/Y'),
                 'updated_at' => $this->updated_at->format('d/m/Y'),
             ];

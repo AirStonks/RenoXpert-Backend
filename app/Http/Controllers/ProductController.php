@@ -94,12 +94,12 @@ class ProductController extends BaseController
                 'height' => 'nullable|string',
                 'depth' => 'nullable|string',
                 'internal_desc' => 'nullable|string',
-                'provisioning.supply.retail_price' => 'required|numeric|min:0',
-                'provisioning.supply.cogs' => 'required|numeric|min:0',
-                'provisioning.supply.excluded_price' => 'required|numeric|min:0',
-                'provisioning.install.retail_price' => 'required|numeric|min:0',
-                'provisioning.install.cogs' => 'required|numeric|min:0',
-                'provisioning.install.excluded_price' => 'required|numeric|min:0',
+                'provisioning.supply.retail_price' => 'required|numeric',
+                'provisioning.supply.cogs' => 'required|numeric',
+                'provisioning.supply.excluded_price' => 'required|numeric',
+                'provisioning.install.retail_price' => 'required|numeric',
+                'provisioning.install.cogs' => 'required|numeric',
+                'provisioning.install.excluded_price' => 'required|numeric',
             ]);
             // Apply unique validation for SKU only if it's provided
             if (!empty($input['SKU'])) {
@@ -299,12 +299,12 @@ class ProductController extends BaseController
             'height' => 'nullable|string',
             'depth' => 'nullable|string',
             'internal_desc' => 'nullable|string',
-            'provisioning.supply.retail_price' => 'required|numeric|min:0',
-            'provisioning.supply.cogs' => 'required|numeric|min:0',
-            'provisioning.supply.excluded_price' => 'required|numeric|min:0',
-            'provisioning.install.retail_price' => 'required|numeric|min:0',
-            'provisioning.install.cogs' => 'required|numeric|min:0',
-            'provisioning.install.excluded_price' => 'required|numeric|min:0',
+            'provisioning.supply.retail_price' => 'required|numeric',
+            'provisioning.supply.cogs' => 'required|numeric',
+            'provisioning.supply.excluded_price' => 'required|numeric',
+            'provisioning.install.retail_price' => 'required|numeric',
+            'provisioning.install.cogs' => 'required|numeric',
+            'provisioning.install.excluded_price' => 'required|numeric',
         ]);
 
         // Apply unique validation for SKU only if it's provided
