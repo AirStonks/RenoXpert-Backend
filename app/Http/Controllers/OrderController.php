@@ -37,6 +37,14 @@ class OrderController extends BaseController
             $query->where('order_no', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
         }
 
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
         $orders = $query->paginate($size);
 
         // Custome response to fit with Tailwind DataTable JSON format

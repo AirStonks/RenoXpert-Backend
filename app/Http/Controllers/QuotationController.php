@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\QuotationResource;
 use App\Models\Quotation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class QuotationController extends BaseController
@@ -23,9 +24,62 @@ class QuotationController extends BaseController
         // Build the query to retrieve product categories
         $query = Quotation::query();
 
+        // Filter out with 'status' as 'archived' by default
+        $query->where('status', '!=', 'archived');
+
         // Apply search filter if a search term is provided
         if (!empty($search)) {
             $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+        }
+
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+        
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        $quotations = $query->paginate($size);
+
+        // Custome response to fit with Tailwind DataTable JSON format
+        $response = [
+            "page" => $quotations->currentPage(),  // Current page number
+            "pageCount" => $quotations->lastPage(), // Total number of pages
+            "sortField" => null,                 // Sorting field, if applicable
+            "sortOrder" => null,                 // Sorting order, if applicable
+            "totalCount" => $quotations->total(),  // Total number of items
+            "data" => QuotationResource::collection($quotations) // Transformed product data
+        ];
+
+        return response()->json($response, 200);
+    }
+
+    public function indexArchived(Request $request)
+    {
+        // Retrieve the size parameter from the request with a default value of 10
+        $size = $request->input('size', 10);
+
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
+
+        // Build the query to retrieve product categories
+        $query = Quotation::query();
+
+        // Apply search filter if a search term is provided
+        if (!empty($search)) {
+            $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+        }
+
+        // Filter to include only with 'status' as 'archived'
+        $query->where('status', 'archived');
+
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+        
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
         }
 
         $quotations = $query->paginate($size);
@@ -53,6 +107,7 @@ class QuotationController extends BaseController
             $input = $request->all();
 
             $validator = Validator::make($input, [
+                'property_id' => 'nullable|numeric|min:0',
                 'name' => 'required|string|max:255',
                 'total_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:255',
@@ -100,6 +155,7 @@ class QuotationController extends BaseController
             $input = $request->all();
 
             $validator = Validator::make($input, [
+                'property_id' => 'nullable|numeric|min:0',
                 'name' => 'required|string|max:255',
                 'total_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:255',
@@ -114,8 +170,10 @@ class QuotationController extends BaseController
             $validatedData = $validator->validated();
 
             $quotation->name = $validatedData['name'];
+            $quotation->property_id = $validatedData['property_id'];
             $quotation->total_amount = $validatedData['total_amount'];
             $quotation->description = $validatedData['description'];
+            $quotation->is_ready = $input['is_ready'];
             $quotation->metadata = $input['metadata'] = json_encode($input['metadata']);
 
             $quotation->save();
@@ -140,5 +198,30 @@ class QuotationController extends BaseController
         $quotation->delete();
 
         return $this->sendResponse([], 'Package deleted successfully.');
+    }
+
+    public function archiveQuotation($id)
+    {
+        $user = Auth::user();
+        $quotation = Quotation::find($id);
+
+        $quotation->status = 'archived';
+        $quotation->archived_at = now();
+        $quotation->archived_by = $user->id;
+        $quotation->save();
+
+        return $this->sendResponse(new QuotationResource($quotation), 'Quotation archived successfully.');
+    }
+
+    public function restoreQuotation($id)
+    {
+        $quotation = Quotation::find($id);
+
+        $quotation->status = 'available';
+        $quotation->archived_at = null;
+        $quotation->archived_by = null;
+        $quotation->save();
+
+        return $this->sendResponse(new QuotationResource($quotation), 'Quotation restored successfully.');
     }
 }

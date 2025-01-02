@@ -18,8 +18,11 @@ return new class extends Migration
             $table->string('description_internal')->nullable();
             $table->string('category')->nullable();
             $table->double('total_price')->nullable();
+            $table->string('status')->nullable()->default('available');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
+            $table->timestamp('archived_at')->nullable();
+            $table->unsignedBigInteger('archived_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

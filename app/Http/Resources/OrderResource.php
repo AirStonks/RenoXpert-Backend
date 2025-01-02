@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -62,6 +63,8 @@ class OrderResource extends JsonResource
             'total_amount' => $this->total_amount,
             'description' => $this->description,
             'status' => $this->status,
+            'created_by' => User::find($this->created_by),
+            'updated_by' => User::find($this->updated_by),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];

@@ -23,8 +23,11 @@ class Package extends Model
         'description_internal',
         'category',
         'total_price',
+        'status',
         'created_by',
         'updated_by',
+        'archived_at',
+        'archived_by',
         'deleted_at',
     ];
 

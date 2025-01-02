@@ -26,10 +26,12 @@ return new class extends Migration
             $table->string('height')->nullable();
             $table->string('depth')->nullable();
             $table->string('internal_desc')->nullable();
-            $table->string('status')->nullable();
+            $table->string('status')->nullable()->default('available');
             $table->json('attachments')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
+            $table->timestamp('archived_at')->nullable();
+            $table->unsignedBigInteger('archived_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

@@ -20,14 +20,19 @@ class Quotation extends Model
      * @var array
      */
     protected $fillable = [
+        'property_id',
         'name',
         'total_amount',
         'description',
+        'is_ready',
         'valid_from',
         'valid_until',
+        'status',
         'metadata',
         'created_by',
         'updated_by',
+        'archived_at',
+        'archived_by',
         'deleted_at',
     ];
 
@@ -42,5 +47,10 @@ class Quotation extends Model
         static::updating(function ($model) {
             $model->updated_by = auth()->id(); // or your logic to get the user ID
         });
+    }
+
+    public function property()
+    {
+        return $this->belongsTo(Property::class, 'property_id', 'id');
     }
 }
