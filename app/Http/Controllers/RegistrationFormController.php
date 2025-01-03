@@ -41,6 +41,14 @@ class RegistrationFormController extends BaseController
             });
         }
 
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+        
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
         // Paginate the results
         $form = $query->paginate($size);
 

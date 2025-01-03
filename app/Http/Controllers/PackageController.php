@@ -6,6 +6,7 @@ use App\Http\Resources\PackageResource;
 use App\Models\Package;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class PackageController extends BaseController
@@ -24,9 +25,62 @@ class PackageController extends BaseController
         // Build the query to retrieve product categories
         $query = Package::query();
 
+        // Filter out with 'status' as 'archived' by default
+        $query->where('status', '!=', 'archived');
+
         // Apply search filter if a search term is provided
         if (!empty($search)) {
             $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+        }
+
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        $packages = $query->paginate($size);
+
+        // Custome response to fit with Tailwind DataTable JSON format
+        $response = [
+            "page" => $packages->currentPage(),  // Current page number
+            "pageCount" => $packages->lastPage(), // Total number of pages
+            "sortField" => null,                 // Sorting field, if applicable
+            "sortOrder" => null,                 // Sorting order, if applicable
+            "totalCount" => $packages->total(),  // Total number of items
+            "data" => PackageResource::collection($packages) // Transformed product data
+        ];
+
+        return response()->json($response, 200);
+    }
+
+    public function indexArchived(Request $request)
+    {
+        // Retrieve the size parameter from the request with a default value of 10
+        $size = $request->input('size', 10);
+
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
+
+        // Build the query to retrieve product categories
+        $query = Package::query();
+
+        // Filter to include only with 'status' as 'archived'
+        $query->where('status', 'archived');
+
+        // Apply search filter if a search term is provided
+        if (!empty($search)) {
+            $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+        }
+
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
         }
 
         $packages = $query->paginate($size);
@@ -70,7 +124,7 @@ class PackageController extends BaseController
 
                 $product = Product::find($productInput['id']);
 
-                $totalAmount += $product->product_retail_price * $productInput['quantity'];
+                $totalAmount += ($product->productSupply->retail_price + $product->productInstall->retail_price) * $productInput['quantity'];
 
                 $package->products()->attach($productInput['id'], [
                     'quantity' => $productInput['quantity'],
@@ -182,5 +236,30 @@ class PackageController extends BaseController
         $package->delete();
 
         return $this->sendResponse([], 'Package deleted successfully.');
+    }
+
+    public function archivePackage($id)
+    {
+        $user = Auth::user();
+        $package = Package::find($id);
+
+        $package->status = 'archived';
+        $package->archived_at = now();
+        $package->archived_by = $user->id;
+        $package->save();
+
+        return $this->sendResponse(new PackageResource($package), 'Package archived successfully.');
+    }
+
+    public function restorePackage($id)
+    {
+        $package = Package::find($id);
+
+        $package->status = 'available';
+        $package->archived_at = null;
+        $package->archived_by = null;
+        $package->save();
+
+        return $this->sendResponse(new PackageResource($package), 'Package restored successfully.');
     }
 }

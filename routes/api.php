@@ -160,6 +160,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/products/{id}/attachments/thumbnail/change', [ProductController::class, 'changeThumbnail']);
     Route::get('/products/{id}/attachments/photos/{photoIndex}/remove', [ProductController::class, 'removeProductPhoto']);
     Route::post('/products/{id}/attachments/photos/upload', [ProductController::class, 'uploadProductPhotos']);
+    Route::get('/products/{id}/archive', [ProductController::class, 'archiveProduct']);
+    Route::get('/products/{id}/restore', [ProductController::class, 'restoreProduct']);
+    Route::get('/products/index/archived', [ProductController::class, 'indexArchived']);
+    
+    Route::get('packages/{id}/archive', [PackageController::class, 'archivePackage']);
+    Route::get('packages/{id}/restore', [PackageController::class, 'restorePackage']);
+    Route::get('packages/index/archived', [PackageController::class, 'indexArchived']);
+    
+    Route::get('quotations/{id}/archive', [QuotationController::class, 'archiveQuotation']);
+    Route::get('quotations/{id}/restore', [QuotationController::class, 'restoreQuotation']);
+    Route::get('quotations/index/archived', [QuotationController::class, 'indexArchived']);
 
 
     // TEST

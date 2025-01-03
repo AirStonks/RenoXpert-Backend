@@ -37,6 +37,14 @@ class OrderController extends BaseController
             $query->where('order_no', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
         }
 
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
         $orders = $query->paginate($size);
 
         // Custome response to fit with Tailwind DataTable JSON format
@@ -93,8 +101,11 @@ class OrderController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            // Generate order number
-            $input['order_no'] = 'QUO-' . now()->format('y') . str_pad(Order::count() + 1, 5, '0', STR_PAD_LEFT);
+            // Get the last order's ID, or default to 0 if no orders exist
+            $lastOrderId = Order::max('id') ?? 0;
+
+            // Generate order number based on the last order's ID
+            $input['order_no'] = 'QUO-' . now()->format('y') . str_pad($lastOrderId + 1, 5, '0', STR_PAD_LEFT);
 
             // Create the Order
             $order = Order::create($input);

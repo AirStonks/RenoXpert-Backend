@@ -10,6 +10,8 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ProductResource;
 use App\Models\ProductInstall;
 use App\Models\ProductSupply;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -32,22 +34,30 @@ class ProductController extends BaseController
         // Build the query to retrieve products
         $query = Product::query();
 
+        // Filter out products with 'status' as 'archived' by default
+        $query->where('status', '!=', 'archived');
+
         // Apply search filter if a search term is provided
         if (!empty($search)) {
-            // Assuming 'name' is the field you want to search, adjust as necessary
             $query->where(function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%')
                     ->orWhere('SKU', 'like', '%' . $search . '%');
             });
         }
 
-
         // Retrieve the sort order and field from the request
         $sortOrder = $request->input('sortOrder', 'asc');
         $sortField = $request->input('sortField', 'name');
 
-        // Apply sorting if a sort field is provided
-        if (!empty($sortField)) {
+        // Apply sorting by total price when sortField is 'price'
+        if ($sortField === 'price') {
+            $query->join('product_supplies', 'product_supplies.product_id', '=', 'products.id')
+                ->join('product_installs', 'product_installs.product_id', '=', 'products.id')
+                ->addSelect('products.*')
+                ->addSelect(DB::raw('(product_supplies.retail_price + product_installs.retail_price) AS total_price'))
+                ->orderBy('total_price', $sortOrder);
+        } elseif (!empty($sortField)) {
+            // Apply sorting if a sort field is provided (other than 'price')
             $query->orderBy($sortField, $sortOrder);
         }
 
@@ -58,15 +68,68 @@ class ProductController extends BaseController
         $response = [
             "page" => $products->currentPage(),  // Current page number
             "pageCount" => $products->lastPage(), // Total number of pages
-            "sortField" => null,                 // Sorting field, if applicable
-            "sortOrder" => null,                 // Sorting order, if applicable
-            "totalCount" => $products->total(),  // Total number of items
+            "sortField" => $sortField,            // Sorting field, if applicable
+            "sortOrder" => $sortOrder,            // Sorting order, if applicable
+            "totalCount" => $products->total(),   // Total number of items
             "data" => ProductResource::collection($products) // Transformed product data
         ];
 
         return response()->json($response, 200);
     }
 
+    public function indexArchived(Request $request): JsonResponse
+    {
+        // Retrieve the size parameter from the request with a default value of 5
+        $size = $request->input('size', 5);
+
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
+
+        // Build the query to retrieve products
+        $query = Product::query();
+
+        // Filter to include only products with 'status' as 'archived'
+        $query->where('status', 'archived');
+
+        // Apply search filter if a search term is provided
+        if (!empty($search)) {
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('SKU', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'name');
+
+        // Apply sorting by total price when sortField is 'price'
+        if ($sortField === 'price') {
+            $query->join('product_supplies', 'product_supplies.product_id', '=', 'products.id')
+                ->join('product_installs', 'product_installs.product_id', '=', 'products.id')
+                ->addSelect('products.*')
+                ->addSelect(DB::raw('(product_supplies.retail_price + product_installs.retail_price) AS total_price'))
+                ->orderBy('total_price', $sortOrder);
+        } elseif (!empty($sortField)) {
+            // Apply sorting if a sort field is provided (other than 'price')
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        // Paginate the results
+        $products = $query->paginate($size);
+
+        // Custom response to fit with Tailwind DataTable JSON format
+        $response = [
+            "page" => $products->currentPage(),  // Current page number
+            "pageCount" => $products->lastPage(), // Total number of pages
+            "sortField" => $sortField,            // Sorting field, if applicable
+            "sortOrder" => $sortOrder,            // Sorting order, if applicable
+            "totalCount" => $products->total(),   // Total number of items
+            "data" => ProductResource::collection($products) // Transformed product data
+        ];
+
+        return response()->json($response, 200);
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -464,5 +527,30 @@ class ProductController extends BaseController
         $product->save();
 
         return $this->sendResponse($uploadedFiles->photos, 'Photo removed successfully.');
+    }
+
+    public function archiveProduct($id): JsonResponse
+    {
+        $user = Auth::user();
+        $product = Product::find($id);
+
+        $product->status = 'archived';
+        $product->archived_at = now();
+        $product->archived_by = $user->id;
+        $product->save();
+
+        return $this->sendResponse(new ProductResource($product), 'Product archived successfully.');
+    }
+
+    public function restoreProduct($id): JsonResponse
+    {
+        $product = Product::find($id);
+
+        $product->status = 'available';
+        $product->archived_at = null;
+        $product->archived_by = null;
+        $product->save();
+
+        return $this->sendResponse(new ProductResource($product), 'Product restored successfully.');
     }
 }

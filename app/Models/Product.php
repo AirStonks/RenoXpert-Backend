@@ -36,6 +36,8 @@ class Product extends Model
         'attachments',
         'created_by',
         'updated_by',
+        'archived_at',
+        'archived_by',
         'deleted_at',
     ];
 

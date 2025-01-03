@@ -19,8 +19,11 @@ class InventoryController extends Controller
         // Retrieve the search term from the request
         $search = $request->input('search', '');
 
-        // Build the query to retrieve property
+        // Build the query to retrieve inventory
         $query = Inventory::query();
+
+        // Include soft-deleted records
+        $query->withTrashed();
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {
@@ -34,19 +37,19 @@ class InventoryController extends Controller
         // Paginate the results
         $form = $query->paginate($size);
 
-
         // Custom response to fit with Tailwind DataTable JSON format
         $response = [
             "page" => $form->currentPage(),  // Current page number
             "pageCount" => $form->lastPage(), // Total number of pages
-            "sortField" => null,                 // Sorting field, if applicable
-            "sortOrder" => null,                 // Sorting order, if applicable
+            "sortField" => null,              // Sorting field, if applicable
+            "sortOrder" => null,              // Sorting order, if applicable
             "totalCount" => $form->total(),  // Total number of items
             "data" => InventoryResource::collection($form->items()) // Transformed property data
         ];
 
         return response()->json($response, 200);
     }
+
 
     /**
      * Show the form for creating a new resource.
