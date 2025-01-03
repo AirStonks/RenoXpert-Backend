@@ -101,8 +101,11 @@ class OrderController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            // Generate order number
-            $input['order_no'] = 'QUO-' . now()->format('y') . str_pad(Order::count() + 1, 5, '0', STR_PAD_LEFT);
+            // Get the last order's ID, or default to 0 if no orders exist
+            $lastOrderId = Order::max('id') ?? 0;
+
+            // Generate order number based on the last order's ID
+            $input['order_no'] = 'QUO-' . now()->format('y') . str_pad($lastOrderId + 1, 5, '0', STR_PAD_LEFT);
 
             // Create the Order
             $order = Order::create($input);
