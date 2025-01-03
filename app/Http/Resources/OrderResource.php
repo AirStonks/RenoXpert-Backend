@@ -52,6 +52,7 @@ class OrderResource extends JsonResource
                 'state' => $this->property->state,
                 'description' => $this->property->description,
             ],
+            'sale' => new OwnerSaleResource($this->sale),
             'bedroom_count' => $this->bedroom_count,
             'bathroom_count' => $this->bathroom_count,
             'latest_quotation' => $latestQuotation ? new OrderQuotationResource($latestQuotation) : null,
