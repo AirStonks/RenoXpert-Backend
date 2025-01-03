@@ -24,6 +24,7 @@ class OrderQuotation extends Model
         'quotation_name',
         'version',
         'total_amount',
+        'bonus',
         'metadata',
         'created_by',
         'updated_by',
