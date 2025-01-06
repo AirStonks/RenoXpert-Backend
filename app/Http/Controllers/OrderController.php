@@ -107,6 +107,25 @@ class OrderController extends BaseController
             // Generate order number based on the last order's ID
             $input['order_no'] = 'QUO-' . now()->format('y') . str_pad($lastOrderId + 1, 5, '0', STR_PAD_LEFT);
 
+            $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && $input['bonus']['value'] != 0
+                ? $input['bonus']['value']
+                : 0;
+
+            // Check if bonus exists and is an array
+            if (isset($input['bonus']) && is_array($input['bonus'])) {
+                // Check if 'value' in 'bonus' is '', null, or 0
+                if (empty($input['bonus']['value']) || $input['bonus']['value'] == 0) {
+                    // Set bonus as null if value is empty, null, or 0
+                    $input['bonus'] = null;
+                } else {
+                    // Otherwise, encode the bonus as JSON
+                    $input['bonus'] = json_encode($input['bonus']);
+                }
+            } else {
+                // If no bonus exists or it's not an array, set it as null
+                $input['bonus'] = null;
+            }
+
             // Create the Order
             $order = Order::create($input);
 
@@ -121,7 +140,8 @@ class OrderController extends BaseController
                 'quotation_id' => $input['quotation_id'],
                 'quotation_name' => $quotation->name,
                 'version' => $nextVersion,
-                'total_amount' => $input['total_amount'],
+                'total_amount' => $input['total_amount'] + $bonusValue,
+                'bonus' => $input['bonus'],
                 'metadata' => json_encode($input['metadata']) ?? null,
             ]);
 
@@ -245,9 +265,28 @@ class OrderController extends BaseController
 
             $validatedData = $validator->validated();
 
+            $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && $input['bonus']['value'] != 0
+                ? $input['bonus']['value']
+                : 0;
+
+            // Check if bonus exists and is an array
+            if (isset($input['bonus']) && is_array($input['bonus'])) {
+                // Check if 'value' in 'bonus' is '', null, or 0
+                if (empty($input['bonus']['value']) || $input['bonus']['value'] == 0) {
+                    // Set bonus as null if value is empty, null, or 0
+                    $input['bonus'] = null;
+                } else {
+                    // Otherwise, encode the bonus as JSON
+                    $input['bonus'] = json_encode($input['bonus']);
+                }
+            } else {
+                // If no bonus exists or it's not an array, set it as null
+                $input['bonus'] = null;
+            }
+
             $order->user_id = $validatedData['user_id'];
             $order->property_id = $validatedData['property_id'];
-            $order->total_amount = $input['total_amount'];
+            $order->total_amount = $input['total_amount'] - $bonusValue;
             $order->block = $validatedData['block'];
             $order->floor = $validatedData['floor'];
             $order->unit_no = $validatedData['unit_no'];
@@ -265,7 +304,8 @@ class OrderController extends BaseController
                 'quotation_id' => $validatedData['quotation_id'],
                 'quotation_name' => $latestQuotation->quotation_name,
                 'version' => $nextVersion,
-                'total_amount' => $order->total_amount, // CHANGE IT LATER TO REAL DATA
+                'total_amount' => $order->total_amount + $bonusValue, // CHANGE IT LATER TO REAL DATA
+                'bonus' => $input['bonus'],
                 'metadata' => json_encode($input['metadata']) ?? null,
             ]);
 

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('quotation_name')->nullable();
             $table->integer('version');
             $table->double('total_amount')->nullable();
+            $table->json('bonus')->nullable();
             $table->json('metadata')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

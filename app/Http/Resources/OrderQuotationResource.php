@@ -28,6 +28,7 @@ class OrderQuotationResource extends JsonResource
             'updated_by' => $this->updated_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'bonus' => json_decode($this->bonus),
             'packages' => json_decode($this->metadata),
             // 'quotation' => new QuotationResource($this->quotation),
         ];
