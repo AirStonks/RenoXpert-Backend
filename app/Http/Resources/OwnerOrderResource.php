@@ -54,8 +54,8 @@ class OwnerOrderResource extends JsonResource
             'total_amount' => $this->total_amount,
             'description' => $this->description,
             'status' => $this->status,
-            'created_at' => $this->created_at->format('d/m/Y'),
-            'updated_at' => $this->updated_at->format('d/m/Y'),
+            'created_at' => $this->created_at->format('m/d/Y'),
+            'updated_at' => $this->updated_at->format('m/d/Y'),
         ];
     }
 }
