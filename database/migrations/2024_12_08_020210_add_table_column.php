@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('order_quotations', function (Blueprint $table) {
-            $table->json('bonus')->nullable()->after('total_amount');
+        Schema::table('orders', function (Blueprint $table) {
+            $table->string('status')->default('unreleased')->change();
         });
     }
 
