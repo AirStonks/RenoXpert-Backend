@@ -24,7 +24,7 @@ return new class extends Migration
             $table->integer('bathroom_count')->nullable();
             $table->double('total_amount')->nullable();
             $table->string('description')->nullable();
-            $table->string('status')->default('pending');
+            $table->string('status')->default('unreleased');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();

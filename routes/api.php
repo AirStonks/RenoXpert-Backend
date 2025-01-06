@@ -59,6 +59,7 @@ Route::post('/owner/reno-registration-form/overview/submit', [RegistrationFormCo
 
 // Confirm Order
 Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
+Route::get('/orders/{id}/release', [OrderController::class, 'releaseOrder'])->name('orders.releaseOrder');
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');

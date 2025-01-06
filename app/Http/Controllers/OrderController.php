@@ -65,9 +65,11 @@ class OrderController extends BaseController
         $user = Auth::user();
 
         // Assuming you have a relationship set up in your Order model to access the contact
-        $orders = Order::whereHas('user', function ($query) use ($user) {
-            $query->where('phone_no', $user->phone_no);
-        })->get();
+        $orders = Order::where('status', '!=', 'unreleased')
+            ->whereHas('user', function ($query) use ($user) {
+                $query->where('phone_no', $user->phone_no);
+            })
+            ->get();
 
         return $this->sendResponse(OwnerOrderResource::collection($orders), 'Order retrieved successfully.');
     }
@@ -169,18 +171,28 @@ class OrderController extends BaseController
     {
         $user = Auth::user();
 
+        // Find the order by ID
         $order = Order::find($id);
 
+        // Check if the order exists
         if (is_null($order)) {
             return $this->sendError('Order not found.');
         }
 
+        // Check if the order's status is 'unreleased'
+        if ($order->status === 'unreleased') {
+            return $this->sendError('Order not found.');
+        }
+
+        // Check if the order belongs to the user based on phone number
         if ($order->user->phone_no !== $user->phone_no) {
             return $this->sendError('Invalid Credential');
         }
 
+        // If the order exists and belongs to the user, return the order data
         return $this->sendResponse(new OwnerOrderResource($order), 'Order retrieved successfully.');
     }
+
 
     public function getOrderOverviewHead($orderId)
     {
@@ -376,6 +388,27 @@ class OrderController extends BaseController
             }
         } catch (\Throwable $th) {
             return $this->sendError('Error confirming order.', $th->getMessage());
+        }
+    }
+
+
+    public function releaseOrder($id)
+    {
+        try {
+            // Find the order by ID
+            $order = Order::find($id);
+
+            if ($order) {
+                // Update the order status
+                $order->status = 'released';
+                $order->save(); // Use save() to persist changes
+
+                return $this->sendResponse([], 'Order Released');
+            } else {
+                return $this->sendError('Order Not Found.');
+            }
+        } catch (\Throwable $th) {
+            return $this->sendError('Error releasing order.', $th->getMessage());
         }
     }
 
