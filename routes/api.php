@@ -128,7 +128,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/op/properties', [PropertyController::class, 'getOperationProperties']);
     Route::get('/op/reno/progress/{id}/properties', [RenoProgressController::class, 'getProgressFormDetail']);
-    Route::get('/op/reno/progress/{id}', [RenoProgressController::class, 'show']);
+    Route::get('/op/reno/progress/{id}', [RenoProgressController::class, 'shoxw']);
 
     Route::post('/op/reno/qc-form/submit', [QCFormController::class, 'submitForm']);
     Route::get('/op/reno/qc-forms', [QCFormController::class, 'index']);

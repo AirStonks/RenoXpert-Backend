@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('status')->default('unreleased')->change();
+            $table->timestamp('confirmed_at')->nullable();
         });
     }
 
