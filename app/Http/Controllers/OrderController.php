@@ -135,17 +135,26 @@ class OrderController extends BaseController
             $latestQuotation = OrderQuotation::where('order_id', $order->id)->orderBy('version', 'desc')->first();
             $nextVersion = $latestQuotation ? ($latestQuotation->version + 1) : 1;
 
-            $quotation = Quotation::find($input['quotation_id']);
+            if ($input['quotation_id'] === '0') {
+                // Skip finding the quotation and set default values for 'quotation_id' and 'quotation_name'
+                $quotationId = null;
+                $quotationName = 'Custom Quotation';
+            } else {
+                $quotation = Quotation::find($input['quotation_id']);
+                $quotationId = $quotation->id;
+                $quotationName = $quotation->name;
+            }
 
             OrderQuotation::create([
                 'order_id' => $order->id,
-                'quotation_id' => $input['quotation_id'],
-                'quotation_name' => $quotation->name,
+                'quotation_id' => $quotationId,
+                'quotation_name' => $quotationName,
                 'version' => $nextVersion,
                 'total_amount' => $input['total_amount'] + $bonusValue,
                 'bonus' => $input['bonus'],
                 'metadata' => json_encode($input['metadata']) ?? null,
             ]);
+
 
             return $this->sendResponse(new OrderResource($order), 'Order added successfully.');
         } catch (\Throwable $th) {
