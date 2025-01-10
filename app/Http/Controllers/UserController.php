@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\UserResource;
 use App\Mail\UserCreatedEmail;
+use App\Models\Address;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -93,31 +94,73 @@ class UserController extends BaseController
         try {
             $input = $request->all();
 
-            $validator = Validator::make($input, [
-                'name_first' => 'required|string|max:255',
-                'name_last' => 'required|string|max:255',
-                'email' => 'required|email|max:255|unique:users,email',
-                'type' => 'required|string|max:30',
-                'phone_no' => 'required|string|max:15',
-            ]);
+            if ($input['type'] === 'owner') {
+                $validator = Validator::make($input, [
+                    'name_first' => 'required|string|max:255',
+                    'name_last' => 'required|string|max:255',
+                    'email' => 'required|email|max:255|unique:users,email',
+                    'type' => 'required|string|max:30',
+                    'phone_no' => 'required|string|max:15',
+                    'name_preferred' => 'nullable|string|max:255',
+                    'salutations' => 'required|string|max:255',
+                    'ic' => 'required|string|max:20|unique:users,ic',
+                    'address.address_1' => 'required|string|max:255',
+                    'address.address_2' => 'nullable|string|max:255',
+                    'address.city' => 'required|string|max:255',
+                    'address.state' => 'required|string|max:255',
+                    'address.postcode' => 'required|string|max:10',
+                ]);
+            } else {
+                $validator = Validator::make($input, [
+                    'name_first' => 'required|string|max:255',
+                    'name_last' => 'required|string|max:255',
+                    'email' => 'required|email|max:255|unique:users,email',
+                    'type' => 'required|string|max:30',
+                    'phone_no' => 'required|string|max:15',
+                ]);
+            }
 
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            // Generate a random password of 16 characters
-            $input['password'] = Str::random(16);
-            $input['name'] = $input['name_first'] . ' ' . $input['name_last'];
+            if ($input['type'] === 'owner') {
+                $user = User::create($input);
+                $input['name'] = $input['name_first'] . ' ' . $input['name_last'];
 
-            $user = User::create($input);
+                // If user is newly created, then create the address
+                $address = Address::create([
+                    'address_1' => $input['address']['address_1'],
+                    'address_2' => $input['address']['address_2'],
+                    'city' => $input['address']['city'],
+                    'state' => $input['address']['state'],
+                    'postcode' => $input['address']['postcode'],
+                ]);
 
-            // Send the password to the user via email
-            $receiverEmailAddress = $input['email'];
-            Mail::to($receiverEmailAddress)->send(new UserCreatedEmail($input['name'], $input['email'], $input['password'], $input['type']));
+                // Associate the address with the user
+                $user->address_id = $address->id;
+                $user->save();
 
-            return $this->sendResponse([new UserResource($user), 'new_password' => $input['password']], 'User added successfully.');
+                return $this->sendResponse(new UserResource($user), 'User added successfully.');
+            } else {
+                // Generate a random password of 16 characters
+                $input['password'] = Str::random(16);
+                $input['name'] = $input['name_first'] . ' ' . $input['name_last'];
+
+
+                $user = User::create($input);
+
+                // Send the password to the user via email
+                $receiverEmailAddress = $input['email'];
+                Mail::to($receiverEmailAddress)->send(new UserCreatedEmail($input['name'], $input['email'], $input['password'], $input['type']));
+
+                return $this->sendResponse([new UserResource($user), 'new_password' => $input['password']], 'User added successfully.');
+            }
         } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th);
+            return $this->sendError('Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
         }
     }
     /**

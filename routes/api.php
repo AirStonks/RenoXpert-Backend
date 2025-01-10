@@ -88,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Change Invoice Link Status
     Route::put('/invoices/{invoiceId}/link/status/{status}', [InvoiceController::class, 'changeLinkStatus'])->name('invoice.status.change');
+    Route::put('/invoices/{invoiceId}/paid', [InvoiceController::class, 'markAsPaid']);
 
     Route::apiResource('/products', ProductController::class);
     Route::apiResource('/product/category', PMCategoryController::class);

@@ -58,7 +58,7 @@ class InvoiceController extends BaseController
                     $newVersion = $selectedSaleLatestInvoice->version + 1;
                 }
 
-                
+
                 $newInvoiceNumber = 'INV-' . $sale->sales_no . '-' . $sale->invoices->count() + 1;
             }
 
@@ -81,7 +81,7 @@ class InvoiceController extends BaseController
             // If there are discounts, deduct from balance amount
             $totalDiscount = 0;
             $totalFee = 0;
-            
+
 
             // Calculate total discounts
             foreach ($discounts as $discount) {
@@ -167,6 +167,44 @@ class InvoiceController extends BaseController
     public function update(Request $request, Invoice $invoice)
     {
         //
+    }
+
+    public function markAsPaid($invoiceId)
+    {
+        $invoice = Invoice::find($invoiceId);
+
+        if (is_null($invoice)) {
+            return $this->sendError('Invoice not found.');
+        }
+
+        $invoice->status = 'paid';
+        $invoice->save();
+
+        $sale = $invoice->sale;
+
+        if ($sale) {
+            // Get all invoices associated with the sale
+            $invoices = $sale->invoices;
+
+            // Check if all invoices are paid
+            $allPaid = $invoices->every(function ($inv) {
+                return $inv->status === 'paid';
+            });
+
+            // Check if the sale percentage is greater than 0
+            if ($allPaid && $sale->remaining_percentage == 0) {
+                $sale->status = 'fully-paid';
+            } elseif (!$allPaid && $sale->remaining_percentage > 0) {
+                $sale->status = 'partial-paid';
+            } elseif ($allPaid && $sale->remaining_percentage < 100) {
+                $sale->status = 'partial-paid';
+            }
+
+            // Save the sale status if it has changed
+            $sale->save();
+        }
+
+        return $this->sendResponse(new InvoiceResource($invoice), 'Invoice marked as paid.');
     }
 
     /**
