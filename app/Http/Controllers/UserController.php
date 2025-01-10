@@ -125,8 +125,8 @@ class UserController extends BaseController
             }
 
             if ($input['type'] === 'owner') {
-                $user = User::create($input);
                 $input['name'] = $input['name_first'] . ' ' . $input['name_last'];
+                $user = User::create($input);
 
                 // If user is newly created, then create the address
                 $address = Address::create([
