@@ -20,7 +20,7 @@ class QuotationResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'property' => [
+            'property' => $this->property ? [
                 'id' => $this->property_id,
                 'name' => $this->property->name,
                 'address' => $this->property->address,
@@ -29,7 +29,7 @@ class QuotationResource extends JsonResource
                 'city' => $this->property->city,
                 'state' => $this->property->state,
                 'description' => $this->property->description,
-            ],
+            ] : null, // Return null if property is null
             'total_amount' => $this->total_amount,
             'description' => $this->description,
             'is_ready' => $this->is_ready,

@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('status')->default('unreleased');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
+            $table->timestamp('confirmed_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

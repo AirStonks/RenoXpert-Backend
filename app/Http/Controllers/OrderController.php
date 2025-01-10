@@ -135,17 +135,26 @@ class OrderController extends BaseController
             $latestQuotation = OrderQuotation::where('order_id', $order->id)->orderBy('version', 'desc')->first();
             $nextVersion = $latestQuotation ? ($latestQuotation->version + 1) : 1;
 
-            $quotation = Quotation::find($input['quotation_id']);
+            if ($input['quotation_id'] === '0') {
+                // Skip finding the quotation and set default values for 'quotation_id' and 'quotation_name'
+                $quotationId = null;
+                $quotationName = 'Custom Quotation';
+            } else {
+                $quotation = Quotation::find($input['quotation_id']);
+                $quotationId = $quotation->id;
+                $quotationName = $quotation->name;
+            }
 
             OrderQuotation::create([
                 'order_id' => $order->id,
-                'quotation_id' => $input['quotation_id'],
-                'quotation_name' => $quotation->name,
+                'quotation_id' => $quotationId,
+                'quotation_name' => $quotationName,
                 'version' => $nextVersion,
                 'total_amount' => $input['total_amount'] + $bonusValue,
                 'bonus' => $input['bonus'],
                 'metadata' => json_encode($input['metadata']) ?? null,
             ]);
+
 
             return $this->sendResponse(new OrderResource($order), 'Order added successfully.');
         } catch (\Throwable $th) {
@@ -305,7 +314,7 @@ class OrderController extends BaseController
             $order->bedroom_count = $validatedData['bedroom_count'];
             $order->bathroom_count = $validatedData['bathroom_count'];
             $order->description = $validatedData['description'];
-            $order->status = 'pending';
+            $order->status = 'unreleased';
 
             // Create OrderQuotation with incremented version
             $latestQuotation = OrderQuotation::where('order_id', $order->id)->orderBy('version', 'desc')->first();
@@ -365,20 +374,26 @@ class OrderController extends BaseController
                 $order->save(); // Use save() to persist changes
 
                 // Get the latest sales number
-                $latestSaleNo = Sale::orderBy('created_at', 'desc')->value('sales_no');
+                $lastSaleId = Sale::max('id') ?? 0;
 
                 // Generate new sales number
-                $input['sales_no'] = 'RSO-' . now()->format('y') . str_pad(Sale::count() + 1, 5, '0', STR_PAD_LEFT);
+                $input['sales_no'] = 'RSO-' . now()->format('y') . str_pad($lastSaleId + 1, 5, '0', STR_PAD_LEFT);
+
+                $totalAmount = $order->orderQuotations()->latest()->first()->total_amount;
+
+                // If bonus exists, add it to the total amount
+                $bonus = json_decode($order->orderQuotations()->latest()->first()->bonus);
+                $bonusValue = $bonus->value ?? 0;
+                $totalAmount -= $bonusValue;
 
                 // CREATE NEW SALE
                 Sale::create([
                     'sales_no' => $input['sales_no'],
                     'order_id' => $order->id,
                     'user_id' => $order->user_id,
-                    'sale_no' => $latestSaleNo,
                     'description' => '',
-                    'total_amount' => $order->total_amount,
-                    'remaining_amount' => $order->total_amount,
+                    'total_amount' => $totalAmount,
+                    'remaining_amount' => $totalAmount,
                     'remaining_percentage' => 1,
                 ]);
 

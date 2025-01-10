@@ -24,7 +24,7 @@ class SaleResource extends JsonResource
             // 'reno_progress' => new RenoProgressResource($this->renoProgress),
             'reno_progress_id' => $this->renoProgress ? $this->renoProgress->id : null,
             'user_id' => $this->user_id,
-            'user' => null,
+            'user' => $this->user,
             'invoices' => $this->invoices,
             'description' => $this->description,
             'total_amount' => $this->total_amount,
