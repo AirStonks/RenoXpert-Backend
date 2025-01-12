@@ -397,6 +397,8 @@ class OrderController extends BaseController
                     'remaining_percentage' => 1,
                 ]);
 
+                // TODO: Create/Update Inventory
+
                 return $this->sendResponse([], 'Order Confirmed');
             } else {
                 return $this->sendError('Order Not Found.');

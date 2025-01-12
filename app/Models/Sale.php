@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\SaleCreated;
 use App\Events\SaleStatusUpdated; // Updated event name
 use App\Listeners\TriggerCreateRenoProgress;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -39,6 +40,10 @@ class Sale extends Model
 
         static::creating(function ($model) {
             $model->created_by = auth()->id(); // or your logic to get the user ID
+
+            if ($model->renoProgress === null) {
+                event(new SaleCreated($model));
+            }
         });
 
         static::updating(function ($model) {

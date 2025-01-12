@@ -60,7 +60,9 @@ class PurchaseOrderController extends BaseController
         try {
             $input = $request->all();
 
-            $input['po_no'] = 'RPO-' . now()->format('y') . str_pad(PurchaseOrder::count() + 1, 5, '0', STR_PAD_LEFT);
+            $lastPOId = PurchaseOrder::max('id') ?? 0;
+
+            $input['po_no'] = 'RPO-' . now()->format('y') . str_pad($lastPOId + 1, 5, '0', STR_PAD_LEFT);
 
             // Create PO
             $newPo = PurchaseOrder::create($input);
