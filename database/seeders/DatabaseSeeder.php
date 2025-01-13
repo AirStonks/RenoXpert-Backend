@@ -2183,50 +2183,50 @@ class DatabaseSeeder extends Seeder
             'updated_at' => '2024-11-06 08:08:46',
         ]);
 
-        Sale::create([
-            'id' => 1,
-            'order_id' => 1,
-            'user_id' => 5,
-            'sales_no' => 'RSO-2400001',
-            'description' => '',
-            'total_amount' => 64543,
-            'remaining_amount' => 51634.4,
-            'remaining_percentage' => 0.8,
-            'status' => 'issued',
-            'created_at' => '2024-11-06 08:08:48',
-            'updated_at' => '2024-11-06 08:09:45',
-        ]);
+        // Sale::create([
+        //     'id' => 1,
+        //     'order_id' => 1,
+        //     'user_id' => 5,
+        //     'sales_no' => 'RSO-2400001',
+        //     'description' => '',
+        //     'total_amount' => 64543,
+        //     'remaining_amount' => 51634.4,
+        //     'remaining_percentage' => 0.8,
+        //     'status' => 'issued',
+        //     'created_at' => '2024-11-06 08:08:48',
+        //     'updated_at' => '2024-11-06 08:09:45',
+        // ]);
 
-        Invoice::create([
-            'id' => 1,
-            'sale_id' => 1,
-            'invoice_no' => 'INV-RSO-2400001-1',
-            'percentage' => 0.2,
-            'amount' => 12908.6,
-            'status' => 'paid',
-            'link_status' => 'active',
-            'version' => 1,
-            'due_date' => '2024-11-20',
-            'discountsData' => '[]',
-            'feesData' => '[]',
-            'created_by' => 1,
-            'created_at' => '2024-11-06 08:09:00',
-            'updated_at' => '2024-11-06 08:09:44',
-        ]);
+        // Invoice::create([
+        //     'id' => 1,
+        //     'sale_id' => 1,
+        //     'invoice_no' => 'INV-RSO-2400001-1',
+        //     'percentage' => 0.2,
+        //     'amount' => 12908.6,
+        //     'status' => 'paid',
+        //     'link_status' => 'active',
+        //     'version' => 1,
+        //     'due_date' => '2024-11-20',
+        //     'discountsData' => '[]',
+        //     'feesData' => '[]',
+        //     'created_by' => 1,
+        //     'created_at' => '2024-11-06 08:09:00',
+        //     'updated_at' => '2024-11-06 08:09:44',
+        // ]);
 
-        Payment::create([
-            'id' => 1,
-            'invoice_id' => 1,
-            'transaction_no' => 'PX1123101e0b22e6f790',
-            'amount' => 12908.6,
-            'payment_method' => 'FPX',
-            'currency' => 'MYR',
-            'status' => 'paid',
-            'created_at' => '2024-11-06 08:09:44',
-            'updated_at' => '2024-11-06 08:09:44',
-        ]);
+        // Payment::create([
+        //     'id' => 1,
+        //     'invoice_id' => 1,
+        //     'transaction_no' => 'PX1123101e0b22e6f790',
+        //     'amount' => 12908.6,
+        //     'payment_method' => 'FPX',
+        //     'currency' => 'MYR',
+        //     'status' => 'paid',
+        //     'created_at' => '2024-11-06 08:09:44',
+        //     'updated_at' => '2024-11-06 08:09:44',
+        // ]);
 
-        $this->updateSaleToPartialPaid();
+        // $this->updateSaleToPartialPaid();
     }
 
     private function updateSaleToPartialPaid()

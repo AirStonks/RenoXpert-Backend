@@ -80,14 +80,14 @@ class TriggerCreateRenoProgress
 
             JobTask::create([
                 'job_id' => $vpJob->id,
-                'name' => 'Key Management',
-                'is_key_form' => true,
+                'name' => 'Key Handover',
                 'status' => 'not_started',
             ]);
 
             JobTask::create([
                 'job_id' => $vpJob->id,
-                'name' => 'Key Handover',
+                'name' => 'Key Management',
+                'is_key_form' => true,
                 'status' => 'not_started',
             ]);
 
