@@ -29,7 +29,7 @@ class TriggerCreateRenoProgress
         $sale = $event->sale;
 
         $this->createRenoProgress($sale);
-        $this->updateOrCreateInventory($sale);
+        // $this->updateOrCreateInventory($sale);
     }
 
     protected function createRenoProgress($sale)
@@ -288,43 +288,43 @@ class TriggerCreateRenoProgress
         }
     }
 
-    protected function updateOrCreateInventory($sale)
-    {
+    // protected function updateOrCreateInventory($sale)
+    // {
 
-        try {
-            $order = $sale->order;
-            $order->orderQuotations->load('quotation');
+    //     try {
+    //         $order = $sale->order;
+    //         $order->orderQuotations->load('quotation');
 
-            $orderQuotations = $order->orderQuotations->sortByDesc('version')->values();
-            $latestQuotation = $orderQuotations->first();
+    //         $orderQuotations = $order->orderQuotations->sortByDesc('version')->values();
+    //         $latestQuotation = $orderQuotations->first();
 
-            // Extract the latest_quotation from the array
-            $packages = json_decode($latestQuotation->metadata);
+    //         // Extract the latest_quotation from the array
+    //         $packages = json_decode($latestQuotation->metadata);
 
-            foreach ($packages as $pkg) {
-                foreach ($pkg->products as $product) {
-                    if ($product->pm_category_id !== 1) {
-                        $inventory = Inventory::firstOrCreate(
-                            ['product_id' => $product->id],
-                            [
-                                'total_required_stock' => $product->pivot->quantity,
-                                'required_stock' => $product->pivot->quantity,
-                            ]
-                        );
+    //         foreach ($packages as $pkg) {
+    //             foreach ($pkg->products as $product) {
+    //                 if ($product->pm_category_id !== 1) {
+    //                     $inventory = Inventory::firstOrCreate(
+    //                         ['product_id' => $product->id],
+    //                         [
+    //                             'total_required_stock' => $product->pivot->quantity,
+    //                             'required_stock' => $product->pivot->quantity,
+    //                         ]
+    //                     );
 
-                        // Only increment quantities if the inventory already existed
-                        if ($inventory->wasRecentlyCreated === false) {
-                            $inventory->increment('total_required_stock', $product->pivot->quantity);
-                            $inventory->increment('required_stock', $product->pivot->quantity);
-                        }
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-            Log::error('Error triggering Inventory update or creation for sale ID ' . $sale->id . ': ' .
-                $e->getMessage());
-            // Optionally rethrow or handle the exception as needed
-            throw $e;
-        }
-    }
+    //                     // Only increment quantities if the inventory already existed
+    //                     if ($inventory->wasRecentlyCreated === false) {
+    //                         $inventory->increment('total_required_stock', $product->pivot->quantity);
+    //                         $inventory->increment('required_stock', $product->pivot->quantity);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     } catch (\Exception $e) {
+    //         Log::error('Error triggering Inventory update or creation for sale ID ' . $sale->id . ': ' .
+    //             $e->getMessage());
+    //         // Optionally rethrow or handle the exception as needed
+    //         throw $e;
+    //     }
+    // }
 }

@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->timestamp('confirmed_at')->nullable();
-        });
+        // Schema::table('orders', function (Blueprint $table) {
+        //     $table->timestamp('confirmed_at')->nullable();
+        // });
     }
 
     public function down()
