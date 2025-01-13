@@ -11,12 +11,16 @@ return new class extends Migration
      */
     public function up()
     {
-        // Schema::table('orders', function (Blueprint $table) {
-        //     $table->timestamp('confirmed_at')->nullable();
-        // });
+        Schema::table('orders', function (Blueprint $table) {
+            $table->timestamp('confirmed_at')->nullable();
+        });
 
         Schema::table('products', function (Blueprint $table) {
             $table->integer('task_weightage')->default(1)->change();
+        });
+
+        Schema::table('job_tasks', function (Blueprint $table) {
+            $table->boolean('is_key_form')->default(false)->after('is_qc_form');
         });
     }
 
