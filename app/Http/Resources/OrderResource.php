@@ -66,8 +66,8 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
-            'created_at' => $this->created_at->format('m/d/Y'),
-            'updated_at' => $this->updated_at->format('m/d/Y'),
+            'created_at' => $this->created_at->format('d/m/Y'),
+            'updated_at' => $this->updated_at->format('d/m/Y'),
         ];
     }
 }
