@@ -14,6 +14,10 @@ return new class extends Migration
         // Schema::table('orders', function (Blueprint $table) {
         //     $table->timestamp('confirmed_at')->nullable();
         // });
+
+        Schema::table('products', function (Blueprint $table) {
+            $table->integer('task_weightage')->default(1)->change();
+        });
     }
 
     public function down()

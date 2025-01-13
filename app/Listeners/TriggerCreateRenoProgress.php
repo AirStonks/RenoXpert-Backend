@@ -178,7 +178,7 @@ class TriggerCreateRenoProgress
                             'product_id' => $product->id,
                             'qty' => $product->pivot->quantity,
                             'name' => $product->name . ' (' . $pkg->name . ')',
-                            'task_weightage' => $product->task_weightage,
+                            'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
                             'status' => 'not_started',
                         ]);
                     } elseif ($product->pm_category_id === 4) {
@@ -202,7 +202,7 @@ class TriggerCreateRenoProgress
                             'product_id' => $product->id,
                             'qty' => $product->pivot->quantity,
                             'name' => $product->name . ' (' . $pkg->name . ')',
-                            'task_weightage' => $product->task_weightage,
+                            'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
                             'status' => 'not_started',
                         ]);
                     } else {
@@ -225,7 +225,7 @@ class TriggerCreateRenoProgress
                             'product_id' => $product->id,
                             'qty' => $product->pivot->quantity,
                             'name' => $product->name,
-                            'task_weightage' => $product->task_weightage,
+                            'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
                             'status' => 'not_started',
                         ]);
                     }
