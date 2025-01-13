@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('type')->nullable();
             $table->string('description')->nullable();
             $table->string('uom')->nullable();
-            $table->integer('task_weightage')->nullable();
+            $table->integer('task_weightage')->default(1);
             $table->string('color')->nullable();
             $table->string('material')->nullable();
             $table->string('width')->nullable();
