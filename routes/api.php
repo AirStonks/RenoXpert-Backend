@@ -14,6 +14,7 @@ use App\Http\Controllers\DiskController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobTaskController;
+use App\Http\Controllers\KeyManagementController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PaymentController;
@@ -106,6 +107,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/purchase-orders', PurchaseOrderController::class);
     Route::apiResource('/inventory', InventoryController::class);
     Route::apiResource('/defect-inspection-forms', DefectInspectionFormController::class);
+    Route::apiResource('/key-management', KeyManagementController::class);
 
     Route::get('users/{id}/password/reset', [UserController::class, 'resetPassword']);
     Route::get('users/{id}/deactivate', [UserController::class, 'deactivateUser']);
@@ -173,6 +175,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('quotations/{id}/archive', [QuotationController::class, 'archiveQuotation']);
     Route::get('quotations/{id}/restore', [QuotationController::class, 'restoreQuotation']);
     Route::get('quotations/index/archived', [QuotationController::class, 'indexArchived']);
+
+    Route::get('key-management/{keyManagementId}/{category}/add', [KeyManagementController::class, 'addCategoryItem']);
+    Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/name', [KeyManagementController::class, 'changeKeyManagementItemName']);
+    Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/remark', [KeyManagementController::class, 'changeKeyManagementItemRemark']);
+    Route::post('key-management/{keyManagementId}/{category}/upload/{itemIndex}/photo', [KeyManagementController::class, 'uploadKeyManagementItemPhoto']);
+    Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/photo', [KeyManagementController::class, 'changeKeyManagementItemPhoto']);
+    Route::get('key-management/{keyManagementId}/{category}/remove/{itemIndex}', [KeyManagementController::class, 'removeKeyManagementItem']);
+    Route::post('key-management/{keyManagementId}/info/update', [KeyManagementController::class, 'updateKeyManagementInfo']);
 
 
     // TEST
