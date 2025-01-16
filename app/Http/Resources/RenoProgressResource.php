@@ -28,6 +28,7 @@ class RenoProgressResource extends JsonResource
             ],
             'sale' => new SaleResource($this->sale),
             'defect_inspection_form' => $this->defectInspectionForm ? new DefectInspectionFormResource($this->defectInspectionForm) : null,
+            'key_management' => $this->keyManagement ? new KeyManagementResource($this->keyManagement) : null,
             'phases' => ProgressPhaseResource::collection($this->progressPhases),
             // Ensure that start_date and end_date are DateTime objects before calling format()
             'start_date' => $this->start_date ? Carbon::parse($this->start_date)->format('Y-m-d') : null,

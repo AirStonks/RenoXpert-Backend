@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -37,6 +38,8 @@ class JobTaskResource extends JsonResource
             'completed_at' => $this->completed_at ? $this->completed_at->format('m/d/Y') : null,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
+            'created_by' => User::find($this->created_by),
+            'updated_by' => User::find($this->updated_by),
         ];
     }
 }

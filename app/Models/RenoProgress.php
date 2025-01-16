@@ -95,4 +95,8 @@ class RenoProgress extends Model
     public function defectInspectionForm() {
         return $this->hasOne(DefectInspectionForm::class, 'reno_progress_id', 'id');
     }
+
+    public function keyManagement() {
+        return $this->hasOne(KeyManagement::class, 'reno_progress_id', 'id');
+    }
 }

@@ -2163,7 +2163,7 @@ class DatabaseSeeder extends Seeder
             'bedroom_count' => 3,
             'bathroom_count' => 2,
             'total_amount' => 64543,
-            'status' => 'confirmed',
+            'status' => 'released',
             'created_by' => 1,
             'created_at' => '2024-11-06 08:08:46',
             'updated_at' => '2024-11-06 08:08:46',

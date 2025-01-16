@@ -6,6 +6,7 @@ use App\Events\SaleStatusUpdated; // Updated event name
 use App\Http\Resources\OrderResource;
 use App\Models\Inventory;
 use App\Models\JobTask;
+use App\Models\KeyManagement;
 use App\Models\PhaseJob;
 use App\Models\ProgressPhase;
 use App\Models\RenoProgress;
@@ -288,6 +289,22 @@ class TriggerCreateRenoProgress
                 'status' => 'not_started',
             ]);
 
+            // Create KeyManagement
+            $keyManagement = KeyManagement::create([
+                'reno_progress_id' => $renoProgress->id,
+                'metadata' => json_encode([
+                    ['name' => 'ori_acc_card', 'remark' => '', 'value' => []],
+                    ['name' => 'dup_acc_card', 'remark' => '', 'value' => []],
+                    ['name' => 'car_acc_card', 'remark' => '', 'value' => []],
+                    ['name' => 'main_door_key', 'remark' => '', 'value' => []],
+                    ['name' => 'room_door_key', 'remark' => '', 'value' => []],
+                    ['name' => 'yard_door_key', 'remark' => '', 'value' => []],
+                    ['name' => 'mailbox_key', 'remark' => '', 'value' => []],
+                    ['name' => 'ac_ledge_key', 'remark' => '', 'value' => []],
+                    ['name' => 'ac_remote', 'remark' => '', 'value' => []],
+                    ['name' => 'others', 'remark' => '', 'value' => []],
+                ]),
+            ]);
         } catch (\Exception $e) {
             Log::error('Error triggering RenoProgress creation for sale ID ' . $sale->id . ': ' . $e->getMessage());
             // Optionally rethrow or handle the exception as needed
