@@ -137,10 +137,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/op/reno/qc-forms', [QCFormController::class, 'index']);
     Route::get('/op/reno/qc-forms/{id}/fetch', [QCFormController::class, 'fetch']);
 
-    Route::post('/op/reno/defect-inspection-form/submit', [DefectInspectionFormController::class, 'submitForm']);
+    Route::get('/op/reno/defect-inspection-form/{id}/submit', [DefectInspectionFormController::class, 'submitForm']);
     Route::get('/op/reno/defect-inspection-form/{id}', [DefectInspectionFormController::class, 'show']);
     Route::get('/op/reno/defect-inspection-forms', [DefectInspectionFormController::class, 'index']);
     Route::get('/op/reno/defect-inspection-forms/{id}/fetch', [DefectInspectionFormController::class, 'fetch']);
+
+    Route::post('/op/reno/defect-inspection-forms/{id}/save', [DefectInspectionFormController::class, 'liveUpdateForm']);
+    Route::post('/op/reno/defect-inspection-forms/{id}/attachment/remove', [DefectInspectionFormController::class, 'removeAttachment']);
 
 
     Route::post('/reno-progress/{id}/contractual/overall/date', [RenoProgressController::class, 'changeContractualDate']);

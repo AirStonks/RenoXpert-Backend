@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\SaleStatusUpdated; // Updated event name
 use App\Http\Resources\OrderResource;
+use App\Models\DefectInspectionForm;
 use App\Models\Inventory;
 use App\Models\JobTask;
 use App\Models\KeyManagement;
@@ -189,6 +190,30 @@ class TriggerCreateRenoProgress
                             'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
                             'status' => 'not_started',
                         ]);
+                    } else if ($product->pm_category_id === 6) {
+                        // FindOrCreate Wiring Job
+                        $job = PhaseJob::firstOrCreate(
+                            [
+                                'name' => 'Smart IoT Devices',
+                                'phase_id' => $renoPhase->id
+                            ],
+                            [
+                                'phase_id' => $renoPhase->id,
+                                'name' => 'Smart IoT Devices',
+                                'priority' => 2,
+                                'status' => 'not_started',
+                            ]
+                        );
+
+                        // Create painting Task
+                        $task = JobTask::create([
+                            'job_id' => $job->id,
+                            'product_id' => $product->id,
+                            'qty' => $product->pivot->quantity,
+                            'name' => $product->name . ' (' . $pkg->name . ')',
+                            'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+                            'status' => 'not_started',
+                        ]);
                     } elseif ($product->pm_category_id === 4) {
                         // FindOrCreate Wiring Job
                         $job = PhaseJob::firstOrCreate(
@@ -287,6 +312,107 @@ class TriggerCreateRenoProgress
                 'job_id' => $postRenoJob->id,
                 'name' => 'RPM Handover',
                 'status' => 'not_started',
+            ]);
+
+            // Create DI Form
+            $metadata = [
+                'yard' => [
+                    'q1' => ['value' => '', 'remark' => null],
+                    'q2' => ['value' => '', 'remark' => null],
+                    'q3' => ['value' => '', 'remark' => null],
+                    'q4' => ['value' => '', 'remark' => null],
+                    'q5' => ['value' => '', 'remark' => null],
+                    'q6' => ['value' => '', 'remark' => null],
+                ],
+                'foyer' => [
+                    'q1' => ['value' => '', 'remark' => null],
+                    'q2' => ['value' => '', 'remark' => null],
+                    'q3' => ['value' => '', 'remark' => null],
+                    'q4' => ['value' => '', 'remark' => null],
+                ],
+                'living' => [
+                    'q1' => ['value' => '', 'remark' => null],
+                    'q2' => ['value' => '', 'remark' => null],
+                    'q3' => ['value' => '', 'remark' => null],
+                    'q4' => ['value' => '', 'remark' => null],
+                    'q5' => ['value' => '', 'remark' => null],
+                    'q6' => ['value' => '', 'remark' => null],
+                    'q7' => ['value' => '', 'remark' => null],
+                    'q8' => ['value' => '', 'remark' => null],
+                    'q9' => ['value' => '', 'remark' => null],
+                ],
+                'balcony' => [
+                    'q1' => ['value' => '', 'remark' => null],
+                    'q2' => ['value' => '', 'remark' => null],
+                    'q3' => ['value' => '', 'remark' => null],
+                    'q4' => ['value' => '', 'remark' => null],
+                ],
+                'hallway' => [
+                    'q1' => ['value' => '', 'remark' => null],
+                    'q2' => ['value' => '', 'remark' => null],
+                    'q3' => ['value' => '', 'remark' => null],
+                    'q4' => ['value' => '', 'remark' => null],
+                ],
+                'kitchen' => [
+                    'q1' => ['value' => '', 'remark' => null],
+                    'q2' => ['value' => '', 'remark' => null],
+                    'q3' => ['value' => '', 'remark' => null],
+                    'q4' => ['value' => '', 'remark' => null],
+                    'q5' => ['value' => '', 'remark' => null],
+                    'q6' => ['value' => '', 'remark' => null],
+                    'q7' => ['value' => '', 'remark' => null],
+                    'q8' => ['value' => '', 'remark' => null],
+                ],
+                'bedrooms' => [],
+                'bathrooms' => [],
+            ];
+
+            // Generate bedroom entries dynamically
+            $bedroomTemplate = [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+                'q5' => ['value' => '', 'remark' => null],
+                'q6' => ['value' => '', 'remark' => null],
+                'q7' => ['value' => '', 'remark' => null],
+                'q8' => ['value' => '', 'remark' => null],
+                'q9' => ['value' => '', 'remark' => null],
+            ];
+
+            for ($i = 1; $i <= $sale->order->bedroom_count; $i++) {
+                $metadata['bedrooms']["bedroom{$i}"] = $bedroomTemplate;
+            }
+
+            // Generate bathroom entries dynamically
+            $bathroomTemplate = [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+                'q5' => ['value' => '', 'remark' => null],
+                'q6' => ['value' => '', 'remark' => null],
+                'q7' => ['value' => '', 'remark' => null],
+                'q8' => ['value' => '', 'remark' => null],
+                'q9' => ['value' => '', 'remark' => null],
+            ];
+
+            for ($i = 1; $i <= $sale->order->bathroom_count; $i++) {
+                $metadata['bathrooms']["bathroom{$i}"] = $bathroomTemplate;
+            }
+
+            $form = DefectInspectionForm::create([
+                'reno_progress_id' => $renoProgress->id,
+                'property_name' => $sale->order->property_id,
+                'owner_email' => $sale->order->user->email,
+                'other_property_name' => null,
+                'block' => $sale->order->block,
+                'level' => $sale->order->floor,
+                'unit' => $sale->order->unit_no,
+                'status' => 'not_submitted',
+                'bedroom_count' => $sale->order->bedroom_count,
+                'bathroom_count' => $sale->order->bathroom_count,
+                'metadata' => json_encode($metadata),
             ]);
 
             // Create KeyManagement
