@@ -355,6 +355,9 @@ class DefectInspectionFormController extends BaseController
             } else {
                 // Handle non-file updates
                 // $this->updateFormValues($updatedMetadata, $request);
+                Log::error('No files', [
+                    'error' => 'no'
+                ]);
             }
 
             // Save updated metadata
