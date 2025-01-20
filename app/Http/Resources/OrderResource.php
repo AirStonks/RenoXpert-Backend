@@ -63,6 +63,7 @@ class OrderResource extends JsonResource
             'unit_no' => $this->unit_no,
             'total_amount' => $this->total_amount,
             'description' => $this->description,
+            'completion_day' => $this->completion_day,
             'status' => $this->status,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
