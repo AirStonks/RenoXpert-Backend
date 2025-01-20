@@ -319,6 +319,10 @@ class DefectInspectionFormController extends BaseController
                         ['visibility' => 'public']
                     );
 
+                    Log::info('File uploaded to S3', [
+                        'path' => $path,
+                    ]);
+
                     if ($path === false || $path === null) {
                         throw new \Exception('Failed to upload file to S3');
                     }
