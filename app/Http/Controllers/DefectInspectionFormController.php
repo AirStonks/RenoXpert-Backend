@@ -252,8 +252,6 @@ class DefectInspectionFormController extends BaseController
                                 $file = $request->file('attachment');
                                 $filename = uniqid() . '.' . $file->getClientOriginalExtension();
                                 
-                                return $this->sendError($filename);
-
                                 $path = Storage::disk('s3')->putFileAs(
                                     $directory,
                                     $file,
