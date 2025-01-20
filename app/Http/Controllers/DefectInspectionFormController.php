@@ -259,6 +259,8 @@ class DefectInspectionFormController extends BaseController
                                     'public'
                                 );
 
+                                return $this->sendError($path);
+
                                 $question->attachments = $question->attachments ?? []; // Initialize it if not already an array
                                 $question->attachments[] = [
                                     'file_url' => Storage::disk('s3')->path($path),
