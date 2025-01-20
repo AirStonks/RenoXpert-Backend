@@ -244,16 +244,16 @@ class DefectInspectionFormController extends BaseController
                 if ($request->input('area') === $area) {
                     foreach ($questions as $q => $question) {
                         if ($request->input('question') === $q) {
-
-                                return $this->sendError($request->file('attachment')->getClientOriginalName());
                             if ($request->input('value')) {
                                 $question->value = $request->input('value');
                             } else if ($request->input('remark')) {
                                 $question->remark = $request->input('remark');
-                            } else if ($request->hasFile('attachment')) {
+                            } else {
                                 $file = $request->file('attachment');
                                 $filename = uniqid() . '.' . $file->getClientOriginalExtension();
                                 
+                                return $this->sendError($filename);
+
                                 $path = Storage::disk('s3')->putFileAs(
                                     $directory,
                                     $file,
