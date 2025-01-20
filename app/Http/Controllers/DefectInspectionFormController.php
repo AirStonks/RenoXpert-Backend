@@ -245,7 +245,7 @@ class DefectInspectionFormController extends BaseController
                     foreach ($questions as $q => $question) {
                         if ($request->input('question') === $q) {
 
-                                return $this->sendError($question);
+                                return $this->sendError($request->hasFile('attachment'));
                             if ($request->input('value')) {
                                 $question->value = $request->input('value');
                             } else if ($request->input('remark')) {
