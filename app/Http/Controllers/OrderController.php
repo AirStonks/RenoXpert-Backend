@@ -96,6 +96,7 @@ class OrderController extends BaseController
                 'bathroom_count' => 'nullable',
                 'total_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:255',
+                'completion_day' => 'nullable|numeric|min:0',
                 'metadata' => 'nullable|array', // Added validation for metadata
             ]);
 
@@ -277,6 +278,7 @@ class OrderController extends BaseController
                 'bedroom_count' => 'nullable|numeric|min:1',
                 'bathroom_count' => 'nullable|numeric|min:1',
                 'description' => 'nullable|string|max:255',
+                'completion_day' => 'nullable|numeric|min:0',
                 'metadata' => 'nullable|array', // Added validation for metadata
             ]);
 
@@ -314,6 +316,7 @@ class OrderController extends BaseController
             $order->bedroom_count = $validatedData['bedroom_count'];
             $order->bathroom_count = $validatedData['bathroom_count'];
             $order->description = $validatedData['description'];
+            $order->completion_day = $validatedData['completion_day'];
             $order->status = 'unreleased';
 
             // Create OrderQuotation with incremented version
