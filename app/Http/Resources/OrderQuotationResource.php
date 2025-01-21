@@ -26,8 +26,8 @@ class OrderQuotationResource extends JsonResource
             // Find user
             'created_by' => User::find($this->created_by),
             'updated_by' => $this->updated_by,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'created_at' => $this->created_at->format('d/m/Y'),
+            'updated_at' => $this->updated_at->format('d/m/Y'),
             'bonus' => json_decode($this->bonus),
             'packages' => json_decode($this->metadata),
             // 'quotation' => new QuotationResource($this->quotation),
