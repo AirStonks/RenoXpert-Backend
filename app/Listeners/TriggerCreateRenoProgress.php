@@ -49,9 +49,27 @@ class TriggerCreateRenoProgress
                 'status' => 'in_progress',
             ]);
 
-            $renoPhase = ProgressPhase::create([
+            $p1Phase = ProgressPhase::create([
                 'progress_id' => $renoProgress->id,
-                'name' => 'Reno',
+                'name' => 'P1',
+                'status' => 'not_started',
+            ]);
+
+            $p2aPhase = ProgressPhase::create([
+                'progress_id' => $renoProgress->id,
+                'name' => 'P2-A',
+                'status' => 'not_started',
+            ]);
+
+            $p2bPhase = ProgressPhase::create([
+                'progress_id' => $renoProgress->id,
+                'name' => 'P2-B',
+                'status' => 'not_started',
+            ]);
+
+            $iotPhase = ProgressPhase::create([
+                'progress_id' => $renoProgress->id,
+                'name' => 'IoT Phase',
                 'status' => 'not_started',
             ]);
 
@@ -160,111 +178,370 @@ class TriggerCreateRenoProgress
                 'status' => 'not_started',
             ]);
 
+            // P1, P2-A, P2-B and IoT Phase
+
+            // 1 = others
+            // 2 = furniture
+            // 3 = wiring
+            // 4 = painting
+            // 5 = curtain
+            // 6 = iot
+            // 7 = electrical appliances
+            // 8 = loose item
+            // 9 = partition
+
+            // P1  = wiring, painting, partition (3, 4, 9)
+            // P2A = furniture, curtain (2, 5)
+            // P2B = electrical appliances, loose item (7, 8)
+            // IoT = iot (6)
+
             foreach ($packages as $pkg) {
                 foreach ($pkg->products as $product) {
                     if ($product->pm_category_id === 1) {
-                        continue; // Skip this iteration and move to the next product
+                        continue;
                     }
 
-                    if ($product->pm_category_id === 3) {
-                        // FindOrCreate Wiring Job
-                        $job = PhaseJob::firstOrCreate(
-                            [
-                                'name' => 'House Electrical & Wiring',
-                                'phase_id' => $renoPhase->id
-                            ],
-                            [
-                                'phase_id' => $renoPhase->id,
-                                'name' => 'House Electrical & Wiring',
-                                'priority' => 3,
-                                'status' => 'not_started',
-                            ]
-                        );
+                    // Define job configurations
+                    $jobConfig = [
+                        3 => ['phase' => $p1Phase, 'name' => 'House Electrical & Wiring', 'priority' => 1],
+                        4 => ['phase' => $p1Phase, 'name' => 'House Painting', 'priority' => 2],
+                        9 => ['phase' => $p1Phase, 'name' => 'House Partition', 'priority' => 3],
+                        7 => ['phase' => $p2bPhase, 'name' => 'Electrical Appliances', 'priority' => 1],
+                        8 => ['phase' => $p2bPhase, 'name' => 'Loose Items', 'priority' => 2],
+                        6 => ['phase' => $iotPhase, 'name' => 'Smart IoT Devices', 'priority' => 1]
+                    ];
 
-                        // Create wiring Task
-                        $task = JobTask::create([
-                            'job_id' => $job->id,
-                            'product_id' => $product->id,
-                            'qty' => $product->pivot->quantity,
-                            'name' => $product->name . ' (' . $pkg->name . ')',
-                            'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
-                            'status' => 'not_started',
-                        ]);
-                    } else if ($product->pm_category_id === 6) {
-                        // FindOrCreate Wiring Job
-                        $job = PhaseJob::firstOrCreate(
-                            [
-                                'name' => 'Smart IoT Devices',
-                                'phase_id' => $renoPhase->id
-                            ],
-                            [
-                                'phase_id' => $renoPhase->id,
-                                'name' => 'Smart IoT Devices',
-                                'priority' => 2,
-                                'status' => 'not_started',
-                            ]
-                        );
-
-                        // Create painting Task
-                        $task = JobTask::create([
-                            'job_id' => $job->id,
-                            'product_id' => $product->id,
-                            'qty' => $product->pivot->quantity,
-                            'name' => $product->name . ' (' . $pkg->name . ')',
-                            'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
-                            'status' => 'not_started',
-                        ]);
-                    } elseif ($product->pm_category_id === 4) {
-                        // FindOrCreate Wiring Job
-                        $job = PhaseJob::firstOrCreate(
-                            [
-                                'name' => 'House Painting',
-                                'phase_id' => $renoPhase->id
-                            ],
-                            [
-                                'phase_id' => $renoPhase->id,
-                                'name' => 'House Painting',
-                                'priority' => 2,
-                                'status' => 'not_started',
-                            ]
-                        );
-
-                        // Create painting Task
-                        $task = JobTask::create([
-                            'job_id' => $job->id,
-                            'product_id' => $product->id,
-                            'qty' => $product->pivot->quantity,
-                            'name' => $product->name . ' (' . $pkg->name . ')',
-                            'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
-                            'status' => 'not_started',
-                        ]);
+                    // Get job configuration or use default
+                    if (isset($jobConfig[$product->pm_category_id])) {
+                        $config = $jobConfig[$product->pm_category_id];
+                        $phase = $config['phase'];
+                        $jobName = $config['name'];
+                        $priority = $config['priority'];
                     } else {
-                        // FindOrCreate Package Job
-                        $job = PhaseJob::firstOrCreate(
-                            [
-                                'name' => $pkg->name,
-                                'phase_id' => $renoPhase->id
-                            ],
-                            [
-                                'phase_id' => $renoPhase->id,
-                                'name' => $pkg->name,
-                                'status' => 'not_started',
-                            ]
-                        );
-
-                        // Create Package Task
-                        $task = JobTask::create([
-                            'job_id' => $job->id,
-                            'product_id' => $product->id,
-                            'qty' => $product->pivot->quantity,
-                            'name' => $product->name,
-                            'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
-                            'status' => 'not_started',
-                        ]);
+                        $phase = $p2aPhase;
+                        $jobName = $pkg->name;
+                        $priority = 1;
                     }
+
+                    // Create or find job
+                    $job = PhaseJob::firstOrCreate(
+                        [
+                            'name' => $jobName,
+                            'phase_id' => $phase->id
+                        ],
+                        [
+                            'phase_id' => $phase->id,
+                            'name' => $jobName,
+                            'priority' => $priority,
+                            'status' => 'not_started',
+                        ]
+                    );
+
+                    // Create task
+                    JobTask::create([
+                        'job_id' => $job->id,
+                        'product_id' => $product->id,
+                        'qty' => $product->pivot->quantity,
+                        'name' => $product->name,
+                        'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+                        'area' => $pkg->name,
+                        'status' => 'not_started',
+                    ]);
                 }
             }
 
+            // foreach ($packages as $pkg) {
+            //     foreach ($pkg->products as $product) {
+
+            //         if ($product->pm_category_id === 1) {
+            //             continue; // Skip this iteration and move to the next product
+            //         } else if ($product->pm_category_id === 3 || $product->pm_category_id === 4 || $product->pm_category_id === 9) {
+            //             // P1 Phase Jobs
+            //             if ($product->pm_category_id === 3) {
+            //                 // FindOrCreate Wiring Job
+            //                 $job = PhaseJob::firstOrCreate(
+            //                     [
+            //                         'name' => 'House Electrical & Wiring',
+            //                         'phase_id' => $p1Phase->id
+            //                     ],
+            //                     [
+            //                         'phase_id' => $p1Phase->id,
+            //                         'name' => 'House Electrical & Wiring',
+            //                         'priority' => 1,
+            //                         'status' => 'not_started',
+            //                     ]
+            //                 );
+
+            //                 // Create wiring Task
+            //                 JobTask::create([
+            //                     'job_id' => $job->id,
+            //                     'product_id' => $product->id,
+            //                     'qty' => $product->pivot->quantity,
+            //                     'name' => $product->name,
+            //                     'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //                     'area' => $pkg->name,
+            //                     'status' => 'not_started',
+            //                 ]);
+            //             }
+
+            //             if ($product->pm_category_id === 4) {
+            //                 // FindOrCreate Painting Job
+            //                 $job = PhaseJob::firstOrCreate(
+            //                     [
+            //                         'name' => 'House Painting',
+            //                         'phase_id' => $p1Phase->id
+            //                     ],
+            //                     [
+            //                         'phase_id' => $p1Phase->id,
+            //                         'name' => 'House Painting',
+            //                         'priority' => 2,
+            //                         'status' => 'not_started',
+            //                     ]
+            //                 );
+
+            //                 // Create painting Task
+            //                 JobTask::create([
+            //                     'job_id' => $job->id,
+            //                     'product_id' => $product->id,
+            //                     'qty' => $product->pivot->quantity,
+            //                     'name' => $product->name,
+            //                     'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //                     'area' => $pkg->name,
+            //                     'status' => 'not_started',
+            //                 ]);
+            //             }
+
+            //             if ($product->pm_category_id === 9) {
+            //                 // FindOrCreate Partition Job
+            //                 $job = PhaseJob::firstOrCreate(
+            //                     [
+            //                         'name' => 'House Partition',
+            //                         'phase_id' => $p1Phase->id
+            //                     ],
+            //                     [
+            //                         'phase_id' => $p1Phase->id,
+            //                         'name' => 'House Partition',
+            //                         'priority' => 3,
+            //                         'status' => 'not_started',
+            //                     ]
+            //                 );
+
+            //                 // Create partition Task
+            //                 JobTask::create([
+            //                     'job_id' => $job->id,
+            //                     'product_id' => $product->id,
+            //                     'qty' => $product->pivot->quantity,
+            //                     'name' => $product->name,
+            //                     'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //                     'area' => $pkg->name,
+            //                     'status' => 'not_started',
+            //                 ]);
+            //             }
+            //         } else if ($product->pm_category_id === 7 || $product->pm_category_id === 8) {
+            //             // P2B Phase Jobs
+            //             if ($product->pm_category_id === 7) {
+            //                 // FindOrCreate Electrical Appliances Job
+            //                 $job = PhaseJob::firstOrCreate(
+            //                     [
+            //                         'name' => 'Electrical Appliances',
+            //                         'phase_id' => $p2bPhase->id
+            //                     ],
+            //                     [
+            //                         'phase_id' => $p2bPhase->id,
+            //                         'name' => 'Electrical Appliances',
+            //                         'priority' => 1,
+            //                         'status' => 'not_started',
+            //                     ]
+            //                 );
+
+            //                 // Create electrical appliances Task
+            //                 JobTask::create([
+            //                     'job_id' => $job->id,
+            //                     'product_id' => $product->id,
+            //                     'qty' => $product->pivot->quantity,
+            //                     'name' => $product->name,
+            //                     'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //                     'area' => $pkg->name,
+            //                     'status' => 'not_started',
+            //                 ]);
+            //             }
+
+            //             if ($product->pm_category_id === 8) {
+            //                 // FindOrCreate Plumbing Appliances Job
+            //                 $job = PhaseJob::firstOrCreate(
+            //                     [
+            //                         'name' => 'Loose Items',
+            //                         'phase_id' => $p2bPhase->id
+            //                     ],
+            //                     [
+            //                         'phase_id' => $p2bPhase->id,
+            //                         'name' => 'Loose Items',
+            //                         'priority' => 2,
+            //                         'status' => 'not_started',
+            //                     ]
+            //                 );
+
+            //                 // Create plumbing appliances Task
+            //                 JobTask::create([
+            //                     'job_id' => $job->id,
+            //                     'product_id' => $product->id,
+            //                     'qty' => $product->pivot->quantity,
+            //                     'name' => $product->name,
+            //                     'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //                     'area' => $pkg->name,
+            //                     'status' => 'not_started',
+            //                 ]);
+            //             }
+            //         } else if ($product->pm_category_id === 6) {
+            //             // IoT Phase
+            //             $job = PhaseJob::firstOrCreate(
+            //                 [
+            //                     'name' => 'Smart IoT Devices',
+            //                     'phase_id' => $iotPhase->id
+            //                 ],
+            //                 [
+            //                     'phase_id' => $iotPhase->id,
+            //                     'name' => 'Smart IoT Devices',
+            //                     'priority' => 1,
+            //                     'status' => 'not_started',
+            //                 ]
+            //             );
+
+            //             // Create IoT Task
+            //             JobTask::create([
+            //                 'job_id' => $job->id,
+            //                 'product_id' => $product->id,
+            //                 'qty' => $product->pivot->quantity,
+            //                 'name' => $product->name,
+            //                 'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //                 'area' => $pkg->name,
+            //                 'status' => 'not_started',
+            //             ]);
+            //         } else {
+            //             // P2A Phase Jobs
+            //             $job = PhaseJob::firstOrCreate(
+            //                 [
+            //                     'name' => $pkg->name,
+            //                     'phase_id' => $p2aPhase->id
+            //                 ],
+            //                 [
+            //                     'phase_id' => $p2aPhase->id,
+            //                     'name' => $pkg->name,
+            //                     'status' => 'not_started',
+            //                 ]
+            //             );
+
+            //             JobTask::create([
+            //                 'job_id' => $job->id,
+            //                 'product_id' => $product->id,
+            //                 'qty' => $product->pivot->quantity,
+            //                 'name' => $product->name,
+            //                 'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //                 'area' => $pkg->name,
+            //                 'status' => 'not_started',
+            //             ]);
+            //         }
+            //     }
+            // }
+
+            // if ($product->pm_category_id === 3) {
+            //     // FindOrCreate Wiring Job
+            //     $job = PhaseJob::firstOrCreate(
+            //         [
+            //             'name' => 'House Electrical & Wiring',
+            //             'phase_id' => $p1Phase->id
+            //         ],
+            //         [
+            //             'phase_id' => $p1Phase->id,
+            //             'name' => 'House Electrical & Wiring',
+            //             'priority' => 1,
+            //             'status' => 'not_started',
+            //         ]
+            //     );
+
+            //     // Create wiring Task
+            //     $task = JobTask::create([
+            //         'job_id' => $job->id,
+            //         'product_id' => $product->id,
+            //         'qty' => $product->pivot->quantity,
+            //         'name' => $product->name . ' (' . $pkg->name . ')',
+            //         'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //         'status' => 'not_started',
+            //     ]);
+            // } else if ($product->pm_category_id === 6) {
+            //     // FindOrCreate Wiring Job
+            //     $job = PhaseJob::firstOrCreate(
+            //         [
+            //             'name' => 'Smart IoT Devices',
+            //             'phase_id' => $renoPhase->id
+            //         ],
+            //         [
+            //             'phase_id' => $renoPhase->id,
+            //             'name' => 'Smart IoT Devices',
+            //             'priority' => 2,
+            //             'status' => 'not_started',
+            //         ]
+            //     );
+
+            //     // Create painting Task
+            //     $task = JobTask::create([
+            //         'job_id' => $job->id,
+            //         'product_id' => $product->id,
+            //         'qty' => $product->pivot->quantity,
+            //         'name' => $product->name . ' (' . $pkg->name . ')',
+            //         'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //         'status' => 'not_started',
+            //     ]);
+            // } elseif ($product->pm_category_id === 4) {
+            //     // FindOrCreate Wiring Job
+            //     $job = PhaseJob::firstOrCreate(
+            //         [
+            //             'name' => 'House Painting',
+            //             'phase_id' => $renoPhase->id
+            //         ],
+            //         [
+            //             'phase_id' => $renoPhase->id,
+            //             'name' => 'House Painting',
+            //             'priority' => 2,
+            //             'status' => 'not_started',
+            //         ]
+            //     );
+
+            //     // Create painting Task
+            //     $task = JobTask::create([
+            //         'job_id' => $job->id,
+            //         'product_id' => $product->id,
+            //         'qty' => $product->pivot->quantity,
+            //         'name' => $product->name . ' (' . $pkg->name . ')',
+            //         'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //         'status' => 'not_started',
+            //     ]);
+            // } else {
+            //     // FindOrCreate Package Job
+            //     $job = PhaseJob::firstOrCreate(
+            //         [
+            //             'name' => $pkg->name,
+            //             'phase_id' => $renoPhase->id
+            //         ],
+            //         [
+            //             'phase_id' => $renoPhase->id,
+            //             'name' => $pkg->name,
+            //             'status' => 'not_started',
+            //         ]
+            //     );
+
+            //     // Create Package Task
+            //     $task = JobTask::create([
+            //         'job_id' => $job->id,
+            //         'product_id' => $product->id,
+            //         'qty' => $product->pivot->quantity,
+            //         'name' => $product->name,
+            //         'task_weightage' => $product->task_weightage > 0 ? $product->task_weightage : 1,
+            //         'status' => 'not_started',
+            //     ]);
+            // }
+
+            // Post Reno
             $postRenoJob = PhaseJob::create([
                 'phase_id' => $postRenoPhase->id,
                 'name' => 'Post Reno Phrase',

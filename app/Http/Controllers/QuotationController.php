@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\QuotationResource;
 use App\Models\Quotation;
+use App\Models\QuotationPackage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -119,12 +120,19 @@ class QuotationController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            if (isset($input['metadata'])) {
-                $input['metadata'] = json_encode($input['metadata']);
+            if (isset($input['selectedPackageIds'])) {
+                $quotation = Quotation::create($input);
+
+                // store QuotationPackage
+                foreach ($input['selectedPackageIds'] as $packageId) {
+                    QuotationPackage::create([
+                        'quotation_id' => $quotation->id,
+                        'package_id' => $packageId,
+                    ]);
+                }
+            } else {
+                return $this->sendError('No packages selected.');
             }
-
-            $quotation = Quotation::create($input);
-
 
             return $this->sendResponse(new QuotationResource($quotation), 'Quotation added successfully.');
         } catch (\Throwable $th) {

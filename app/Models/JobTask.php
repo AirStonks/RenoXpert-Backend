@@ -18,6 +18,7 @@ class JobTask extends Model
         'qty',
         'priority',
         'task_weightage',
+        'area',
         'is_supplied',
         'is_installed',
         'supply_date',

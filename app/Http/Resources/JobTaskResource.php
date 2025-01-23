@@ -23,6 +23,7 @@ class JobTaskResource extends JsonResource
             'qty' => $this->qty,
             'priority' => $this->priority,
             'task_weightage' => $this->task_weightage,
+            'area' => $this->area,
             'is_supplied' => $this->is_supplied ? true : false,
             'is_installed' => $this->is_installed ? true : false,
             'supply_date' => $this->supply_date ? $this->supply_date->format('m/d/Y') : null,

@@ -17,6 +17,20 @@ class QuotationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // $quotationPackagesManyToMany = $quotation->quotationPackages
+        // $packages = $quotationPackagesManyToMany->$packages
+
+        // Retrieve the related packages for this quotation
+        // $packages = $this->quotationPackages->map(function ($package) {
+        //     return [
+        //         'id' => $package->id,
+        //         'name' => $package->name,
+        //         'description' => $package->description,
+        //         'price' => $package->price,  // Assuming you have a price attribute
+        //         // Add any other relevant package details
+        //     ];
+        // });
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -36,8 +50,8 @@ class QuotationResource extends JsonResource
             'valid_from' => $this->valid_from,
             'valid_until' => $this->valid_until,
             'status' => $this->status,
-            'metadata' => json_decode($this->metadata),
-            'packages' => json_decode($this->metadata),
+            // 'metadata' => json_decode($this->metadata),
+            'packages' => PackageResource::collection($this->packages),
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
             'created_at' => $this->created_at->format('d/m/Y'),

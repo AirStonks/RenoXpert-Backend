@@ -13,7 +13,7 @@ class Quotation extends Model
 {
     use SoftDeletes;
     use HasFactory;
-  
+
     /**
      * The attributes that are mass assignable.
      *
@@ -52,5 +52,10 @@ class Quotation extends Model
     public function property()
     {
         return $this->belongsTo(Property::class, 'property_id', 'id');
+    }
+
+    public function packages()
+    {
+        return $this->belongsToMany(Package::class, 'quotation_packages', 'quotation_id', 'package_id');
     }
 }

@@ -12,9 +12,15 @@ return new class extends Migration
     public function up()
     {
         // Staging: done
-        Schema::table('orders', function (Blueprint $table) {
-            $table->integer('completion_day')->default(0)->after('total_amount');
-        });
+        // PRD: done
+        // Schema::table('orders', function (Blueprint $table) {
+        //     $table->integer('completion_day')->default(0)->after('total_amount');
+        // });
+
+        // Staging: done
+        // Schema::table('job_tasks', function (Blueprint $table) {
+        //     $table->string('area')->nullable()->after('task_weightage');
+        // });
     }
 
     public function down()
