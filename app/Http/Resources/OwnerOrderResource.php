@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Log;
 
 class OwnerOrderResource extends JsonResource
 {
@@ -21,6 +22,14 @@ class OwnerOrderResource extends JsonResource
         $orderQuotations = $this->orderQuotations->sortByDesc('version')->values(); // Using values() to reindex the collection
 
         $latestQuotation = $orderQuotations->first(); // Get the latest quotation from sorted collection
+        $bonus = json_decode($latestQuotation->bonus, true);
+
+        // Modify the total_amount directly in the array if final_amount exists
+        if ($latestQuotation && $this->final_amount) {
+
+            // Log::info($latestQuotation->bonus);
+            $latestQuotation->total_amount = $this->final_amount;
+        }
 
         return [
             'id' => $this->id,
@@ -50,7 +59,7 @@ class OwnerOrderResource extends JsonResource
             'block' => $this->block,
             'floor' => $this->floor,
             'unit_no' => $this->unit_no,
-            'total_amount' => $this->total_amount,
+            'total_amount' => ($this->final_amount ? $this->final_amount - $bonus['value'] : $this->total_amount),
             'description' => $this->description,
             'completion_day' => $this->completion_day,
             'status' => $this->status,

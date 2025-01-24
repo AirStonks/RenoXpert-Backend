@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\QuotationResource;
+use App\Http\Resources\QuotationResourceHead;
 use App\Models\Quotation;
 use App\Models\QuotationPackage;
 use Illuminate\Http\Request;
@@ -50,7 +51,7 @@ class QuotationController extends BaseController
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
             "totalCount" => $quotations->total(),  // Total number of items
-            "data" => QuotationResource::collection($quotations) // Transformed product data
+            "data" => $request->input('head') === 'true' ? QuotationResourceHead::collection($quotations) : QuotationResource::collection($quotations) // Transformed product data
         ];
 
         return response()->json($response, 200);

@@ -29,6 +29,7 @@ class Order extends Model
         'bedroom_count',
         'bathroom_count',
         'total_amount',
+        'final_amount',
         'description',
         'status',
         'created_by',

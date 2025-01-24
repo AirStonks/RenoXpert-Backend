@@ -95,6 +95,7 @@ class OrderController extends BaseController
                 'bedroom_count' => 'nullable',
                 'bathroom_count' => 'nullable',
                 'total_amount' => 'nullable|numeric|min:0',
+                'final_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:255',
                 'completion_day' => 'nullable|numeric|min:0',
                 'metadata' => 'nullable|array', // Added validation for metadata
@@ -272,6 +273,7 @@ class OrderController extends BaseController
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
                 'total_amount' => 'nullable|numeric|min:0',
+                'final_amount' => 'nullable|numeric|min:0',
                 'block' => 'nullable|string|max:255',
                 'floor' => 'nullable|string|max:255',
                 'unit_no' => 'nullable|string|max:255',
@@ -310,6 +312,7 @@ class OrderController extends BaseController
             $order->user_id = $validatedData['user_id'];
             $order->property_id = $validatedData['property_id'];
             $order->total_amount = $input['total_amount'] - $bonusValue;
+            $order->final_amount = $input['final_amount'];
             $order->block = $validatedData['block'];
             $order->floor = $validatedData['floor'];
             $order->unit_no = $validatedData['unit_no'];
@@ -382,7 +385,11 @@ class OrderController extends BaseController
                 // Generate new sales number
                 $input['sales_no'] = 'RSO-' . now()->format('y') . str_pad($lastSaleId + 1, 5, '0', STR_PAD_LEFT);
 
-                $totalAmount = $order->orderQuotations()->latest()->first()->total_amount;
+                if ($order->final_amount) {
+                    $totalAmount = $order->final_amount;
+                } else {
+                    $totalAmount = $order->orderQuotations()->latest()->first()->total_amount;
+                }
 
                 // If bonus exists, add it to the total amount
                 $bonus = json_decode($order->orderQuotations()->latest()->first()->bonus);
