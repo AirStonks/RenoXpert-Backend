@@ -18,9 +18,10 @@ return new class extends Migration
         // });
 
         // Staging: done
-        // Schema::table('job_tasks', function (Blueprint $table) {
-        //     $table->string('area')->nullable()->after('task_weightage');
-        // });
+        // PRD: done
+        Schema::table('job_tasks', function (Blueprint $table) {
+            $table->string('area')->nullable()->after('task_weightage');
+        });
     }
 
     public function down()
