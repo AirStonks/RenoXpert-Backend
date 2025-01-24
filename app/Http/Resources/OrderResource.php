@@ -62,6 +62,7 @@ class OrderResource extends JsonResource
             'floor' => $this->floor,
             'unit_no' => $this->unit_no,
             'total_amount' => $this->total_amount,
+            'final_amount' => $this->final_amount,
             'description' => $this->description,
             'completion_day' => $this->completion_day,
             'status' => $this->status,

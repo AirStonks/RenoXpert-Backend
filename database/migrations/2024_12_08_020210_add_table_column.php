@@ -13,14 +13,14 @@ return new class extends Migration
     {
         // Staging: done
         // PRD: done
-        // Schema::table('orders', function (Blueprint $table) {
-        //     $table->integer('completion_day')->default(0)->after('total_amount');
-        // });
-
-        // Staging: done
         // Schema::table('job_tasks', function (Blueprint $table) {
         //     $table->string('area')->nullable()->after('task_weightage');
         // });
+        
+        // Staging: done
+        Schema::table('orders', function (Blueprint $table) {
+            $table->double('final_amount')->nullable()->after('total_amount');
+        });
     }
 
     public function down()

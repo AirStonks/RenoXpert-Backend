@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\PackageResource;
+use App\Http\Resources\PackageResourceHead;
 use App\Models\Package;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -50,7 +51,7 @@ class PackageController extends BaseController
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
             "totalCount" => $packages->total(),  // Total number of items
-            "data" => PackageResource::collection($packages) // Transformed product data
+            "data" => $request->input('head') === 'true' ? PackageResourceHead::collection($packages) : PackageResource::collection($packages) // Transformed product data
         ];
 
         return response()->json($response, 200);
@@ -92,7 +93,7 @@ class PackageController extends BaseController
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
             "totalCount" => $packages->total(),  // Total number of items
-            "data" => PackageResource::collection($packages) // Transformed product data
+            "data" => $request->input('head') === 'true' ? PackageResourceHead::collection($packages) : PackageResource::collection($packages) // Transformed product data
         ];
 
         return response()->json($response, 200);
