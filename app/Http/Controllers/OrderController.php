@@ -111,8 +111,8 @@ class OrderController extends BaseController
             // Generate order number based on the last order's ID
             $input['order_no'] = 'QUO-' . now()->format('y') . str_pad($lastOrderId + 1, 5, '0', STR_PAD_LEFT);
 
-            $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && $input['bonus']['value'] != 0
-                ? $input['bonus']['value']
+            $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && (float)$input['bonus']['value'] != 0
+                ? (float)$input['bonus']['value']
                 : 0;
 
             // Check if bonus exists and is an array
@@ -290,8 +290,8 @@ class OrderController extends BaseController
 
             $validatedData = $validator->validated();
 
-            $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && $input['bonus']['value'] != 0
-                ? $input['bonus']['value']
+            $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && (float)$input['bonus']['value'] != 0
+                ? (float)$input['bonus']['value']
                 : 0;
 
             // Check if bonus exists and is an array
