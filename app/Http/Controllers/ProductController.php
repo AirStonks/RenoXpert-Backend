@@ -180,8 +180,8 @@ class ProductController extends BaseController
             $validatedData = $validator->validated();
 
             // Transform 'category' to 'category_id'
-            $validatedData['pm_category_id'] = (int) $validatedData['pm_category'];
-            unset($validatedData['pm_category']);
+            // $validatedData['pm_category_id'] = (int) $validatedData['pm_category'];
+            // unset($validatedData['pm_category']);
 
             // Create the product
             $product = Product::create($validatedData);
