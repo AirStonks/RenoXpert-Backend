@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('width')->nullable();
             $table->string('height')->nullable();
             $table->string('depth')->nullable();
-            $table->string('internal_desc')->nullable();
+            $table->text('internal_desc')->nullable();
             $table->string('status')->nullable()->default('available');
             $table->json('attachments')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();

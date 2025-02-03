@@ -12,14 +12,8 @@ return new class extends Migration
     public function up()
     {
         // Staging: done
-        // PRD: done
-        // Schema::table('job_tasks', function (Blueprint $table) {
-        //     $table->string('area')->nullable()->after('task_weightage');
-        // });
-        
-        // Staging: done
-        Schema::table('orders', function (Blueprint $table) {
-            $table->double('final_amount')->nullable()->after('total_amount');
+        Schema::table('products', function (Blueprint $table) {
+            $table->text('internal_desc')->nullable()->change();
         });
     }
 
