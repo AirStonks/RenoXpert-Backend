@@ -18,6 +18,13 @@ return new class extends Migration
             $table->double('amount');
             $table->string('payment_method');
             $table->string('currency');
+            $table->string('payment_method')->nullable();
+            $table->string('payment_channel')->nullable();
+            $table->string('payment_date')->nullable();
+            $table->string('bank')->nullable();
+            $table->string('receiving_account')->nullable();
+            $table->string('remark')->nullable();
+            $table->json('attachments')->nullable();
             $table->string('description')->nullable();
             $table->string('status')->default('pending');
             $table->unsignedBigInteger('created_by')->nullable();
