@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
 
-class RenoProgressResource extends JsonResource
+class RenoProgressResourceHead extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,17 +19,15 @@ class RenoProgressResource extends JsonResource
         return [
             'id' => $this->id,
             'sale_id' => $this->sale->id,
-            'property' => [ 
+            'property' => [
                 'id' => $this->sale->order->property->id,
                 'name' => $this->sale->order->property->name,
                 'block' => $this->sale->order->block,
                 'floor' => $this->sale->order->floor,
                 'unit_no' => $this->sale->order->unit_no,
             ],
-            'sale' => new SaleResource($this->sale),
-            'defect_inspection_form' => $this->defectInspectionForm ? new DefectInspectionFormResource($this->defectInspectionForm) : null,
-            'key_management' => $this->keyManagement ? new KeyManagementResource($this->keyManagement) : null,
-            'phases' => ProgressPhaseResource::collection($this->progressPhases),
+            'sale_id' => $this->sale->id,
+            'sales_no' => $this->sale->sales_no,
             // Ensure that start_date and end_date are DateTime objects before calling format()
             'start_date' => $this->start_date ? Carbon::parse($this->start_date)->format('Y-m-d') : null,
             'end_date' => $this->end_date ? Carbon::parse($this->end_date)->format('Y-m-d') : null,
@@ -62,6 +60,8 @@ class RenoProgressResource extends JsonResource
             'p2b_completion' => $this->calculatePhaseCompletion($this->progressPhases[3] ?? null),
             'iot_completion' => $this->calculatePhaseCompletion($this->progressPhases[4] ?? null),
             'post_reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[5] ?? null),
+            'remaining_percentage' => $this->sale->remaining_percentage,
+            'paid_percentage' => $this->sale->invoices->where('status', 'paid')->sum('percentage'),
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),

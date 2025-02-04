@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\OwnerRenoProgressResource;
 use App\Http\Resources\RenoProgressResource;
+use App\Http\Resources\RenoProgressResourceHead;
 use App\Models\RenoProgress;
 use App\Models\Sale;
 use Illuminate\Http\Request;
@@ -28,8 +29,18 @@ class RenoProgressController extends BaseController
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {
-            // Assuming 'name' is the field you want to search, adjust as necessary
-            // $query->where('name', 'like', '%' . $search . '%');
+            // Normalize the search term by removing '-' and spaces
+            $normalizedSearch = str_replace(['-', ' '], '', $search);
+
+            $query->whereHas('sale.order.property', function ($q) use ($normalizedSearch) {
+                $q->where('name', 'like', '%' . $normalizedSearch . '%');
+            })
+                ->orWhereHas('sale.order', function ($q) use ($normalizedSearch) {
+                    $q->whereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+                })
+                ->orWhereHas('sale', function ($q) use ($normalizedSearch) {
+                    $q->whereRaw("REPLACE(REPLACE(sales_no, '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+                });
         }
 
 
@@ -52,7 +63,7 @@ class RenoProgressController extends BaseController
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
             "totalCount" => $renoProgress->total(),  // Total number of items
-            "data" => RenoProgressResource::collection($renoProgress) // Transformed product data
+            "data" => RenoProgressResourceHead::collection($renoProgress) // Transformed product data
         ];
 
         return response()->json($response, 200);
