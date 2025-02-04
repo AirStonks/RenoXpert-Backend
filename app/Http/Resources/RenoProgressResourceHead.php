@@ -95,6 +95,8 @@ class RenoProgressResourceHead extends JsonResource
             foreach ($job['tasks'] as $task) {
                 $weightage = $task['task_weightage'];
                 $statusWeightage = match ($task['status']) {
+                    'not_available' => 1.0,
+                    'submitted' => 1.0,
                     'completed' => 1.0,
                     'in_progress' => 0.75,
                     'started' => 0.25,

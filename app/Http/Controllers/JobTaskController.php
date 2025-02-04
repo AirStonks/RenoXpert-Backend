@@ -27,6 +27,47 @@ class JobTaskController extends BaseController
         //
     }
 
+    public function uploadTaskImage(Request $request, $renoProgressId, $taskId)
+    {
+        try {
+            $task = JobTask::find($taskId);
+            $job = $task->job;
+
+            $directory = 'reno/progress/' . $renoProgressId . '/jobs/' . $job->id;
+
+            if ($request->hasFile('attachment')) {
+                $file = $request->file('attachment');
+                $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = Storage::disk('s3')->putFileAs(
+                    $directory,
+                    $file,
+                    $filename,
+                    'public'
+                );
+
+                $updatedAttachment = $task->attachments ?? [];
+
+                $updatedAttachment[] = [
+                    'file_url' => Storage::disk('s3')->path($path),
+                    'size' => $file->getSize(),
+                    'original_name' => $file->getClientOriginalName(),
+                ];
+
+                // Update task's attachments field with the new data
+                $task->attachments = $updatedAttachment;
+
+                $task->save();
+
+                return $this->sendResponse($task->attachments, 'Image uploaded successfully.');
+            }
+        } catch (\Throwable $th) {
+            return $this->sendError('Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
+        }
+    }
+
     public function uploadDocuments(Request $request, $id, $taskId)
     {
         $input = $request->input();
@@ -193,7 +234,7 @@ class JobTaskController extends BaseController
         if ($task->owner_comment !== $request->input('owner_comment')) {
             $task->owner_comment = $request->input('owner_comment');
             $isOriginal = false;
-        } 
+        }
 
         if ($task->internal_comment !== $request->input('internal_comment')) {
             $task->internal_comment = $request->input('internal_comment');
