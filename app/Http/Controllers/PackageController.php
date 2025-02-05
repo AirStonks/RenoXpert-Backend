@@ -180,6 +180,7 @@ class PackageController extends BaseController
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'description_internal' => 'nullable|string',
+                'category' => 'required|string',
             ]);
 
             if ($validator->fails()) {
@@ -191,6 +192,7 @@ class PackageController extends BaseController
             $package->name = $validatedData['name'];
             $package->description = $validatedData['description'];
             $package->description_internal = $validatedData['description_internal'];
+            $package->category = $validatedData['category'];
 
             // OPTION 1: Remove all associated product_package and Insert the newest product_package
 
@@ -213,7 +215,7 @@ class PackageController extends BaseController
 
             // OPTION 2: Check for update for all product_package with previous new product_package, if found changed, update it.
 
-            return $this->sendResponse(new PackageResource($package), 'Package added successfully.');
+            return $this->sendResponse(new PackageResource($package), 'Package updated successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th);
         }
