@@ -12,19 +12,37 @@ return new class extends Migration
     public function up()
     {
         // Staging: done
-        // Schema::table('products', function (Blueprint $table) {
-        //     $table->text('internal_desc')->nullable()->change();
+        Schema::table('products', function (Blueprint $table) {
+            $table->text('internal_desc')->nullable()->change();
+        });
+
+        // Schema::table('payments', function (Blueprint $table) {
+        //     $table->json('attachments')->nullable()->after('payment_method');
+        //     $table->string('remark')->nullable()->after('payment_method');
+        //     $table->string('receiving_account')->nullable()->after('payment_method');
+        //     $table->string('bank')->nullable()->after('payment_method');
+        //     $table->string('payment_date')->nullable()->after('payment_method');
+        //     $table->string('payment_channel')->nullable()->after('payment_method');
         // });
 
-        Schema::table('payments', function (Blueprint $table) {
-            $table->json('attachments')->nullable()->after('currency');
-            $table->string('remark')->nullable()->after('currency');
-            $table->string('receiving_account')->nullable()->after('currency');
-            $table->string('bank')->nullable()->after('currency');
-            $table->string('payment_date')->nullable()->after('currency');
-            $table->string('payment_channel')->nullable()->after('currency');
-            $table->string('payment_method')->nullable()->after('currency');
+        // Staging: done
+        Schema::table('quotation_packages', function (Blueprint $table) {
+            $table->integer('quantity')->default(1)->after('package_id');
         });
+
+        // Schema::create('job_tasks', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->unsignedBigInteger('task_id')->nullable();
+        //     $table->integer('space_number')->nullable();
+        //     $table->integer('space_number')->nullable();
+            
+        //     $table->unsignedBigInteger('created_by')->nullable();
+        //     $table->unsignedBigInteger('updated_by')->nullable();
+        //     $table->timestamps();
+        //     $table->softDeletes();
+
+        //     $table->foreign('task_id')->references('id')->on('job_tasks')->onDelete('cascade');
+        // });
     }
 
     public function down()

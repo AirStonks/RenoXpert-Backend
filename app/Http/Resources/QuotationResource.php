@@ -52,6 +52,8 @@ class QuotationResource extends JsonResource
             'status' => $this->status,
             // 'metadata' => json_decode($this->metadata),
             'packages' => PackageResource::collection($this->packages),
+            // 'packages' => PackageQuoResource::collection($this->packages),
+            // 'packages' => $this->packages,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
             'created_at' => $this->created_at->format('d/m/Y'),

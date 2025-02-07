@@ -56,6 +56,7 @@ class Quotation extends Model
 
     public function packages()
     {
-        return $this->belongsToMany(Package::class, 'quotation_packages', 'quotation_id', 'package_id');
+        return $this->belongsToMany(Package::class, 'quotation_packages', 'quotation_id', 'package_id')
+            ->withPivot('quantity');
     }
 }

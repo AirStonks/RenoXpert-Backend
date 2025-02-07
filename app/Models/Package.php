@@ -11,7 +11,7 @@ class Package extends Model
 {
     use SoftDeletes;
     use HasFactory;
-  
+
     /**
      * The attributes that are mass assignable.
      *
@@ -43,7 +43,7 @@ class Package extends Model
             $model->updated_by = auth()->id(); // or your logic to get the user ID
         });
     }
-    
+
     public function products()
     {
         return $this->belongsToMany(Product::class, 'product_packages', 'package_id', 'product_id')
@@ -57,4 +57,28 @@ class Package extends Model
             ->withTimestamps();
     }
 
+    public function quoProducts()
+    {
+        // Fetch products from 'product_packages' with the relevant pivot data
+        $productsFromPackages = $this->belongsToMany(Product::class, 'product_packages', 'package_id', 'product_id')
+            ->withPivot([
+                'visibility',
+                'included',
+                'isOriginal',
+                'internal_note',
+                'includeSupply',
+                'includeInstall'
+            ])
+            ->withTimestamps()
+            ->get();
+
+        // Fetch products from 'quo_pkg_prods' with the relevant pivot data
+        $productsFromQuoPkgProds = $this->belongsToMany(Product::class, 'quo_pkg_prods', 'package_id', 'product_id')
+            ->withPivot(['quantity'])
+            ->withTimestamps()
+            ->get();
+
+        // Merge collections while preserving unique products
+        return $productsFromPackages->merge($productsFromQuoPkgProds);
+    }
 }

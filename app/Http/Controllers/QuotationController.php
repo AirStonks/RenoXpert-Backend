@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\QuotationResource;
 use App\Http\Resources\QuotationResourceHead;
+use App\Models\QuoPkgProd;
 use App\Models\Quotation;
 use App\Models\QuotationPackage;
 use Illuminate\Http\Request;
@@ -104,6 +105,14 @@ class QuotationController extends BaseController
      */
     public function store(Request $request)
     {
+        // return $this->sendError('test', $input = $request->all());
+
+        // PROBLEM: 
+        $packages = $request->input('selectedPackages');
+
+        // return $this->sendError('test', isset($packages));
+
+
         try {
             
             $input = $request->all();
@@ -121,23 +130,46 @@ class QuotationController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            if (isset($input['selectedPackageIds'])) {
+            // if (isset($input['selectedPackageIds'])) {
+            //     $quotation = Quotation::create($input);
+
+            //     // store QuotationPackage
+            //     foreach ($input['selectedPackageIds'] as $packageId) {
+            //         QuotationPackage::create([
+            //             'quotation_id' => $quotation->id,
+            //             'package_id' => $packageId,
+            //         ]);
+            //     }
+            // } else {
+            //     return $this->sendError('No packages selected.');
+            // }
+
+            if (isset($packages)) {
                 $quotation = Quotation::create($input);
 
-                // store QuotationPackage
-                foreach ($input['selectedPackageIds'] as $packageId) {
+                foreach ($packages as $pkg) {
                     QuotationPackage::create([
                         'quotation_id' => $quotation->id,
-                        'package_id' => $packageId,
+                        'package_id' => $pkg['package_id'],
+                        'quantity' => $pkg['quantity']
                     ]);
+
+                    foreach ($pkg['products'] as $product) {
+                        QuoPkgProd::create([
+                            'product_id' => $product['product_id'],
+                            "quantity" => $product['quantity'],
+                            "visibility" => $product['visibility'],
+                        ]);
+                    }
                 }
+
             } else {
                 return $this->sendError('No packages selected.');
             }
 
             return $this->sendResponse(new QuotationResource($quotation), 'Quotation added successfully.');
         } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th);
+            return $this->sendError('Error.', $th->getMessage());
         }
     }
 
@@ -147,6 +179,8 @@ class QuotationController extends BaseController
     public function show(string $id)
     {
         $quotation = Quotation::find($id);
+
+        // return $this->sendError('test', new QuotationResource($quotation));
 
         if (is_null($quotation)) {
             return $this->sendError('Package not found.');

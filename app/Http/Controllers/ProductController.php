@@ -163,6 +163,9 @@ class ProductController extends BaseController
                 'provisioning.install.retail_price' => 'required|numeric',
                 'provisioning.install.cogs' => 'required|numeric',
                 'provisioning.install.excluded_price' => 'required|numeric',
+            ], [
+                // Custom messages
+                'SKU.unique' => 'The SKU has already been taken. Please use a different SKU.',
             ]);
             // Apply unique validation for SKU only if it's provided
             if (!empty($input['SKU'])) {

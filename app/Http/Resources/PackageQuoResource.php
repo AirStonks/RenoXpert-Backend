@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PackageResource extends JsonResource
+class PackageQuoResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -27,7 +27,7 @@ class PackageResource extends JsonResource
             'description_internal' => $this->description_internal,
             'total_price' => $totalPrice,
             'quantity' => $this->pivot->quantity ?? 1,
-            'products' => ProductResource::collection($this->products),
+            'products' => ProductQuoResource::collection($this->products),
             'status' => $this->status,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
