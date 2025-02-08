@@ -85,7 +85,7 @@ class OrderController extends BaseController
 
             // Validate the input
             $validator = Validator::make($input, [
-                'user_id' => 'required|numeric|max:255',
+                // 'user_id' => 'required|numeric|max:255',
                 'form_id' => 'nullable',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
@@ -160,7 +160,7 @@ class OrderController extends BaseController
 
             return $this->sendResponse(new OrderResource($order), 'Order added successfully.');
         } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th);
+            return $this->sendError('Error.', $th->getMessage());
         }
     }
 

@@ -107,10 +107,7 @@ class QuotationController extends BaseController
     {
         // return $this->sendError('test', $input = $request->all());
 
-        // PROBLEM: 
         $packages = $request->input('selectedPackages');
-
-        // return $this->sendError('test', isset($packages));
 
 
         try {
@@ -130,25 +127,11 @@ class QuotationController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            // if (isset($input['selectedPackageIds'])) {
-            //     $quotation = Quotation::create($input);
-
-            //     // store QuotationPackage
-            //     foreach ($input['selectedPackageIds'] as $packageId) {
-            //         QuotationPackage::create([
-            //             'quotation_id' => $quotation->id,
-            //             'package_id' => $packageId,
-            //         ]);
-            //     }
-            // } else {
-            //     return $this->sendError('No packages selected.');
-            // }
-
             if (isset($packages)) {
                 $quotation = Quotation::create($input);
 
                 foreach ($packages as $pkg) {
-                    QuotationPackage::create([
+                    $quoPkg = QuotationPackage::create([
                         'quotation_id' => $quotation->id,
                         'package_id' => $pkg['package_id'],
                         'quantity' => $pkg['quantity']
@@ -156,6 +139,7 @@ class QuotationController extends BaseController
 
                     foreach ($pkg['products'] as $product) {
                         QuoPkgProd::create([
+                            'quotation_package_id' => $quoPkg->id,
                             'product_id' => $product['product_id'],
                             "quantity" => $product['quantity'],
                             "visibility" => $product['visibility'],
@@ -194,6 +178,7 @@ class QuotationController extends BaseController
      */
     public function update(Request $request, Quotation $quotation)
     {
+        return $this->sendError('Package not found.');
         try {
             $input = $request->all();
 

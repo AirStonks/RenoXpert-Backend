@@ -62,7 +62,6 @@ class Package extends Model
         // Fetch products from 'product_packages' with the relevant pivot data
         $productsFromPackages = $this->belongsToMany(Product::class, 'product_packages', 'package_id', 'product_id')
             ->withPivot([
-                'visibility',
                 'included',
                 'isOriginal',
                 'internal_note',
@@ -73,8 +72,11 @@ class Package extends Model
             ->get();
 
         // Fetch products from 'quo_pkg_prods' with the relevant pivot data
-        $productsFromQuoPkgProds = $this->belongsToMany(Product::class, 'quo_pkg_prods', 'package_id', 'product_id')
-            ->withPivot(['quantity'])
+        $productsFromQuoPkgProds = $this->belongsToMany(Product::class, 'quo_pkg_prods', 'quotation_package_id', 'product_id')
+            ->withPivot([
+                'visibility',
+                'quantity'
+            ])
             ->withTimestamps()
             ->get();
 

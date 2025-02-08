@@ -11,11 +11,6 @@ return new class extends Migration
      */
     public function up()
     {
-        // Staging: done
-        Schema::table('products', function (Blueprint $table) {
-            $table->text('internal_desc')->nullable()->change();
-        });
-
         // Schema::table('payments', function (Blueprint $table) {
         //     $table->json('attachments')->nullable()->after('payment_method');
         //     $table->string('remark')->nullable()->after('payment_method');
@@ -25,9 +20,12 @@ return new class extends Migration
         //     $table->string('payment_channel')->nullable()->after('payment_method');
         // });
 
-        // Staging: done
         Schema::table('quotation_packages', function (Blueprint $table) {
-            $table->integer('quantity')->default(1)->after('package_id');
+            $table->softDeletes();
+        });
+
+        Schema::table('quo_pkg_prods', function (Blueprint $table) {
+            $table->softDeletes();
         });
 
         // Schema::create('job_tasks', function (Blueprint $table) {

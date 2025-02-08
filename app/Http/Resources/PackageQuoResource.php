@@ -20,14 +20,16 @@ class PackageQuoResource extends JsonResource
         $totalPrice = $this->calculateTotalPrice();
 
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'category' => $this->category,
-            'description' => $this->description,
-            'description_internal' => $this->description_internal,
+            'quotation_package_id' => $this->id,
+            'id' => $this->package->id,
+            'name' => $this->package->name,
+            'category' => $this->package->category,
+            'description' => $this->package->description,
+            'description_internal' => $this->package->description_internal,
             'total_price' => $totalPrice,
             'quantity' => $this->pivot->quantity ?? 1,
-            'products' => ProductQuoResource::collection($this->products),
+            'products' => ProductQuoResource::collection($this->quoProducts),
+            // 'products' => $this->quoProducts,
             'status' => $this->status,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),

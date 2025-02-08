@@ -59,4 +59,9 @@ class Quotation extends Model
         return $this->belongsToMany(Package::class, 'quotation_packages', 'quotation_id', 'package_id')
             ->withPivot('quantity');
     }
+
+    public function quoPackages()
+    {
+        return $this->hasMany(QuotationPackage::class, 'quotation_id', 'id');
+    }
 }
