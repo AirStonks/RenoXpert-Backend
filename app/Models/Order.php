@@ -32,6 +32,7 @@ class Order extends Model
         'final_amount',
         'description',
         'status',
+        'completion_day',
         'created_by',
         'updated_by',
         'deleted_at',
