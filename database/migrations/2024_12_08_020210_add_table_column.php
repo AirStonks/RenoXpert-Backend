@@ -32,10 +32,10 @@ return new class extends Migration
 
         // Staging: Done
         Schema::table('orders', function (Blueprint $table) {
-            // $table->string('unit_type')->nullable()->after('form_id');
-            // $table->text('internal_remark')->nullable()->after('description');
-            // $table->boolean('include_partition')->default(false)->after('bathroom_count');
-            // $table->text('description')->nullable()->change();
+            $table->string('unit_type')->nullable()->after('form_id');
+            $table->text('internal_remark')->nullable()->after('description');
+            $table->boolean('include_partition')->default(false)->after('bathroom_count');
+            $table->text('description')->nullable()->change();
         });
 
         // Schema::create('job_tasks', function (Blueprint $table) {
