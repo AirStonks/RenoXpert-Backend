@@ -20,12 +20,22 @@ return new class extends Migration
         //     $table->string('payment_channel')->nullable()->after('payment_method');
         // });
 
-        Schema::table('quotation_packages', function (Blueprint $table) {
-            $table->softDeletes();
-        });
+        // // Staging: Done
+        // Schema::table('quotation_packages', function (Blueprint $table) {
+        //     $table->softDeletes();
+        // });
 
-        Schema::table('quo_pkg_prods', function (Blueprint $table) {
-            $table->softDeletes();
+        // // Staging: Done
+        // Schema::table('quo_pkg_prods', function (Blueprint $table) {
+        //     $table->softDeletes();
+        // });
+
+        // Staging: Done
+        Schema::table('orders', function (Blueprint $table) {
+            // $table->string('unit_type')->nullable()->after('form_id');
+            // $table->text('internal_remark')->nullable()->after('description');
+            // $table->boolean('include_partition')->default(false)->after('bathroom_count');
+            // $table->text('description')->nullable()->change();
         });
 
         // Schema::create('job_tasks', function (Blueprint $table) {

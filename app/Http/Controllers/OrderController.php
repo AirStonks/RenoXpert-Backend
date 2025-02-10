@@ -89,6 +89,7 @@ class OrderController extends BaseController
                 'form_id' => 'nullable',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
+                'unit_type' => 'nullable|string|max:255',
                 'block' => 'nullable|string|max:255',
                 'floor' => 'nullable|string|max:255',
                 'unit_no' => 'nullable|string|max:255',
@@ -96,7 +97,8 @@ class OrderController extends BaseController
                 'bathroom_count' => 'nullable',
                 'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
-                'description' => 'nullable|string|max:255',
+                'description' => 'nullable|string|max:0',
+                'internal_remark' => 'nullable|string|min:0',
                 'completion_day' => 'nullable|numeric|min:0',
                 'metadata' => 'nullable|array', // Added validation for metadata
             ]);
@@ -104,6 +106,8 @@ class OrderController extends BaseController
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
+
+            // return $this->sendError('TEST.');
 
             // Get the last order's ID, or default to 0 if no orders exist
             $lastOrderId = Order::max('id') ?? 0;
@@ -269,17 +273,19 @@ class OrderController extends BaseController
             $input = $request->all();
 
             $validator = Validator::make($input, [
-                'user_id' => 'required|numeric|max:255',
+                'user_id' => 'nullable|numeric|max:255',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
                 'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
+                'unit_type' => 'nullable|string|max:255',
                 'block' => 'nullable|string|max:255',
                 'floor' => 'nullable|string|max:255',
                 'unit_no' => 'nullable|string|max:255',
                 'bedroom_count' => 'nullable|numeric|min:1',
                 'bathroom_count' => 'nullable|numeric|min:1',
-                'description' => 'nullable|string|max:255',
+                'description' => 'nullable|string|max:0',
+                'internal_remark' => 'nullable|string|min:0',
                 'completion_day' => 'nullable|numeric|min:0',
                 'metadata' => 'nullable|array', // Added validation for metadata
             ]);
@@ -313,12 +319,15 @@ class OrderController extends BaseController
             $order->property_id = $validatedData['property_id'];
             $order->total_amount = $input['total_amount'] - $bonusValue;
             $order->final_amount = $input['final_amount'];
+            $order->unit_type = $validatedData['unit_type'];
             $order->block = $validatedData['block'];
             $order->floor = $validatedData['floor'];
             $order->unit_no = $validatedData['unit_no'];
             $order->bedroom_count = $validatedData['bedroom_count'];
             $order->bathroom_count = $validatedData['bathroom_count'];
+            $order->include_partition = $input['include_partition'];
             $order->description = $validatedData['description'];
+            $order->internal_remark = $validatedData['internal_remark'];
             $order->completion_day = $validatedData['completion_day'];
             $order->status = 'unreleased';
 

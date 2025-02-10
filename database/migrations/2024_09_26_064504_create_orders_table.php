@@ -17,13 +17,15 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('property_id')->nullable();
             $table->unsignedBigInteger('form_id')->nullable();
+            $table->string('unit_type')->nullable();
             $table->string('block')->nullable();
             $table->string('floor')->nullable();
             $table->string('unit_no')->nullable();
             $table->integer('bedroom_count')->nullable();
             $table->integer('bathroom_count')->nullable();
             $table->double('total_amount')->nullable();
-            $table->string('description')->nullable();
+            $table->text('description')->nullable();
+            $table->text('internal_remark')->nullable();
             $table->string('status')->default('unreleased');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
