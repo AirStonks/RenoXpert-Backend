@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\OrderResource;
-use App\Http\Resources\OwnerOrderResource;
-use App\Models\Order;
-use App\Models\OrderQuotation;
-use App\Models\Quotation;
 use App\Models\Sale;
+use App\Models\Order;
+use App\Models\Quotation;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\OrderQuotation;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use App\Http\Resources\OrderResource;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\OwnerOrderResource;
 
 class OrderController extends BaseController
 {
@@ -25,40 +26,51 @@ class OrderController extends BaseController
     {
         // Retrieve the size parameter from the request with a default value of 10
         $size = $request->input('size', 10);
-
         // Retrieve the search term from the request
         $search = $request->input('search', '');
+        // Retrieve the filter value from the request
+        $filter = $request->input('filter', '');
 
-        // Build the query to retrieve product categories
+        // Build the query to retrieve orders
         $query = Order::query();
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {
-            $query->where('order_no', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+            $query->where('order_no', 'like', '%' . $search . '%'); // Searching by order number
         }
 
-        // Retrieve the sort order and field from the request
-        $sortOrder = $request->input('sortOrder', 'asc');
-        $sortField = $request->input('sortField', 'name');
+        // Apply status filter if provided
+        if (!empty($filter)) {
+            $query->where('status', $filter);
+            // If filter exists, always sort by order_no in ascending order
+            $query->orderBy('order_no', 'asc');
+        } else {
+            // Retrieve the sort order and field from the request
+            $sortOrder = $request->input('sortOrder', 'asc');
+            $sortField = $request->input('sortField', 'name');
 
-        if (!empty($sortField)) {
-            $query->orderBy($sortField, $sortOrder);
+            if (!empty($sortField)) {
+                $query->orderBy($sortField, $sortOrder);
+            }
         }
 
+        // Paginate results
         $orders = $query->paginate($size);
 
-        // Custome response to fit with Tailwind DataTable JSON format
+        // Custom response to fit with Tailwind DataTable JSON format
         $response = [
             "page" => $orders->currentPage(),  // Current page number
             "pageCount" => $orders->lastPage(), // Total number of pages
-            "sortField" => null,                 // Sorting field, if applicable
-            "sortOrder" => null,                 // Sorting order, if applicable
-            "totalCount" => $orders->total(),  // Total number of items
-            "data" => OrderResource::collection($orders) // Transformed product data
+            "sortField" => !empty($filter) ? 'order_no' : $sortField, // Sorting field
+            "sortOrder" => !empty($filter) ? 'asc' : $sortOrder, // Sorting order
+            "totalCount" => $orders->total(),   // Total number of items
+            "data" => OrderResource::collection($orders) // Transformed order data
         ];
 
         return response()->json($response, 200);
     }
+
+
 
     public function getOwnerOrders()
     {
@@ -85,7 +97,7 @@ class OrderController extends BaseController
 
             // Validate the input
             $validator = Validator::make($input, [
-                // 'user_id' => 'required|numeric|max:255',
+                'user_id' => 'nullable|numeric|max:255',
                 'form_id' => 'nullable',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
@@ -107,13 +119,24 @@ class OrderController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            // return $this->sendError('TEST.');
+            $isDraftMode = $input['user_id'] == null;
 
-            // Get the last order's ID, or default to 0 if no orders exist
-            $lastOrderId = Order::max('id') ?? 0;
+            // Determine last order number based on draft or regular orders
+            if ($isDraftMode) {
+                // Get the last draft order's number
+                $lastDraftOrder = Order::where('order_no', 'like', 'DRAFT-%')->orderBy('id', 'desc')->first();
+                $lastOrderNumber = $lastDraftOrder ? ((int)substr($lastDraftOrder->order_no, -5)) : 0;
 
-            // Generate order number based on the last order's ID
-            $input['order_no'] = 'QUO-' . now()->format('y') . str_pad($lastOrderId + 1, 5, '0', STR_PAD_LEFT);
+                // Generate new draft order number
+                $input['order_no'] = 'DRAFT-' . now()->format('y') . str_pad($lastOrderNumber + 1, 5, '0', STR_PAD_LEFT);
+            } else {
+                // Get the last confirmed order's number
+                $lastConfirmedOrder = Order::where('order_no', 'like', 'QUO-%')->orderBy('id', 'desc')->first();
+                $lastOrderNumber = $lastConfirmedOrder ? ((int)substr($lastConfirmedOrder->order_no, -5)) : 0;
+
+                // Generate new confirmed order number
+                $input['order_no'] = 'QUO-' . now()->format('y') . str_pad($lastOrderNumber + 1, 5, '0', STR_PAD_LEFT);
+            }
 
             $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && (float)$input['bonus']['value'] != 0
                 ? (float)$input['bonus']['value']
@@ -133,6 +156,12 @@ class OrderController extends BaseController
                 // If no bonus exists or it's not an array, set it as null
                 $input['bonus'] = null;
             }
+
+            if ($input['user_id'] == null) {
+                $input['status'] = 'draft';
+            }
+
+            return $this->sendError('TEST.', $input);
 
             // Create the Order
             $order = Order::create($input);
@@ -315,6 +344,30 @@ class OrderController extends BaseController
                 $input['bonus'] = null;
             }
 
+            $isDraftMode = empty($validatedData['user_id']);
+
+            // Handle Draft Numbering
+            if ($isDraftMode) {
+                if (!Str::startsWith($order->order_no, 'DRAFT-')) {
+                    $lastDraftOrder = Order::where('order_no', 'like', 'DRAFT-%')->orderBy('id', 'desc')->first();
+                    $lastDraftNumber = $lastDraftOrder ? ((int)substr($lastDraftOrder->order_no, -5)) : 0;
+
+                    $order->order_no = 'DRAFT-' . now()->format('y') . str_pad($lastDraftNumber + 1, 5, '0', STR_PAD_LEFT);
+                }
+            } elseif (!$isDraftMode && Str::startsWith($order->order_no, 'DRAFT-')) {
+                // Store original draft number
+                if (!$order->draft_order_no) {
+                    $order->draft_order_no = $order->order_no;
+                }
+
+                // Convert Draft to Confirmed Order
+                $lastConfirmedOrder = Order::where('order_no', 'like', 'QUO-%')->orderBy('id', 'desc')->first();
+                $lastConfirmedNumber = $lastConfirmedOrder ? ((int)substr($lastConfirmedOrder->order_no, -5)) : 0;
+
+                $order->order_no = 'QUO-' . now()->format('y') . str_pad($lastConfirmedNumber + 1, 5, '0', STR_PAD_LEFT);
+                $order->status = 'confirmed';
+            }
+
             $order->user_id = $validatedData['user_id'];
             $order->property_id = $validatedData['property_id'];
             $order->total_amount = $input['total_amount'] - $bonusValue;
@@ -329,7 +382,11 @@ class OrderController extends BaseController
             $order->description = $validatedData['description'];
             $order->internal_remark = $validatedData['internal_remark'];
             $order->completion_day = $validatedData['completion_day'];
-            $order->status = 'unreleased';
+
+            // Ensure status is set properly
+            if (!isset($validatedData['status'])) {
+                $order->status = $isDraftMode ? 'draft' : 'unreleased';
+            }
 
             // Create OrderQuotation with incremented version
             $latestQuotation = OrderQuotation::where('order_id', $order->id)->orderBy('version', 'desc')->first();
