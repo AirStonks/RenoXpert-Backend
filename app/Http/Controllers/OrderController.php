@@ -161,8 +161,6 @@ class OrderController extends BaseController
                 $input['status'] = 'draft';
             }
 
-            return $this->sendError('TEST.', $input);
-
             // Create the Order
             $order = Order::create($input);
 
