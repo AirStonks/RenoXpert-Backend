@@ -65,6 +65,7 @@ class OrderResource extends JsonResource
             'unit_no' => $this->unit_no,
             'total_amount' => $this->total_amount,
             'final_amount' => $this->final_amount,
+            'f_1' => $this->final_amount ? true : false,
             'description' => $this->description,
             'internal_remark' => $this->internal_remark,
             'completion_day' => $this->completion_day,
