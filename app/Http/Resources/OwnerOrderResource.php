@@ -56,6 +56,7 @@ class OwnerOrderResource extends JsonResource
             ],
             'sale' => new OwnerSaleResource($this->sale),
             'latest_quotation' => $latestQuotation ? $latestQuotation : null,
+            'unit_type' => $this->unit_type,
             'block' => $this->block,
             'floor' => $this->floor,
             'unit_no' => $this->unit_no,

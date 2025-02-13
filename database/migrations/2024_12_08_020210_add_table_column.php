@@ -40,9 +40,10 @@ return new class extends Migration
         // });
 
         // Staging: Done
-        Schema::table('orders', function (Blueprint $table) {
-            $table->string('draft_order_no')->nullable()->after('order_no');
-        });
+        // PRD: Done
+        // Schema::table('orders', function (Blueprint $table) {
+        //     $table->string('draft_order_no')->nullable()->after('order_no');
+        // });
 
         // Schema::create('job_tasks', function (Blueprint $table) {
         //     $table->id();
