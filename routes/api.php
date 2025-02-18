@@ -2,6 +2,7 @@
 
 //  route/api.php
 
+use App\Events\SaleStatusUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MyController;
@@ -228,6 +229,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 Route::get('/disk', [DiskController::class, 'index']);
+
+// Emergency route
+Route::get('/tmp/startSaleRenoProgress/saleId/{saleId}', function ($saleId) {
+    // Get sale by saleId
+    $sale = Sale::find($saleId);
+
+    if (!$sale) {
+        return response()->json(['error' => 'Sale not found'], 404);
+    }
+
+    event(new SaleStatusUpdated($sale));
+
+    return response()->json(['message' => 'Sale status updated successfully']);
+});
 
 
 Route::get('/tmp/progress/generate', function () {

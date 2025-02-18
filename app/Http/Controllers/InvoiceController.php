@@ -278,13 +278,37 @@ class InvoiceController extends BaseController
                     'original_name' => $attachment->getClientOriginalName(),
                 ];
             }
-        }
 
-        $payment->attachments = json_encode($uploadedFiles);
-        $payment->save();
+            $payment->attachments = json_encode($uploadedFiles);
+            $payment->save();
+        }
 
         $invoice->status = 'paid';
         $invoice->save();
+
+        $sale = $invoice->sale;
+
+        if ($sale) {
+            // Get all invoices associated with the sale
+            $invoices = $sale->invoices;
+
+            // Check if all invoices are paid
+            $allPaid = $invoices->every(function ($inv) {
+                return $inv->status === 'paid';
+            });
+
+            // Check if the sale percentage is greater than 0
+            if ($allPaid && $sale->remaining_percentage == 0) {
+                $sale->status = 'fully-paid';
+            } elseif (!$allPaid && $sale->remaining_percentage > 0) {
+                $sale->status = 'partial-paid';
+            } elseif ($allPaid && $sale->remaining_percentage < 100) {
+                $sale->status = 'partial-paid';
+            }
+
+            // Save the sale status if it has changed
+            $sale->save();
+        }
 
         return $this->sendResponse(new InvoiceResource($invoice), 'Invoice marked as paid.');
     }

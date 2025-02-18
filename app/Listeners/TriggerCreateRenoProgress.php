@@ -197,7 +197,7 @@ class TriggerCreateRenoProgress
             // IoT = iot (6)
 
             foreach ($packages as $originalPkg) {
-                $quantity = $originalPkg->quantity;
+                $quantity = $originalPkg->quantity ?? 1;
                 $originalName = $originalPkg->name;
                 $products = $originalPkg->products;
 
