@@ -230,6 +230,7 @@ class PaymentController extends Controller
         $description = $inputData['description'] ?? null;
         $amount = $inputData['amount'] ?? null;
         $paymentMethod = $inputData['txn_type'] ?? null;
+        $bank = $paymentMethod == 'FPX' ? $inputData['fpx_buyer_bank_name'] : $inputData['card_issuer'];
 
         $invoice = Invoice::find($invoiceId);
 
@@ -240,6 +241,11 @@ class PaymentController extends Controller
                 'invoice_id' => $invoiceId,
                 'amount' => $amount,
                 'payment_method' => $paymentMethod,
+                'payment_channel' => 'online',
+                'payment_date' => now(),
+                'receiving_account' => 'BeLive',
+                'remark' => null,
+                'bank' => $bank,
                 'currency' => $currency,
                 'description' => $description,
                 'status' => 'paid',

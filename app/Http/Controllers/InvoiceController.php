@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\InvoiceResource;
+use App\Http\Resources\PaymentResource;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class InvoiceController extends BaseController
@@ -161,6 +164,17 @@ class InvoiceController extends BaseController
         return $this->sendResponse(new InvoiceResource($invoice), 'Invoice retrieved successfully.');
     }
 
+    public function getPaymentDetail($invoiceId, $paymentId)
+    {
+        $payment = Payment::find($paymentId);
+
+        if (is_null($payment)) {
+            return $this->sendError('Payment not found.');
+        }
+
+        return $this->sendResponse(new PaymentResource($payment), 'Payment retrieved successfully.');
+    }
+
     /**
      * Update the specified resource in storage.
      */
@@ -203,6 +217,74 @@ class InvoiceController extends BaseController
             // Save the sale status if it has changed
             $sale->save();
         }
+
+        return $this->sendResponse(new InvoiceResource($invoice), 'Invoice marked as paid.');
+    }
+
+    public function savePaymentDetail($invoiceId, Request $request)
+    {
+        $invoice = Invoice::find($invoiceId);
+        $input = $request->all();
+
+        if (is_null($invoice)) {
+            return $this->sendError('Invoice not found.');
+        }
+
+        // return $this->sendError('TEST.', [
+        //     'transaction_no' => $input['transaction_no'],
+        //     'invoice_id' => $invoiceId,
+        //     'amount' => $input['amount'],
+        //     'payment_method' => $input['payment_method'],
+        //     'payment_channel' => $input['payment_channel'],
+        //     'payment_date' => $input['payment_date'],
+        //     'receive_account' => $input['receive_account'],
+        //     'remark' => $input['remark'],
+        //     'bank' => $input['bank'],
+        //     'currency' => 'MYR',
+        //     'description' => '',
+        //     'status' => 'paid',
+        // ]);
+
+        // IF FOUND
+        $payment = Payment::create([
+            'transaction_no' => $input['transaction_no'],
+            'invoice_id' => $invoiceId,
+            'amount' => $input['amount'],
+            'payment_method' => $input['payment_method'],
+            'payment_channel' => $input['payment_channel'],
+            'payment_date' => $input['payment_date'],
+            'receiving_account' => $input['receiving_account'],
+            'remark' => $input['remark'],
+            'bank' => $input['bank'],
+            'currency' => 'MYR',
+            'description' => null,
+            'status' => 'paid',
+        ]);
+
+        $directory = 'invoices/' . $invoiceId;
+
+        if ($request->has('attachments') && is_array($request['attachments'])) {
+            foreach ($request['attachments'] as $attachment) {
+                $filename = uniqid() . '.' . $attachment->getClientOriginalExtension();
+                $path = Storage::disk('s3')->putFileAs(
+                    $directory,
+                    $attachment,
+                    $filename,
+                    'public'
+                );
+
+                $uploadedFiles[] = [
+                    'file_url' => Storage::disk('s3')->path($path),
+                    'original_name' => $attachment->getClientOriginalName(),
+                ];
+            }
+        }
+
+        $payment->attachments = json_encode($uploadedFiles);
+        $payment->save();
+
+        $invoice->status = 'paid';
+        $invoice->save();
 
         return $this->sendResponse(new InvoiceResource($invoice), 'Invoice marked as paid.');
     }
