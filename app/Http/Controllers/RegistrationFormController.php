@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use GuzzleHttp\Client;
+use App\Models\Address;
 use Illuminate\Http\Request;
 use App\Models\RegistrationForm;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\RegistrationFormResource;
-use App\Models\Address;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Property;
 
 class RegistrationFormController extends BaseController
 {
@@ -44,7 +47,7 @@ class RegistrationFormController extends BaseController
         // Retrieve the sort order and field from the request
         $sortOrder = $request->input('sortOrder', 'asc');
         $sortField = $request->input('sortField', 'name');
-        
+
         if (!empty($sortField)) {
             $query->orderBy($sortField, $sortOrder);
         }
@@ -191,6 +194,10 @@ class RegistrationFormController extends BaseController
                 $user->save();
             }
 
+            $this->sendLarkMessage($form);
+
+            // Log::info($this->sendLarkMessage($form));
+
             return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form added successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Database Error.', [
@@ -313,5 +320,85 @@ class RegistrationFormController extends BaseController
     public function destroy(RegistrationForm $registrationForm)
     {
         //
+    }
+
+    private function sendLarkMessage(RegistrationForm $form)
+    {
+        $client = new Client();
+        $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
+
+        $headers = [
+            'Content-Type' => 'application/json',
+        ];
+
+        $formId = $form->id;
+        $formNo = $form->form_no;
+        $ownerName = $form->name_first . ' ' . $form->name_last;
+        $phoneNo = $form->phone_no;
+        $property = $form->other_property_name ? `(Other) $form->other_property_name` : Property::find($form->property_name)->name;
+
+        $bodyData = [
+            "msg_type" => "interactive",
+            "card" => [
+                "elements" => [
+                    [
+                        "tag" => "markdown",
+                        "content" => "An owner has submitted a Reno Registration Form to RenoXpert\n\n" .
+                            "Form Number: {$formNo}\n" .
+                            "Owner Name: {$ownerName}\n" .
+                            "Phone Number: +60 {$phoneNo}\n" .
+                            "Property: {$property}\n"
+                    ],
+                    [
+                        "tag" => "action",
+                        "actions" => [
+                            [
+                                "tag" => "button",
+                                "text" => [
+                                    "tag" => "plain_text",
+                                    "content" => "View Detail"
+                                ],
+                                "type" => "primary",
+                                "multi_url" => [
+                                    "url" => "{$clientDomain}/registration-forms/{$formId}",
+                                    "pc_url" => "",
+                                    "android_url" => "",
+                                    "ios_url" => ""
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                "header" => [
+                    "template" => "blue",
+                    "title" => [
+                        "content" => "New Reno Registration Form",
+                        "tag" => "plain_text"
+                    ]
+                ]
+            ]
+        ];
+
+        // Convert array to JSON
+        $body = json_encode($bodyData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+
+        try {
+            $req = $client->request('POST', 'https://open.larksuite.com/open-apis/bot/v2/hook/18f45036-7900-43ed-ab40-93c8a5929de8', [
+                'headers' => $headers,
+                'body' => $body,
+            ]);
+
+            $res = json_decode($req->getBody(), true);
+
+            // Check for a successful response
+            if ($req->getStatusCode() === 200) {
+                return $res;
+            } else {
+                return $req->getBody();
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
     }
 }
