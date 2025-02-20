@@ -273,6 +273,14 @@ class DefectInspectionFormController extends BaseController
 
         $diForm->metadata = json_encode($updatedMetadata);
         $diForm->save();
+        
+        // if the diForm status is submitted, change it to not_submitted
+        if ($diForm->status === 'submitted') {
+            $diForm->status = 'not_submitted';
+            $diForm->save();
+
+            // Send Lark Message
+        }
 
         return $this->sendResponse(new DefectInspectionFormResource($diForm), 'QC Form retrieved successfully.');
     }
