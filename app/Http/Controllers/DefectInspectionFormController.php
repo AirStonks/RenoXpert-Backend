@@ -18,14 +18,6 @@ class DefectInspectionFormController extends BaseController
      */
     public function index(Request $request)
     {
-        // $user = Auth::user();
-
-        // $diForms = DefectInspectionForm::where('created_by', $user->id)->get();
-
-        // return $this->sendResponse(DefectInspectionFormResource::collection($diForms), 'Defect forms retrieved successfully.');
-
-        // =========================================================================================================
-
         // Retrieve the size parameter from the request with a default value of 10
         $size = $request->input('size', 10);
 
@@ -34,6 +26,11 @@ class DefectInspectionFormController extends BaseController
 
         // Build the query to retrieve product categories
         $query = DefectInspectionForm::query();
+
+        // Filter by status if available
+        if ($request->input('status')) {
+            $query->where('status', $request->input('status'));
+        }
 
         // Filter out with 'status' as 'archived' by default
         $query->where('status', '!=', 'archived');
