@@ -23,9 +23,15 @@ class RenoProgressController extends BaseController
 
         // Retrieve the search term from the request
         $search = $request->input('search', '');
+        
 
         // Build the query to retrieve products
         $query = RenoProgress::query();
+
+        // Filter by status if available
+        if ($request->input('status')) {
+            $query->where('status', $request->input('status'));
+        }
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {

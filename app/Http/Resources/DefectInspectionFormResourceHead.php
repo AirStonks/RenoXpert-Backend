@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class DefectInspectionFormResource extends JsonResource
+class DefectInspectionFormResourceHead extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,7 +17,7 @@ class DefectInspectionFormResource extends JsonResource
     public function toArray(Request $request): array
     {
         $property = Property::find($this->property_name);
-        $metadata = json_decode($this->metadata);
+        // $metadata = json_decode($this->metadata);
 
         return [
             'id' => $this->id,
@@ -42,7 +42,7 @@ class DefectInspectionFormResource extends JsonResource
             'contractor_email' => $this->contractor_email,
             'bedroom_count' => $this->bedroom_count,
             'bathroom_count' => $this->bathroom_count,
-            'area' => $metadata,
+            // 'area' => $metadata,
             'status' => $this->status,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Http\Resources\JobTaskResource;
 use App\Models\Inventory;
+use App\Models\RenoProgress;
 use Illuminate\Support\Facades\Storage;
 
 class JobTaskController extends BaseController
@@ -187,6 +188,59 @@ class JobTaskController extends BaseController
         $task->install_date = Carbon::now();
 
         $task->save();
+
+        if ($task->name == 'Permit Issued by MO' && $status == 'completed') {
+            // Update Owner Schedule and Sub Contractual Schedule Permit Approved Date
+            $renoProgress = RenoProgress::where('id', $id)->first();
+
+            $date = Carbon::now();
+
+            $renoProgress->contractual_end_date = $date;
+            $renoProgress->contractor_end_date = $date;
+
+            // Helper function to add working days
+            function addWorkingDays(Carbon $date, $days)
+            {
+                for ($i = 0; $i < $days; $i++) {
+                    $date->addDay();
+                    // Skip weekends (Saturday and Sunday)
+                    while ($date->isWeekend()) {
+                        $date->addDay();
+                    }
+                }
+                return $date;
+            }
+
+            // Calculate and set the dates
+            $renoProgress->contractual_p1_start_date = addWorkingDays($date->copy(), 3);
+            $renoProgress->contractor_p1_start_date = addWorkingDays($date->copy(), 3);
+
+            $renoProgress->contractual_p1_end_date = addWorkingDays($renoProgress->contractual_p1_start_date->copy(), 10);
+            $renoProgress->contractor_p1_end_date = addWorkingDays($renoProgress->contractor_p1_start_date->copy(), 10);
+
+            $renoProgress->contractual_p2_start_date = addWorkingDays($renoProgress->contractual_p1_end_date->copy(), 3);
+            $renoProgress->contractor_p2_start_date = addWorkingDays($renoProgress->contractor_p1_end_date->copy(), 3);
+
+            $renoProgress->contractual_p2_end_date = addWorkingDays($renoProgress->contractual_p2_start_date->copy(), 10);
+            $renoProgress->contractor_p2_end_date = addWorkingDays($renoProgress->contractor_p2_start_date->copy(), 10);
+
+            $renoProgress->contractual_qc_start_date = addWorkingDays($renoProgress->contractual_p2_end_date->copy(), 1);
+            $renoProgress->contractor_qc_start_date = addWorkingDays($renoProgress->contractor_p2_end_date->copy(), 1);
+
+            $renoProgress->contractual_qc_end_date = addWorkingDays($renoProgress->contractual_qc_start_date->copy(), 3);
+            $renoProgress->contractor_qc_end_date = addWorkingDays($renoProgress->contractor_qc_start_date->copy(), 3);
+
+            $renoProgress->contractual_pc_start_date = addWorkingDays($renoProgress->contractual_qc_end_date->copy(), 1);
+            $renoProgress->contractor_pc_start_date = addWorkingDays($renoProgress->contractor_qc_end_date->copy(), 1);
+
+            $renoProgress->contractual_pc_end_date = addWorkingDays($renoProgress->contractual_pc_start_date->copy(), 6);
+            $renoProgress->contractor_pc_end_date = addWorkingDays($renoProgress->contractor_pc_start_date->copy(), 6);
+
+            $renoProgress->contractual_handover_date = addWorkingDays($renoProgress->contractual_qc_end_date->copy(), 7);
+            $renoProgress->contractor_handover_date = addWorkingDays($renoProgress->contractor_qc_end_date->copy(), 7);
+
+            $renoProgress->save();
+        }
 
         // If the status is "delivered", change the task
         if ($task->product_id) {

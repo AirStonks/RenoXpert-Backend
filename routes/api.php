@@ -2,43 +2,45 @@
 
 //  route/api.php
 
-use App\Events\SaleStatusUpdated;
+use PgSql\Lob;
+use App\Models\Sale;
+use App\Models\Package;
 use Illuminate\Http\Request;
+
+use App\Events\SaleStatusUpdated;
+use Illuminate\Support\Facades\Log;
+use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MyController;
-
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\DefectInspectionFormController;
-use App\Http\Controllers\DiscountFeeController;
 use App\Http\Controllers\DiskController;
-use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\POItemController;
+use App\Http\Controllers\QCFormController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobTaskController;
-use App\Http\Controllers\KeyManagementController;
-use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\PropertyController;
-use App\Http\Controllers\QuotationController;
-use App\Http\Controllers\SaleController;
-use App\Http\Controllers\OTPRequestController;
 use App\Http\Controllers\PhaseJobController;
+use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\OTPRequestController;
 use App\Http\Controllers\PMCategoryController;
-use App\Http\Controllers\POItemController;
+use App\Http\Controllers\DiscountFeeController;
+use App\Http\Controllers\RenoProgressController;
+use App\Http\Controllers\KeyManagementController;
 use App\Http\Controllers\ProgressPhaseController;
 use App\Http\Controllers\PurchaseOrderController;
-use App\Http\Controllers\QCFormController;
 use App\Http\Controllers\RegistrationFormController;
-use App\Http\Controllers\RenoProgressController;
-use App\Http\Controllers\UserController;
-use App\Http\Resources\UserResource;
-use App\Models\Package;
-use App\Models\Sale;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\DefectInspectionFormController;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -196,15 +198,157 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/data', [MyController::class, 'getData']);
     Route::get('/test', function () {
 
-        $package = Package::find(1);
+        $body = [
+            "msg_type" => "interactive",
+            "card" => [
+                "elements" => [
+                    [
+                        "tag" => "div",
+                        "text" => [
+                            "content" => "An owner has submitted a Reno Registration Form to RenoXpert",
+                            "tag" => "plain_text"
+                        ]
+                    ],
+                    [
+                        "tag" => "column_set",
+                        "flex_mode" => "none",
+                        "background_style" => "default",
+                        "columns" => [
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**Form No :**",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ],
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "[form_no]",
+                                            "tag" => "plain_text"
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**Owner Name :**",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ],
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "[owner_name]",
+                                            "tag" => "plain_text"
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ],
+                        "action" => [],
+                        "horizontal_spacing" => "default"
+                    ],
+                    [
+                        "tag" => "column_set",
+                        "flex_mode" => "none",
+                        "background_style" => "default",
+                        "columns" => [
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**Property :**",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ],
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "[property_name]",
+                                            "tag" => "plain_text"
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**Phone No :**",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ],
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "[phone_no]",
+                                            "tag" => "plain_text"
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        "tag" => "hr"
+                    ],
+                    [
+                        "tag" => "action",
+                        "actions" => [
+                            [
+                                "tag" => "button",
+                                "text" => [
+                                    "tag" => "plain_text",
+                                    "content" => "View Detail"
+                                ],
+                                "type" => "primary",
+                                "multi_url" => [
+                                    "url" => "https://renoxpert.my/registration-forms/[form_id]",
+                                    "pc_url" => "",
+                                    "android_url" => "",
+                                    "ios_url" => ""
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                "header" => [
+                    "template" => "blue",
+                    "title" => [
+                        "content" => "New Reno Registration Form",
+                        "tag" => "plain_text"
+                    ]
+                ]
+            ]
+        ];
 
-        // $package->products()->attach(2);
+        $bodyJson = json_encode($body, JSON_PRETTY_PRINT);
 
-        $newPackage = $package->products()->withPivot('created_at')->get();
-
-        $package->products = $newPackage;
-
-        return $package;
+        Log::info($bodyJson);
     });
 
     // DEV TOOLS
@@ -251,4 +395,161 @@ Route::get('/tmp/progress/generate', function () {
     $sale->status = 'partial-paid';
 
     $sale->save();
+});
+
+Route::get('/test/unauth', function () {
+
+    $body = [
+        "msg_type" => "interactive",
+        "card" => [
+            "elements" => [
+                [
+                    "tag" => "div",
+                    "text" => [
+                        "content" => "An owner has submitted a Reno Registration Form to RenoXpert",
+                        "tag" => "plain_text"
+                    ]
+                ],
+                [
+                    "tag" => "column_set",
+                    "flex_mode" => "none",
+                    "background_style" => "default",
+                    "columns" => [
+                        [
+                            "tag" => "column",
+                            "width" => "weighted",
+                            "weight" => 1,
+                            "vertical_align" => "top",
+                            "elements" => [
+                                [
+                                    "tag" => "div",
+                                    "text" => [
+                                        "content" => "**Form No :**",
+                                        "tag" => "lark_md"
+                                    ]
+                                ],
+                                [
+                                    "tag" => "div",
+                                    "text" => [
+                                        "content" => "[form_no]",
+                                        "tag" => "plain_text"
+                                    ]
+                                ]
+                            ]
+                        ],
+                        [
+                            "tag" => "column",
+                            "width" => "weighted",
+                            "weight" => 1,
+                            "vertical_align" => "top",
+                            "elements" => [
+                                [
+                                    "tag" => "div",
+                                    "text" => [
+                                        "content" => "**Owner Name :**",
+                                        "tag" => "lark_md"
+                                    ]
+                                ],
+                                [
+                                    "tag" => "div",
+                                    "text" => [
+                                        "content" => "[owner_name]",
+                                        "tag" => "plain_text"
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    "action" => [],
+                    "horizontal_spacing" => "default"
+                ],
+                [
+                    "tag" => "column_set",
+                    "flex_mode" => "none",
+                    "background_style" => "default",
+                    "columns" => [
+                        [
+                            "tag" => "column",
+                            "width" => "weighted",
+                            "weight" => 1,
+                            "vertical_align" => "top",
+                            "elements" => [
+                                [
+                                    "tag" => "div",
+                                    "text" => [
+                                        "content" => "**Property :**",
+                                        "tag" => "lark_md"
+                                    ]
+                                ],
+                                [
+                                    "tag" => "div",
+                                    "text" => [
+                                        "content" => "[property_name]",
+                                        "tag" => "plain_text"
+                                    ]
+                                ]
+                            ]
+                        ],
+                        [
+                            "tag" => "column",
+                            "width" => "weighted",
+                            "weight" => 1,
+                            "vertical_align" => "top",
+                            "elements" => [
+                                [
+                                    "tag" => "div",
+                                    "text" => [
+                                        "content" => "**Phone No :**",
+                                        "tag" => "lark_md"
+                                    ]
+                                ],
+                                [
+                                    "tag" => "div",
+                                    "text" => [
+                                        "content" => "[phone_no]",
+                                        "tag" => "plain_text"
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                [
+                    "tag" => "hr"
+                ],
+                [
+                    "tag" => "action",
+                    "actions" => [
+                        [
+                            "tag" => "button",
+                            "text" => [
+                                "tag" => "plain_text",
+                                "content" => "View Detail"
+                            ],
+                            "type" => "primary",
+                            "multi_url" => [
+                                "url" => "https://renoxpert.my/registration-forms/[form_id]",
+                                "pc_url" => "",
+                                "android_url" => "",
+                                "ios_url" => ""
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "header" => [
+                "template" => "blue",
+                "title" => [
+                    "content" => "New Reno Registration Form",
+                    "tag" => "plain_text"
+                ]
+            ]
+        ]
+    ];
+
+    $bodyJson = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    Log::info($bodyJson);
+
+    return $bodyJson;
 });

@@ -37,7 +37,7 @@ class RegistrationFormResource extends JsonResource
         return [
             'id' => $this->id,
             'form_no' => $this->form_no,
-            'user' => [
+            'user' => $user ? [
                 'id' => $user->id,
                 'salutations' => $salutationOptions[$this->salutations] ?? null,
                 'name_first' => $this->name_first,
@@ -47,7 +47,7 @@ class RegistrationFormResource extends JsonResource
                 'country_code' => $this->country_code,
                 'phone_no' => $this->phone_no,
                 'ic' => $this->ic,
-            ],
+            ] : null,
             'address' => [
                 'address_1' => $this->address_1,
                 'address_2' => $this->address_2,

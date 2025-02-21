@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use App\Models\User;
 use GuzzleHttp\Client;
 use App\Models\Address;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use App\Models\RegistrationForm;
 use Illuminate\Http\UploadedFile;
@@ -13,7 +15,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\RegistrationFormResource;
-use App\Models\Property;
 
 class RegistrationFormController extends BaseController
 {
@@ -194,10 +195,11 @@ class RegistrationFormController extends BaseController
                 $user->save();
             }
 
-            $this->sendLarkMessage($form);
+            // $this->sendLarkMessage($form);
 
-            // Log::info($this->sendLarkMessage($form));
+            Log::info($this->sendLarkMessage($form));
 
+            return $this->sendError('TEST');
             return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form added successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Database Error.', [
@@ -335,19 +337,125 @@ class RegistrationFormController extends BaseController
         $formNo = $form->form_no;
         $ownerName = $form->name_first . ' ' . $form->name_last;
         $phoneNo = $form->phone_no;
-        $property = $form->other_property_name ? `(Other) $form->other_property_name` : Property::find($form->property_name)->name;
+        $property = $form->other_property_name ? ("(Other) " . $form->other_property_name) : Property::find($form->property_name)->name;
 
         $bodyData = [
             "msg_type" => "interactive",
             "card" => [
                 "elements" => [
                     [
-                        "tag" => "markdown",
-                        "content" => "An owner has submitted a Reno Registration Form to RenoXpert\n\n" .
-                            "Form Number: {$formNo}\n" .
-                            "Owner Name: {$ownerName}\n" .
-                            "Phone Number: +60 {$phoneNo}\n" .
-                            "Property: {$property}\n"
+                        "tag" => "div",
+                        "text" => [
+                            "content" => "An owner has submitted a Reno Registration Form to RenoXpert",
+                            "tag" => "plain_text"
+                        ]
+                    ],
+                    [
+                        "tag" => "column_set",
+                        "flex_mode" => "none",
+                        "background_style" => "default",
+                        "columns" => [
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**Form No :**",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ],
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "{$formNo}",
+                                            "tag" => "plain_text"
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**Owner Name :**",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ],
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "{$ownerName}",
+                                            "tag" => "plain_text"
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ],
+                        "action" => [],
+                        "horizontal_spacing" => "default"
+                    ],
+                    [
+                        "tag" => "column_set",
+                        "flex_mode" => "none",
+                        "background_style" => "default",
+                        "columns" => [
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**Property :**",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ],
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "{$property}",
+                                            "tag" => "plain_text"
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**Phone No :**",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ],
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "+60 {$phoneNo}",
+                                            "tag" => "plain_text"
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        "tag" => "hr"
                     ],
                     [
                         "tag" => "action",
@@ -379,12 +487,12 @@ class RegistrationFormController extends BaseController
             ]
         ];
 
-        // Convert array to JSON
-        $body = json_encode($bodyData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
+        // // Convert array to JSON
+        $body = json_encode($this->convertEmptyArrayToObject($bodyData), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         try {
             $req = $client->request('POST', 'https://open.larksuite.com/open-apis/bot/v2/hook/18f45036-7900-43ed-ab40-93c8a5929de8', [
+            // $req = $client->request('POST', 'https://open.larksuite.com/open-apis/bot/v2/hook/dd7e7cab-d69b-487b-bfbd-c56b5634fbb7', [
                 'headers' => $headers,
                 'body' => $body,
             ]);
@@ -400,5 +508,21 @@ class RegistrationFormController extends BaseController
         } catch (\Exception $e) {
             return $e->getMessage();
         }
+    }
+
+    private function convertEmptyArrayToObject($data)
+    {
+        if (is_array($data)) {
+            // If it's an empty array, return an empty object (stdClass)
+            if (empty($data)) {
+                return (object) [];
+            }
+
+            // Recursively process the array
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->convertEmptyArrayToObject($value);
+            }
+        }
+        return $data;
     }
 }
