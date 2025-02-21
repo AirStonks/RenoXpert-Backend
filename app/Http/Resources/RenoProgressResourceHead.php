@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Order;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -16,6 +17,15 @@ class RenoProgressResourceHead extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $orderWithOnlyUser = $this->sale->order->user;
+        
+        // Declare a blank Order Modal
+        $order = new Order();
+        $order->user = $orderWithOnlyUser;
+
+        $sale = new Sale();
+        $sale->order = $order;
+        
         return [
             'id' => $this->id,
             'sale_id' => $this->sale->id,
@@ -26,6 +36,7 @@ class RenoProgressResourceHead extends JsonResource
                 'floor' => $this->sale->order->floor,
                 'unit_no' => $this->sale->order->unit_no,
             ],
+            'sale' => $sale,
             'sale_id' => $this->sale->id,
             'sales_no' => $this->sale->sales_no,
             // Ensure that start_date and end_date are DateTime objects before calling format()
