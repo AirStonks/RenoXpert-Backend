@@ -42,7 +42,7 @@ class Sale extends Model
             $model->created_by = auth()->id(); // or your logic to get the user ID
 
             if ($model->renoProgress === null) {
-                event(new SaleCreated($model));
+                // event(new SaleCreated($model));
             }
         });
 

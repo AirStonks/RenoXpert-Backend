@@ -69,7 +69,8 @@ class RenoProgressController extends BaseController
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
             "totalCount" => $renoProgress->total(),  // Total number of items
-            "data" => RenoProgressResourceHead::collection($renoProgress) // Transformed product data
+            "data" => $request->input('head') === 'true' ? RenoProgressResourceHead::collection($renoProgress) : RenoProgressResource::collection($renoProgress) // Transformed product data
+            
         ];
 
         return response()->json($response, 200);

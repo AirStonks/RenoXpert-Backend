@@ -198,9 +198,10 @@ class JobTaskController extends BaseController
             $renoProgress->contractual_end_date = $date;
             $renoProgress->contractor_end_date = $date;
 
-            // Helper function to add working days
+            // Helper function to add working days (skips weekends)
             function addWorkingDays(Carbon $date, $days)
             {
+                $date = $date->copy();
                 for ($i = 0; $i < $days; $i++) {
                     $date->addDay();
                     // Skip weekends (Saturday and Sunday)
@@ -212,37 +213,39 @@ class JobTaskController extends BaseController
             }
 
             // Calculate and set the dates
+            // Contractual uses working days (skip weekends)
             $renoProgress->contractual_p1_start_date = addWorkingDays($date->copy(), 3);
-            $renoProgress->contractor_p1_start_date = addWorkingDays($date->copy(), 3);
+            // Contractor uses calendar days (include weekends)
+            $renoProgress->contractor_p1_start_date = $date->copy()->addDays(3);
 
             $renoProgress->contractual_p1_end_date = addWorkingDays($renoProgress->contractual_p1_start_date->copy(), 10);
-            $renoProgress->contractor_p1_end_date = addWorkingDays($renoProgress->contractor_p1_start_date->copy(), 10);
+            $renoProgress->contractor_p1_end_date = $renoProgress->contractor_p1_start_date->copy()->addDays(10);
 
             $renoProgress->contractual_p2_start_date = addWorkingDays($renoProgress->contractual_p1_end_date->copy(), 3);
-            $renoProgress->contractor_p2_start_date = addWorkingDays($renoProgress->contractor_p1_end_date->copy(), 3);
+            $renoProgress->contractor_p2_start_date = $renoProgress->contractor_p1_end_date->copy()->addDays(3);
 
             $renoProgress->contractual_p2_end_date = addWorkingDays($renoProgress->contractual_p2_start_date->copy(), 10);
-            $renoProgress->contractor_p2_end_date = addWorkingDays($renoProgress->contractor_p2_start_date->copy(), 10);
+            $renoProgress->contractor_p2_end_date = $renoProgress->contractor_p2_start_date->copy()->addDays(10);
 
             $renoProgress->contractual_qc_start_date = addWorkingDays($renoProgress->contractual_p2_end_date->copy(), 1);
-            $renoProgress->contractor_qc_start_date = addWorkingDays($renoProgress->contractor_p2_end_date->copy(), 1);
+            $renoProgress->contractor_qc_start_date = $renoProgress->contractor_p2_end_date->copy()->addDays(1);
 
             $renoProgress->contractual_qc_end_date = addWorkingDays($renoProgress->contractual_qc_start_date->copy(), 3);
-            $renoProgress->contractor_qc_end_date = addWorkingDays($renoProgress->contractor_qc_start_date->copy(), 3);
+            $renoProgress->contractor_qc_end_date = $renoProgress->contractor_qc_start_date->copy()->addDays(3);
 
             $renoProgress->contractual_pc_start_date = addWorkingDays($renoProgress->contractual_qc_end_date->copy(), 1);
-            $renoProgress->contractor_pc_start_date = addWorkingDays($renoProgress->contractor_qc_end_date->copy(), 1);
+            $renoProgress->contractor_pc_start_date = $renoProgress->contractor_qc_end_date->copy()->addDays(1);
 
             $renoProgress->contractual_pc_end_date = addWorkingDays($renoProgress->contractual_pc_start_date->copy(), 6);
-            $renoProgress->contractor_pc_end_date = addWorkingDays($renoProgress->contractor_pc_start_date->copy(), 6);
+            $renoProgress->contractor_pc_end_date = $renoProgress->contractor_pc_start_date->copy()->addDays(6);
 
             $renoProgress->contractual_handover_date = addWorkingDays($renoProgress->contractual_qc_end_date->copy(), 7);
-            $renoProgress->contractor_handover_date = addWorkingDays($renoProgress->contractor_qc_end_date->copy(), 7);
+            $renoProgress->contractor_handover_date = $renoProgress->contractor_qc_end_date->copy()->addDays(7);
 
             $renoProgress->save();
         }
 
-        // If the status is "delivered", change the task
+        // If the task has a product_id, update inventory
         if ($task->product_id) {
             $inventory = Inventory::where('product_id', $task->product_id)->first();
 
