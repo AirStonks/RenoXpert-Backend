@@ -9,19 +9,66 @@ use App\Models\DefectInspectionForm;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\DefectInspectionFormResource;
+use App\Http\Resources\DefectInspectionFormResourceHead;
 
 class DefectInspectionFormController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $user = Auth::user();
+        // $user = Auth::user();
 
-        $diForms = DefectInspectionForm::where('created_by', $user->id)->get();
+        // $diForms = DefectInspectionForm::where('created_by', $user->id)->get();
 
-        return $this->sendResponse(DefectInspectionFormResource::collection($diForms), 'Defect forms retrieved successfully.');
+        // return $this->sendResponse(DefectInspectionFormResource::collection($diForms), 'Defect forms retrieved successfully.');
+
+        // =========================================================================================================
+
+        // Retrieve the size parameter from the request with a default value of 10
+        $size = $request->input('size', 10);
+
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
+
+        // Build the query to retrieve product categories
+        $query = DefectInspectionForm::query();
+
+        // Filter out with 'status' as 'archived' by default
+        $query->where('status', '!=', 'archived');
+
+        // Apply search filter if a search term is provided
+        if (!empty($search)) {
+            // Normalize the search term by removing '-' and spaces
+            $normalizedSearch = str_replace(['-', ' '], '', $search);
+
+            $query->whereHas('renoProgress.sale.order.property', function ($q) use ($normalizedSearch) {
+                $q->where('name', 'like', '%' . $normalizedSearch . '%');
+            });
+        }
+
+        // Retrieve the sort order and field from the request
+        $sortOrder = $request->input('sortOrder', 'asc');
+        // $sortField = $request->input('sortField', 'name');
+
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        $diForms = $query->paginate($size);
+
+        // Custome response to fit with Tailwind DataTable JSON format
+        $response = [
+            "page" => $diForms->currentPage(),  // Current page number
+            "pageCount" => $diForms->lastPage(), // Total number of pages
+            "sortField" => null,                 // Sorting field, if applicable
+            "sortOrder" => null,                 // Sorting order, if applicable
+            "totalCount" => $diForms->total(),  // Total number of items
+            "data" => $request->input('head') === 'true' ? DefectInspectionFormResourceHead::collection($diForms) : DefectInspectionFormResource::collection($diForms) // Transformed product data
+        ];
+
+        return response()->json($response, 200);
     }
 
     /**
@@ -116,7 +163,7 @@ class DefectInspectionFormController extends BaseController
             $diTask->status = 'submitted';
             $diTask->save();
 
-            
+
             $diForm->contractor_name = $user->name;
             $diForm->contractor_email = $user->email;
             $diForm->status = 'submitted';
@@ -273,7 +320,7 @@ class DefectInspectionFormController extends BaseController
 
         $diForm->metadata = json_encode($updatedMetadata);
         $diForm->save();
-        
+
         // if the diForm status is submitted, change it to not_submitted
         if ($diForm->status === 'submitted') {
             $diForm->status = 'not_submitted';
