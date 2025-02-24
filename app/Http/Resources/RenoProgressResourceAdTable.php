@@ -107,8 +107,8 @@ class RenoProgressResourceAdTable extends JsonResource
         // Assuming progressPhases[1] is P1
         if (isset($this->progressPhases[1]['jobs'])) {
             $p1Jobs = $this->progressPhases[1]['jobs'];
-            $progress['p1_1'] = $this->calculateJobCompletion($p1Jobs[0] ?? null);
-            $progress['p1_2'] = $this->calculateJobCompletion($p1Jobs[1] ?? null);
+            $progress['p1_1'] = $this->calculateJobCompletion($p1Jobs[1] ?? null);
+            $progress['p1_2'] = $this->calculateJobCompletion($p1Jobs[0] ?? null);
             $progress['p1_3'] = $this->calculateJobCompletion($p1Jobs[2] ?? null);
         }
 
