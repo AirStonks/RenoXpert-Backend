@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\OwnerRenoProgressResource;
 use App\Http\Resources\RenoProgressResource;
+use App\Http\Resources\RenoProgressResourceAdTable;
 use App\Http\Resources\RenoProgressResourceHead;
 use App\Models\RenoProgress;
 use App\Models\Sale;
@@ -23,7 +24,7 @@ class RenoProgressController extends BaseController
 
         // Retrieve the search term from the request
         $search = $request->input('search', '');
-        
+
 
         // Build the query to retrieve products
         $query = RenoProgress::query();
@@ -69,11 +70,68 @@ class RenoProgressController extends BaseController
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
             "totalCount" => $renoProgress->total(),  // Total number of items
-            "data" => RenoProgressResourceHead::collection($renoProgress) // Transformed product data
+            "data" => $request->input('head') === 'true' ? RenoProgressResourceHead::collection($renoProgress) : RenoProgressResource::collection($renoProgress) // Transformed product data
+
         ];
 
         return response()->json($response, 200);
     }
+
+    public function getAdvanceTable(Request $request)
+    {
+        // // Validate incoming request parameters
+        // $request->validate([
+        //     'groupBy' => 'nullable|string|in:id,sale_id,status,property_id,start_date,end_date', // Add valid columns
+        //     'groupOp' => 'nullable|string|in:equals,not_equals,greater,less', // Define supported operators
+        //     'groupValue' => 'nullable|string', // Value to filter by
+        // ]);
+
+        // Extract query parameters
+        $groupBy = $request->query('groubBy'); // Match frontend typo if needed, or correct to 'groupBy'
+        $groupOp = $request->query('groupOp');
+        $groupValue = $request->query('groupValue');
+
+        // Start building the query
+        $query = RenoProgress::query()
+            ->with(['sale.order.property', 'sale.order.user']) // Eager load relationships used in the resource
+            ->select('reno_progress.*'); // Adjust table name as needed
+
+        // Apply filtering based on groupBy, groupOp, and groupValue
+        if ($groupBy && $groupOp && $groupValue !== null) {
+            switch ($groupOp) {
+                case 'equals':
+                    $query->where($groupBy, '=', $groupValue);
+                    break;
+                case 'not_equals':
+                    $query->where($groupBy, '!=', $groupValue);
+                    break;
+                case 'greater':
+                    $query->where($groupBy, '>', $groupValue);
+                    break;
+                case 'less':
+                    $query->where($groupBy, '<', $groupValue);
+                    break;
+                default:
+                    // Invalid operator, ignore or return an error
+                    break;
+            }
+        }
+
+        // Fetch total count first
+        $totalCount = $query->count();
+
+        // Fetch the data
+        $renoProgressData = $query->get();
+
+        return response()->json([
+            "sortField" => null,
+            "sortOrder" => null,
+            "totalCount" => $totalCount,  // Use count() result here
+            'data' => RenoProgressResourceAdTable::collection($renoProgressData),
+            'success' => true,
+        ], 200);
+    }
+
 
     public function ownerIndex(Request $request)
     {
