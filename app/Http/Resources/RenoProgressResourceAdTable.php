@@ -93,8 +93,15 @@ class RenoProgressResourceAdTable extends JsonResource
         if (isset($this->progressPhases[0]['jobs'])) {
             $preRenoJobs = $this->progressPhases[0]['jobs'];
             $progress['pre_reno_1'] = $this->calculateJobCompletion($preRenoJobs[0] ?? null);
-            $progress['pre_reno_2'] = $this->calculateJobCompletion($preRenoJobs[1] ?? null);
-            $progress['pre_reno_3'] = $this->calculateJobCompletion($preRenoJobs[2] ?? null);
+
+            $progress['pre_reno_2']['pre_reno_2_1'] = $this->calculateTaskCompletion($preRenoJobs[1]['tasks'][0] ?? null);
+            $progress['pre_reno_2']['pre_reno_2_2'] = $this->calculateTaskCompletion($preRenoJobs[1]['tasks'][1] ?? null);
+            $progress['pre_reno_2']['pre_reno_2_3'] = $this->calculateTaskCompletion($preRenoJobs[1]['tasks'][2] ?? null);
+
+            $progress['pre_reno_3']['pre_reno_3_1'] = $this->calculateTaskCompletion($preRenoJobs[2]['tasks'][0] ?? null);
+            $progress['pre_reno_3']['pre_reno_3_2'] = $this->calculateTaskCompletion($preRenoJobs[2]['tasks'][1] ?? null);
+            $progress['pre_reno_3']['pre_reno_3_3'] = $this->calculateTaskCompletion($preRenoJobs[2]['tasks'][2] ?? null);
+            $progress['pre_reno_3']['pre_reno_3_4'] = $this->calculateTaskCompletion($preRenoJobs[2]['tasks'][3] ?? null);
         }
 
         // Assuming progressPhases[1] is P1
@@ -140,6 +147,23 @@ class RenoProgressResourceAdTable extends JsonResource
         }
 
         return $totalWeightage > 0 ? $weightedCompletion / $totalWeightage : 0.0;
+    }
+
+    /**
+     * Calculate completion percentage for a single task.
+     *
+     * @param mixed $task
+     * @return float
+     */
+    private function calculateTaskCompletion($task): float
+    {
+        return match ($task['status']) {
+            'not_available', 'submitted', 'completed' => 1.0,
+            'in_progress' => 0.75,
+            'started' => 0.25,
+            'not_started' => 0.0,
+            default => 0.0,
+        };
     }
 
     /**
