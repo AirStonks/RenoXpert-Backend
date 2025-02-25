@@ -34,9 +34,16 @@ class OrderController extends BaseController
         // Build the query to retrieve orders
         $query = Order::query();
 
-        // Apply search filter if a search term is provided
         if (!empty($search)) {
-            $query->where('order_no', 'like', '%' . $search . '%'); // Searching by order number
+            $query->where(function ($query) use ($search) {
+                // Search across individual fields
+                $query->where('name_first', 'like', '%' . $search . '%')
+                    ->orWhere('name_last', 'like', '%' . $search . '%')
+                    ->orWhere('order_no', 'like', '%' . $search . '%')
+
+                    // Also search in the concatenation of name_first + name_last
+                    ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%']);
+            });
         }
 
         // Apply status filter if provided
