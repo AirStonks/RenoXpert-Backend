@@ -491,8 +491,7 @@ class RegistrationFormController extends BaseController
         $body = json_encode($this->convertEmptyArrayToObject($bodyData), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         try {
-            $req = $client->request('POST', 'https://open.larksuite.com/open-apis/bot/v2/hook/18f45036-7900-43ed-ab40-93c8a5929de8', [
-            // $req = $client->request('POST', 'https://open.larksuite.com/open-apis/bot/v2/hook/dd7e7cab-d69b-487b-bfbd-c56b5634fbb7', [
+            $req = $client->request('POST', env('APP_BYPASS') === true ? env('LARK_MSG_TEST_BOT_URL') : env('LARK_MSG_BOT_URL'), [
                 'headers' => $headers,
                 'body' => $body,
             ]);
