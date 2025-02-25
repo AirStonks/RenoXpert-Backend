@@ -79,8 +79,6 @@ class OrderController extends BaseController
         return response()->json($response, 200);
     }
 
-
-
     public function getOwnerOrders()
     {
         $user = Auth::user();
@@ -116,6 +114,7 @@ class OrderController extends BaseController
                 'unit_no' => 'nullable|string|max:255',
                 'bedroom_count' => 'nullable',
                 'bathroom_count' => 'nullable',
+                'include_partition' => 'nullable|boolean',
                 'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:0',
@@ -243,7 +242,6 @@ class OrderController extends BaseController
         // If the order exists and belongs to the user, return the order data
         return $this->sendResponse(new OwnerOrderResource($order), 'Order retrieved successfully.');
     }
-
 
     public function getOrderOverviewHead($orderId)
     {
