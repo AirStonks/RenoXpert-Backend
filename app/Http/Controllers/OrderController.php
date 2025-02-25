@@ -35,15 +35,11 @@ class OrderController extends BaseController
         $query = Order::query();
 
         if (!empty($search)) {
-            $query->where(function ($query) use ($search) {
-                // Search across individual fields
+            $query->whereHas('user', function ($query) use ($search) {
                 $query->where('name_first', 'like', '%' . $search . '%')
                     ->orWhere('name_last', 'like', '%' . $search . '%')
-                    ->orWhere('order_no', 'like', '%' . $search . '%')
-
-                    // Also search in the concatenation of name_first + name_last
                     ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%']);
-            });
+            })->orWhere('order_no', 'like', '%' . $search . '%');
         }
 
         // Apply status filter if provided
