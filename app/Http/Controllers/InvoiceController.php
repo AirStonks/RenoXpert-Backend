@@ -316,9 +316,25 @@ class InvoiceController extends BaseController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Invoice $invoice)
+    public function destroy($id)
     {
-        //
+        $invoice = Invoice::find($id);
+
+        if (is_null($invoice)) {
+            return $this->sendError('Invoice not found.');
+        }
+
+        // Recalculate the sale remaining percentage and remaining amount 
+        $sale = $invoice->sale;
+        if ($sale) {
+            $sale->remaining_percentage = $sale->remaining_percentage + $invoice->percentage;
+            $sale->remaining_amount = $sale->remaining_amount + $invoice->amount;
+            $sale->save();
+        }
+
+        $invoice->delete();
+
+        return $this->sendResponse([], 'Invoice deleted successfully.');
     }
 
     public function changeLinkStatus($id, $status)
