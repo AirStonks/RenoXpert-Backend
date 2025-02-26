@@ -68,6 +68,7 @@ Route::get('/orders/{id}/release', [OrderController::class, 'releaseOrder'])->na
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login', 'login');
+    Route::post('owner/staff/login', 'staffLoginToOwner');
     Route::post('operation/login', 'operationLogin');
     Route::post('credential/verify', 'isAuthenticated');
 });

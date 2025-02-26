@@ -172,6 +172,7 @@ class RegistrationFormController extends BaseController
                     'name_first' => $input['name_first'],
                     'name_last' => $input['name_last'],
                     'name_preferred' => $input['name_preferred'],
+                    'password' => 'RenoXpert@2210$',
                     'ic' => $input['ic'],
                     'salutations' => $input['salutations'],
                     'email' => $input['email'],
@@ -195,11 +196,8 @@ class RegistrationFormController extends BaseController
                 $user->save();
             }
 
-            // $this->sendLarkMessage($form);
+            $this->sendLarkMessage($form);
 
-            Log::info($this->sendLarkMessage($form));
-
-            return $this->sendError('TEST');
             return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form added successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Database Error.', [
