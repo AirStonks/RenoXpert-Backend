@@ -34,9 +34,18 @@ class OrderController extends BaseController
         // Build the query to retrieve orders
         $query = Order::query();
 
-        // Apply search filter if a search term is provided
         if (!empty($search)) {
-            $query->where('order_no', 'like', '%' . $search . '%'); // Searching by order number
+            $query->where(function ($query) use ($search) {
+                // Search across individual fields in the orders table
+                $query->where('order_no', 'like', '%' . $search . '%')
+
+                    // Search in the related user's fields
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name_first', 'like', '%' . $search . '%')
+                            ->orWhere('name_last', 'like', '%' . $search . '%')
+                            ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%']);
+                    });
+            });
         }
 
         // Apply status filter if provided
@@ -69,8 +78,6 @@ class OrderController extends BaseController
 
         return response()->json($response, 200);
     }
-
-
 
     public function getOwnerOrders()
     {
@@ -107,6 +114,7 @@ class OrderController extends BaseController
                 'unit_no' => 'nullable|string|max:255',
                 'bedroom_count' => 'nullable',
                 'bathroom_count' => 'nullable',
+                'include_partition' => 'nullable|boolean',
                 'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:0',
@@ -234,7 +242,6 @@ class OrderController extends BaseController
         // If the order exists and belongs to the user, return the order data
         return $this->sendResponse(new OwnerOrderResource($order), 'Order retrieved successfully.');
     }
-
 
     public function getOrderOverviewHead($orderId)
     {

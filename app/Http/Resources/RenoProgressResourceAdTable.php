@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
 
-class RenoProgressResourceHead extends JsonResource
+class RenoProgressResourceAdTable extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -18,14 +18,14 @@ class RenoProgressResourceHead extends JsonResource
     public function toArray(Request $request): array
     {
         $orderWithOnlyUser = $this->sale->order->user;
-        
+
         // Declare a blank Order Modal
         $order = new Order();
         $order->user = $orderWithOnlyUser;
 
         $sale = new Sale();
         $sale->order = $order;
-        
+
         return [
             'id' => $this->id,
             'sale_id' => $this->sale->id,
@@ -65,6 +65,7 @@ class RenoProgressResourceHead extends JsonResource
             'contractor_pc_end_date' => $this->contractor_pc_end_date ? Carbon::parse($this->contractor_pc_end_date)->format('Y-m-d') : null,
             'contractor_handover_date' => $this->contractor_handover_date ? Carbon::parse($this->contractor_handover_date)->format('Y-m-d') : null,
             'status' => $this->status,
+            'progress' => $this->calculateProgressDetails(),
             'pre_reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[0] ?? null),
             'p1_completion' => $this->calculatePhaseCompletion($this->progressPhases[1] ?? null),
             'p2a_completion' => $this->calculatePhaseCompletion($this->progressPhases[2] ?? null),
@@ -77,6 +78,92 @@ class RenoProgressResourceHead extends JsonResource
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];
+    }
+
+    /**
+     * Calculate detailed progress for individual jobs within phases.
+     *
+     * @return array<string, float>
+     */
+    private function calculateProgressDetails(): array
+    {
+        $progress = [];
+
+        // Assuming progressPhases[0] is Pre-Reno
+        if (isset($this->progressPhases[0]['jobs'])) {
+            $preRenoJobs = $this->progressPhases[0]['jobs'];
+            $progress['pre_reno_1'] = $this->calculateJobCompletion($preRenoJobs[0] ?? null);
+
+            $progress['pre_reno_2']['pre_reno_2_1'] = $this->calculateTaskCompletion($preRenoJobs[1]['tasks'][0] ?? null);
+            $progress['pre_reno_2']['pre_reno_2_2'] = $this->calculateTaskCompletion($preRenoJobs[1]['tasks'][1] ?? null);
+            $progress['pre_reno_2']['pre_reno_2_3'] = $this->calculateTaskCompletion($preRenoJobs[1]['tasks'][2] ?? null);
+
+            $progress['pre_reno_3']['pre_reno_3_1'] = $this->calculateTaskCompletion($preRenoJobs[2]['tasks'][0] ?? null);
+            $progress['pre_reno_3']['pre_reno_3_2'] = $this->calculateTaskCompletion($preRenoJobs[2]['tasks'][1] ?? null);
+            $progress['pre_reno_3']['pre_reno_3_3'] = $this->calculateTaskCompletion($preRenoJobs[2]['tasks'][2] ?? null);
+            $progress['pre_reno_3']['pre_reno_3_4'] = $this->calculateTaskCompletion($preRenoJobs[2]['tasks'][3] ?? null);
+        }
+
+        // Assuming progressPhases[1] is P1
+        if (isset($this->progressPhases[1]['jobs'])) {
+            $p1Jobs = $this->progressPhases[1]['jobs'];
+            $progress['p1_1'] = $this->calculateJobCompletion($p1Jobs[1] ?? null);
+            $progress['p1_2'] = $this->calculateJobCompletion($p1Jobs[0] ?? null);
+            $progress['p1_3'] = $this->calculateJobCompletion($p1Jobs[2] ?? null);
+        }
+
+        // Add more phases (e.g., P2a, P2b) as needed...
+
+        return $progress;
+    }
+
+    /**
+     * Calculate completion percentage for a single job.
+     *
+     * @param mixed $job
+     * @return float
+     */
+    private function calculateJobCompletion($job): float
+    {
+        if (!$job || !isset($job['tasks']) || empty($job['tasks'])) {
+            return 0.0;
+        }
+
+        $totalWeightage = 0;
+        $weightedCompletion = 0;
+
+        foreach ($job['tasks'] as $task) {
+            $weightage = $task['task_weightage'];
+            $statusWeightage = match ($task['status']) {
+                'not_available', 'submitted', 'completed' => 1.0,
+                'in_progress' => 0.75,
+                'started' => 0.25,
+                'not_started' => 0.0,
+                default => 0.0,
+            };
+
+            $totalWeightage += $weightage;
+            $weightedCompletion += $weightage * $statusWeightage;
+        }
+
+        return $totalWeightage > 0 ? $weightedCompletion / $totalWeightage : 0.0;
+    }
+
+    /**
+     * Calculate completion percentage for a single task.
+     *
+     * @param mixed $task
+     * @return float
+     */
+    private function calculateTaskCompletion($task): float
+    {
+        return match ($task['status']) {
+            'not_available', 'submitted', 'completed' => 1.0,
+            'in_progress' => 0.75,
+            'started' => 0.25,
+            'not_started' => 0.0,
+            default => 0.0,
+        };
     }
 
     /**

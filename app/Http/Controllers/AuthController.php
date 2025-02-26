@@ -93,6 +93,41 @@ class AuthController extends BaseController
         }
     }
 
+    public function staffLoginToOwner(Request $request): JsonResponse
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'mobile' => 'required',
+            'passphrase' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        // mobile become phone_no
+        $request->merge(['phone_no' => $request->mobile]);
+
+        // mobile become phone_no
+        $request->merge(['password' => $request->passphrase]);
+
+        // Attempt login
+        if (Auth::attempt($request->only('phone_no', 'password'))) {
+            $user = Auth::user();
+
+            if ($user->type === 'owner') {
+                $success['token'] = $user->createToken('OperationSite')->plainTextToken;
+                $success['name'] = $user->name;
+
+                return $this->sendResponse($success, 'User logged in successfully.');
+            } else {
+                return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
+            }
+        } else {
+            return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
+        }
+    }
+
     public function operationLogin(Request $request): JsonResponse
     {
         // Validate input
@@ -115,7 +150,7 @@ class AuthController extends BaseController
             if ($user->type === 'technician') {
                 $success['token'] = $user->createToken('OperationSite')->plainTextToken;
                 $success['name'] = $user->name;
-    
+
                 return $this->sendResponse($success, 'User logged in successfully.');
             } else {
                 return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
