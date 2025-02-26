@@ -203,7 +203,6 @@ class TriggerCreateRenoProgress
 
                 if ($quantity > 1) {
                     for ($i = 1; $i <= $quantity; $i++) {
-                        // Create a duplicated package with the new name
                         $pkg = new stdClass();
                         $pkg->name = "{$originalName} (Room {$i})";
                         $pkg->products = $products;
@@ -213,11 +212,11 @@ class TriggerCreateRenoProgress
                                 continue;
                             }
 
+                            // Skip if neither includeSupply nor includeInstall is true
                             if (!$product->pivot->includeSupply && !$product->pivot->includeInstall) {
                                 continue;
                             }
 
-                            // Define job configurations
                             $jobConfig = [
                                 3 => ['phase' => $p1Phase, 'name' => 'House Electrical & Wiring', 'priority' => 1],
                                 4 => ['phase' => $p1Phase, 'name' => 'House Painting', 'priority' => 2],
@@ -227,7 +226,6 @@ class TriggerCreateRenoProgress
                                 6 => ['phase' => $iotPhase, 'name' => 'Smart IoT Devices', 'priority' => 1]
                             ];
 
-                            // Get job configuration or use default
                             if (isset($jobConfig[$product->pm_category_id])) {
                                 $config = $jobConfig[$product->pm_category_id];
                                 $phase = $config['phase'];
@@ -235,11 +233,10 @@ class TriggerCreateRenoProgress
                                 $priority = $config['priority'];
                             } else {
                                 $phase = $p2aPhase;
-                                $jobName = $pkg->name; // Use the duplicated package name
+                                $jobName = $pkg->name;
                                 $priority = 1;
                             }
 
-                            // Create or find job
                             $job = PhaseJob::firstOrCreate(
                                 [
                                     'name' => $jobName,
@@ -253,7 +250,6 @@ class TriggerCreateRenoProgress
                                 ]
                             );
 
-                            // Create task with the duplicated package name as the area
                             JobTask::create([
                                 'job_id' => $job->id,
                                 'product_id' => $product->id,
@@ -266,9 +262,13 @@ class TriggerCreateRenoProgress
                         }
                     }
                 } else {
-                    // Process the original package without duplication
                     foreach ($originalPkg->products as $product) {
                         if ($product->pm_category_id === 1) {
+                            continue;
+                        }
+
+                        // Skip if neither includeSupply nor includeInstall is true
+                        if (!$product->pivot->includeSupply && !$product->pivot->includeInstall) {
                             continue;
                         }
 
