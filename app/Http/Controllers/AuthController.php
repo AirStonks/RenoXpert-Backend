@@ -99,20 +99,21 @@ class AuthController extends BaseController
         $validator = Validator::make($request->all(), [
             'mobile' => 'required',
             'passphrase' => 'required',
+            'country_code' => 'required', // Added country_code validation
         ]);
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
         }
 
-        // mobile become phone_no
-        $request->merge(['phone_no' => $request->mobile]);
+        // Merge mobile and passphrase into expected fields
+        $request->merge([
+            'phone_no' => $request->mobile,
+            'password' => $request->passphrase,
+        ]);
 
-        // mobile become phone_no
-        $request->merge(['password' => $request->passphrase]);
-
-        // Attempt login
-        if (Auth::attempt($request->only('phone_no', 'password'))) {
+        // Attempt login with country_code
+        if (Auth::attempt($request->only('phone_no', 'password', 'country_code'))) {
             $user = Auth::user();
 
             if ($user->type === 'owner') {

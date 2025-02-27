@@ -29,6 +29,7 @@ class User extends Authenticatable
         'ic',
         'email',
         'password',
+        'country_code',
         'phone_no',
         'type',
         'status',

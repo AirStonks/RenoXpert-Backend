@@ -50,12 +50,12 @@ Route::get('/invoices/public/view/{id}', [InvoiceController::class, 'showPublicI
 Route::get('/payex/paymentIntent/invoice/{invoiceId}', [PaymentController::class, 'paymentIntent']);
 Route::post('/payex/paymentIntent/invoice/{invoiceId}/payment/success', [PaymentController::class, 'paymentSuccess']);
 
-Route::post('/sms-otp/request/{encryptedMobile}', [OTPRequestController::class, 'requestOtp'])->name('otp.request');
+Route::post('/sms-otp/request/{country_code}/{encryptedMobile}', [OTPRequestController::class, 'requestOtp'])->name('otp.request');
 Route::post('/sms-otp/verify/login', [OTPRequestController::class, 'verifyLoginOtp'])->name('otp.verify.login');
 Route::post('/sms-otp/verify/', [OTPRequestController::class, 'verifyOtp'])->name('otp.verify');
 
 
-Route::get('/owner/check/list/user/{phone}', [UserController::class, 'verifyExistsPhoneUser']);
+Route::get('/owner/check/list/user/{country_code}/{phone}', [UserController::class, 'verifyExistsPhoneUser']);
 
 // PUBLIC PROPERTIES
 Route::get('/public/properties', [PropertyController::class, 'getPublicProperties']);

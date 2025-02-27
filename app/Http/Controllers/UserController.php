@@ -100,6 +100,7 @@ class UserController extends BaseController
                     'name_last' => 'required|string|max:255',
                     'email' => 'required|email|max:255|unique:users,email',
                     'type' => 'required|string|max:30',
+                    'country_code' => 'required|string|max:5',
                     'phone_no' => 'required|string|max:15',
                     'name_preferred' => 'nullable|string|max:255',
                     'salutations' => 'required|string|max:255',
@@ -116,6 +117,7 @@ class UserController extends BaseController
                     'name_last' => 'required|string|max:255',
                     'email' => 'required|email|max:255|unique:users,email',
                     'type' => 'required|string|max:30',
+                    'country_code' => 'required|string|max:5',
                     'phone_no' => 'required|string|max:15',
                 ]);
             }
@@ -177,9 +179,11 @@ class UserController extends BaseController
         return $this->sendResponse(new UserResource($user), 'User retrieved successfully.');
     }
 
-    public function verifyExistsPhoneUser($phone)
+    public function verifyExistsPhoneUser($country_code = '60', $phone)
     {
-        $userExists = User::where('phone_no', $phone)->exists();
+        $userExists = User::where('phone_no', $phone)
+            ->where('country_code', $country_code)
+            ->exists();
 
         if ($userExists) {
             return $this->sendResponse(null, 'User Exists.');

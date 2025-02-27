@@ -38,6 +38,7 @@ class OrderResource extends JsonResource
                 'name' => $this->user->name,
                 'email' => $this->user->email,
                 'ic' => $this->user->ic,
+                'country_code' => $this->user->country_code,
                 'phone_no' => $this->user->phone_no,
                 'address' => $this->user->address,
             ] : null,

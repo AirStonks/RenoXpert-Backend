@@ -166,7 +166,10 @@ class RegistrationFormController extends BaseController
             }
 
             $user = User::firstOrCreate(
-                ['phone_no' => $input['phone_no']],
+                [
+                    'phone_no' => $input['phone_no'],
+                    'country_code' => $input['country_code'],
+                ],
                 [
                     'name' => $input['name_first'] . ' ' . $input['name_last'],
                     'name_first' => $input['name_first'],
@@ -196,7 +199,7 @@ class RegistrationFormController extends BaseController
                 $user->save();
             }
 
-            $this->sendLarkMessage($form);
+            // $this->sendLarkMessage($form);
 
             return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form added successfully.');
         } catch (\Throwable $th) {

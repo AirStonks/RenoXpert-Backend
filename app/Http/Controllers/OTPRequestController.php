@@ -23,22 +23,12 @@ class OTPRequestController extends Controller
         $this->senderId = 'MOBIWEB';
     }
 
-    public function requestOtp($mobile)
+    public function requestOtp($country_code = '60', $mobile)
     {
-        // $mobile = Crypt::decryptString($encryptedMobile);
-
-        // $mobile = substr($mobile, 1);
-
-        // return response()->json([
-        //     'status' => 'success',
-        //     'message' => 'OTP sent successfully',
-        //     'mobile' => $mobile
-        // ], 200);
-
         // Customize your message here
         $message = 'your OTP CODE %OTP%';
 
-        $url = "https://www.isms.com.my/2FA/request.php?mobile={$mobile}&country_code=60&un={$this->username}&pass={$this->password}&type=1&sendid={$this->senderId}&msg={$message}";
+        $url = "https://www.isms.com.my/2FA/request.php?mobile={$mobile}&country_code={$country_code}&un={$this->username}&pass={$this->password}&type=1&sendid={$this->senderId}&msg={$message}";
 
         $client = new Client();
 
@@ -91,14 +81,9 @@ class OTPRequestController extends Controller
 
         $input = $request->all();
 
-        // $dectyptedMobile = Crypt::decryptString($input['mobH']);
-        // $mobile = substr($dectyptedMobile, 1);
-        // $otpFormatMobile = '+6' . $dectyptedMobile;
-        // $dectyptedMobile = Crypt::decryptString($input['mobH']);
         $mobile = $input['mobile'];
-        $otpFormatMobile = '+60' . $input['mobile'];
-
-        // return ['1' => $dectyptedMobile, '2' => $mobile, '3' => $otpFormatMobile];
+        $country_code = $input['country_code'] ?? '60'; // Default to 60 if not provided
+        $otpFormatMobile = '+' . $country_code . $input['mobile'];
 
         $latestOtpReq = OTPRequest::where('mobile', $otpFormatMobile)
             ->orderBy('created_at', 'desc')
@@ -115,7 +100,7 @@ class OTPRequestController extends Controller
         $uuid = $latestOtpReq->uuid;
         $smsId = $latestOtpReq->sms_id;
 
-        $url = "https://www.isms.com.my/2FA/request.php?interval=3&mobile={$mobile}&country_code=60&un={$this->username}&pass={$this->password}&sendid={$this->senderId}&method=verify&code={$code}&sms_id={$smsId}&uuid={$uuid}";
+        $url = "https://www.isms.com.my/2FA/request.php?interval=3&mobile={$mobile}&country_code={$country_code}&un={$this->username}&pass={$this->password}&sendid={$this->senderId}&method=verify&code={$code}&sms_id={$smsId}&uuid={$uuid}";
 
         $client = new Client();
 
@@ -129,13 +114,9 @@ class OTPRequestController extends Controller
                 $latestOtpReq->status = 'verified';
                 $latestOtpReq->save();
 
-                $user = User::firstOrCreate(
-                    ['phone_no' => $input['mobile']],
-                    [
-                        'name' => 'OwnerSite',
-                        'type' => 'owner'
-                    ]
-                );
+                $user = User::where('phone_no', $input['mobile'])
+                    ->where('country_code', $country_code)
+                    ->first();
 
                 if (Auth::loginUsingId($user->id)) {
                     $token = $user->createToken('Guest')->plainTextToken;
@@ -175,17 +156,11 @@ class OTPRequestController extends Controller
             ], 200);
         }
 
-
         $input = $request->all();
 
-        // $dectyptedMobile = Crypt::decryptString($input['mobH']);
-        // $mobile = substr($dectyptedMobile, 1);
-        // $otpFormatMobile = '+6' . $dectyptedMobile;
-        // $dectyptedMobile = Crypt::decryptString($input['mobH']);
         $mobile = $input['mobile'];
-        $otpFormatMobile = '+60' . $input['mobile'];
-
-        // return ['1' => $dectyptedMobile, '2' => $mobile, '3' => $otpFormatMobile];
+        $country_code = $input['country_code'] ?? '60'; // Default to 60 if not provided
+        $otpFormatMobile = '+' . $country_code . $input['mobile'];
 
         $latestOtpReq = OTPRequest::where('mobile', $otpFormatMobile)
             ->orderBy('created_at', 'desc')
@@ -202,7 +177,7 @@ class OTPRequestController extends Controller
         $uuid = $latestOtpReq->uuid;
         $smsId = $latestOtpReq->sms_id;
 
-        $url = "https://www.isms.com.my/2FA/request.php?interval=3&mobile={$mobile}&country_code=60&un={$this->username}&pass={$this->password}&sendid={$this->senderId}&method=verify&code={$code}&sms_id={$smsId}&uuid={$uuid}";
+        $url = "https://www.isms.com.my/2FA/request.php?interval=3&mobile={$mobile}&country_code={$country_code}&un={$this->username}&pass={$this->password}&sendid={$this->senderId}&method=verify&code={$code}&sms_id={$smsId}&uuid={$uuid}";
 
         $client = new Client();
 
@@ -239,13 +214,11 @@ class OTPRequestController extends Controller
     {
         $input = $request->all();
 
-        $user = User::firstOrCreate(
-            ['phone_no' => $input['mobile']],
-            [
-                'name' => 'OwnerSite',
-                'type' => 'owner'
-            ]
-        );
+        $country_code = $input['country_code'] ?? '60'; // Default to 60 if not provided
+
+        $user = User::where('phone_no', $input['mobile'])
+            ->where('country_code', $country_code)
+            ->first();
 
         if (Auth::loginUsingId($user->id)) {
             $token = $user->createToken('Guest')->plainTextToken;

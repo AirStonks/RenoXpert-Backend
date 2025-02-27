@@ -12,13 +12,8 @@ return new class extends Migration
     public function up()
     {
         // Staging: Done
-        Schema::table('payments', function (Blueprint $table) {
-            $table->json('attachments')->nullable()->after('payment_method');
-            $table->string('remark')->nullable()->after('payment_method');
-            $table->string('receiving_account')->nullable()->after('payment_method');
-            $table->string('bank')->nullable()->after('payment_method');
-            $table->timestamp('payment_date')->nullable()->after('payment_method');
-            $table->string('payment_channel')->nullable()->after('payment_method');
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('country_code')->nullable()->after('status');
         });
 
         // // Staging: Done
