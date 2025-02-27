@@ -199,7 +199,7 @@ class RegistrationFormController extends BaseController
                 $user->save();
             }
 
-            // $this->sendLarkMessage($form);
+            $this->sendLarkMessage($form);
 
             return $this->sendResponse(new RegistrationFormResource($form), 'Registration Form added successfully.');
         } catch (\Throwable $th) {

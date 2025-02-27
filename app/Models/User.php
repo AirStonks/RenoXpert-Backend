@@ -78,4 +78,68 @@ class User extends Authenticatable
     {
         return $this->hasOne(Address::class, 'id', 'address_id');
     }
+
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class, 'user_permission')
+            ->withPivot('resource_id');
+    }
+
+    public function itemPermissions()
+    {
+        return $this->belongsToMany(Permission::class, 'user_item_permission')
+            ->withPivot('item_id');
+    }
+
+    /**
+     * Get all permissions for a specific resource, including those from roles.
+     */
+    public function allPermissionsForResource($resourceId)
+    {
+        $directPermissions = $this->permissions()->wherePivot('resource_id', $resourceId)->get();
+        $rolePermissions = collect();
+
+        foreach ($this->roles as $role) {
+            $rolePermissions = $rolePermissions->merge(
+                $role->permissions()->wherePivot('resource_id', $resourceId)->get()
+            );
+        }
+
+        return $directPermissions->merge($rolePermissions)->unique('id');
+    }
+
+    /**
+     * Get all permissions for a specific resource item, including those from roles.
+     */
+    public function allPermissionsForItem($itemId)
+    {
+        $directPermissions = $this->itemPermissions()->wherePivot('item_id', $itemId)->get();
+        $rolePermissions = collect();
+
+        foreach ($this->roles as $role) {
+            $rolePermissions = $rolePermissions->merge(
+                $role->itemPermissions()->wherePivot('item_id', $itemId)->get()
+            );
+        }
+
+        return $directPermissions->merge($rolePermissions)->unique('id');
+    }
+
+    /**
+     * Check if the user has a specific permission on a resource.
+     */
+    public function hasPermissionOnResource($permissionName, $resourceId)
+    {
+        return $this->allPermissionsForResource($resourceId)
+            ->contains('permission_name', $permissionName);
+    }
+
+    /**
+     * Check if the user has a specific permission on a resource item.
+     */
+    public function hasPermissionOnItem($permissionName, $itemId)
+    {
+        return $this->allPermissionsForItem($itemId)
+            ->contains('permission_name', $permissionName);
+    }
 }

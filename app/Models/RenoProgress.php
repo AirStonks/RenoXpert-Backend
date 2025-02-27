@@ -36,6 +36,7 @@ class RenoProgress extends Model
         'contractor_pc_start_date',
         'contractor_pc_end_date',
         'contractor_handover_date',
+        'resource_id',
         'completed_at',
         'created_by',
         'updated_by',
@@ -88,15 +89,28 @@ class RenoProgress extends Model
         return $this->belongsTo(Sale::class, 'sale_id', 'id');
     }
 
-    public function progressPhases() {
+    public function progressPhases()
+    {
         return $this->hasMany(ProgressPhase::class, 'progress_id', 'id');
     }
 
-    public function defectInspectionForm() {
+    public function defectInspectionForm()
+    {
         return $this->hasOne(DefectInspectionForm::class, 'reno_progress_id', 'id');
     }
 
-    public function keyManagement() {
+    public function keyManagement()
+    {
         return $this->hasOne(KeyManagement::class, 'reno_progress_id', 'id');
+    }
+
+    public function resource()
+    {
+        return $this->belongsTo(Resource::class, 'resource_id', 'id');
+    }
+
+    public function resourceItems()
+    {
+        return $this->morphMany(ResourceItem::class, 'itemReference');
     }
 }
