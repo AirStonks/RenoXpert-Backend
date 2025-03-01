@@ -346,6 +346,27 @@ class RenoProgressController extends BaseController
         return $this->changeContractDate($request, $id, 'contractor_handover');
     }
 
+    public function changeGeneralPermission(Request $request, $id)
+    {
+        $renoProgress = RenoProgress::find($id);
+
+        if (!$renoProgress) {
+            return $this->sendError('Reno progress not found.');
+        }
+
+        $permissionId = $request->input('permission_id');
+
+        if (!$permissionId) {
+            return $this->sendError('Permission ID is required.');
+        }
+
+        $renoProgress->permission_id = $permissionId;
+
+        if ($renoProgress->save()) {
+            return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress updated successfully.');
+        }
+    }
+
 
     /**
      * Remove the specified resource from storage.

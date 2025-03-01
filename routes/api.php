@@ -41,6 +41,9 @@ use App\Http\Controllers\ProgressPhaseController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\DefectInspectionFormController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ResourceItemController;
+use App\Http\Controllers\UserItemPermissionController;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -97,6 +100,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/invoices/{invoiceId}/payment/save', [InvoiceController::class, 'savePaymentDetail']);
     Route::get('/invoices/{invoiceId}/payments/{paymentId}', [InvoiceController::class, 'getPaymentDetail']);
 
+    Route::apiResource('/permissions', PermissionController::class);
+    Route::apiResource('/user-item-permissions', UserItemPermissionController::class);
     Route::apiResource('/products', ProductController::class);
     Route::apiResource('/product/category', PMCategoryController::class);
     Route::apiResource('/packages', PackageController::class);
@@ -167,6 +172,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/contractor/qc/date', [RenoProgressController::class, 'changeContractorQCDate']);
     Route::post('/reno-progress/{id}/contractor/pc/date', [RenoProgressController::class, 'changeContractorPCDate']);
     Route::post('/reno-progress/{id}/contractor/handover/date', [RenoProgressController::class, 'changeContractorHandoverDate']);
+    Route::post('/reno-progress/{id}/general-permission', [RenoProgressController::class, 'changeGeneralPermission']);
 
     Route::get('/reno-progress/{id}/task/{taskId}/visibility/toggle', [JobTaskController::class, 'toggleTaskVisibility']);
 
@@ -194,6 +200,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/photo', [KeyManagementController::class, 'changeKeyManagementItemPhoto']);
     Route::get('key-management/{keyManagementId}/{category}/remove/{itemIndex}', [KeyManagementController::class, 'removeKeyManagementItem']);
     Route::post('key-management/{keyManagementId}/info/update', [KeyManagementController::class, 'updateKeyManagementInfo']);
+
+    Route::post('resource-items/add/user/permission', [ResourceItemController::class, 'createUserPermission']);
+    Route::post('resource-items/{userId}/{itemId}/permission', [ResourceItemController::class, 'changeUserPermission']);
+    Route::delete('resource-items/{userId}/{itemId}', [ResourceItemController::class, 'deleteUserPermission']);
 
 
     // TEST

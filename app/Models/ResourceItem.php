@@ -21,6 +21,7 @@ class ResourceItem extends Model
     protected $fillable = [
         'resource_id',
         'item_reference_id',
+        'item_reference_type',
         'item_name',
         'created_by',
         'updated_by',
@@ -48,5 +49,12 @@ class ResourceItem extends Model
     public function itemReference()
     {
         return $this->morphTo();
+    }
+
+    public function userPermissions()
+    {
+        return $this->belongsToMany(User::class, 'user_item_permission', 'item_id', 'user_id')
+            ->withPivot('permission_id')
+            ->withTimestamps();
     }
 }

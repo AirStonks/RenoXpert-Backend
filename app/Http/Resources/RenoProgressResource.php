@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\ResourceItem;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -16,6 +17,10 @@ class RenoProgressResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // $resourceItem = ResourceItem::where('resource_id', $this->resource_id)
+        //     ->where('item_reference_id', $this->id)
+        //     ->first();
+
         return [
             'id' => $this->id,
             'sale_id' => $this->sale->id,
@@ -62,6 +67,10 @@ class RenoProgressResource extends JsonResource
             'p2b_completion' => $this->calculatePhaseCompletion($this->progressPhases[3] ?? null),
             'iot_completion' => $this->calculatePhaseCompletion($this->progressPhases[4] ?? null),
             'post_reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[5] ?? null),
+            'resource_id' => $this->resource_id,
+            'resource_item_id' => $this->resourceItem->id,
+            'permission_id' => $this->permission_id,
+            'permissions' => $this->itemPermissions->userPermissions,
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),

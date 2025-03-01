@@ -29,90 +29,91 @@ return new class extends Migration
         //     $table->softDeletes();
         // });
 
-        // Staging: Done
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->string('role_name');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        // // Staging: Done
+        // Schema::create('roles', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->string('role_name');
+        //     $table->timestamps();
+        //     $table->softDeletes();
+        // });
 
-        // Staging: Done
-        Schema::create('permissions', function (Blueprint $table) {
-            $table->id();
-            $table->string('permission_name');
-            $table->string('permission_description')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        // // Staging: Done
+        // Schema::create('permissions', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->string('permission_name');
+        //     $table->string('permission_description')->nullable();
+        //     $table->timestamps();
+        //     $table->softDeletes();
+        // });
 
-        // Staging: Done
-        Schema::create('resources', function (Blueprint $table) {
-            $table->id();
-            $table->string('resource_name');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        // // Staging: Done
+        // Schema::create('resources', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->string('resource_name');
+        //     $table->timestamps();
+        //     $table->softDeletes();
+        // });
 
-        // Staging: Done
-        Schema::create('resource_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('resource_id')->constrained()->onDelete('cascade');
-            $table->foreignId('item_reference_id')->constrained()->onDelete('cascade');
-            $table->string('item_reference_type');
-            $table->string('item_name');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        // // Staging: Done
+        // Schema::create('resource_items', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->foreignId('resource_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('item_reference_id')->constrained()->onDelete('cascade');
+        //     $table->string('item_reference_type');
+        //     $table->string('item_name');
+        //     $table->timestamps();
+        //     $table->softDeletes();
+        // });
 
-        // Staging: Done
-        Schema::create('user_role', function (Blueprint $table) {
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
-            $table->primary(['user_id', 'role_id']);
-            $table->timestamps();
-        });
+        // // Staging: Done
+        // Schema::create('user_role', function (Blueprint $table) {
+        //     $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('role_id')->constrained()->onDelete('cascade');
+        //     $table->primary(['user_id', 'role_id']);
+        //     $table->timestamps();
+        // });
 
-        // Staging: Done
-        Schema::create('user_permission', function (Blueprint $table) {
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-            $table->foreignId('resource_id')->constrained()->onDelete('cascade');
-            $table->unique(['user_id', 'permission_id', 'resource_id']);
-            $table->timestamps();
-        });
+        // // Staging: Done
+        // Schema::create('user_permission', function (Blueprint $table) {
+        //     $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('permission_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('resource_id')->constrained()->onDelete('cascade');
+        //     $table->unique(['user_id', 'permission_id', 'resource_id']);
+        //     $table->timestamps();
+        // });
 
-        // Staging: Done
-        Schema::create('role_permission', function (Blueprint $table) {
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
-            $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-            $table->foreignId('resource_id')->constrained()->onDelete('cascade');
-            $table->unique(['role_id', 'permission_id', 'resource_id']);
-            $table->timestamps();
-        });
+        // // Staging: Done
+        // Schema::create('role_permission', function (Blueprint $table) {
+        //     $table->foreignId('role_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('permission_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('resource_id')->constrained()->onDelete('cascade');
+        //     $table->unique(['role_id', 'permission_id', 'resource_id']);
+        //     $table->timestamps();
+        // });
 
-        // Staging: Done
-        Schema::create('user_item_permission', function (Blueprint $table) {
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-            $table->foreignId('item_id')->constrained()->onDelete('cascade');
-            $table->unique(['user_id', 'permission_id', 'item_id']);
-            $table->timestamps();
-        });
+        // // Staging: Done
+        // Schema::create('user_item_permission', function (Blueprint $table) {
+        //     $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('permission_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('item_id')->constrained()->onDelete('cascade');
+        //     $table->unique(['user_id', 'permission_id', 'item_id']);
+        //     $table->timestamps();
+        // });
 
-        // Staging: Done
-        Schema::create('role_item_permission', function (Blueprint $table) {
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
-            $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-            $table->foreignId('item_id')->constrained()->onDelete('cascade');
-            $table->unique(['role_id', 'permission_id', 'item_id']);
-            $table->timestamps();
-        });
+        // // Staging: Done
+        // Schema::create('role_item_permission', function (Blueprint $table) {
+        //     $table->foreignId('role_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('permission_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('item_id')->constrained()->onDelete('cascade');
+        //     $table->unique(['role_id', 'permission_id', 'item_id']);
+        //     $table->timestamps();
+        // });
 
-        // Staging: Done
-        Schema::table('reno_progress', function (Blueprint $table) {
-            $table->foreignId('resource_id')->after('contractor_handover_date')->constrained()->onDelete('cascade');
-        });
+        // // Staging: Done
+        // Schema::table('reno_progress', function (Blueprint $table) {
+        //     $table->foreignId('resource_id')->after('contractor_handover_date')->constrained()->onDelete('cascade');
+        //     $table->unsignedBigInteger('permission_id')->default(1)->after('resource_id');
+        // });
     }
 
     public function down()

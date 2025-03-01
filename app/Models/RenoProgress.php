@@ -109,8 +109,18 @@ class RenoProgress extends Model
         return $this->belongsTo(Resource::class, 'resource_id', 'id');
     }
 
-    public function resourceItems()
+    public function resourceItem()
     {
-        return $this->morphMany(ResourceItem::class, 'itemReference');
+        return $this->morphOne(ResourceItem::class, 'item_reference');
+    }
+
+    public function itemPermissions()
+    {
+        return $this->hasOne(ResourceItem::class, 'item_reference_id', 'id')
+            ->where('item_reference_type', RenoProgress::class)
+            ->with(['userPermissions' => function ($query) {
+                $query->withPivot('permission_id')
+                    ->withTimestamps();
+            }]);
     }
 }
