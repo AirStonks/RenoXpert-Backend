@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\OwnerRenoProgressResource;
 use App\Http\Resources\RenoProgressResource;
+use App\Http\Resources\Operation\RenoProgressResource as OperationRenoProgressResource;
 use App\Http\Resources\RenoProgressResourceAdTable;
 use App\Http\Resources\RenoProgressResourceHead;
 use App\Models\RenoProgress;
+use App\Models\ResourceItem;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -176,6 +178,45 @@ class RenoProgressController extends BaseController
         ], 200);
     }
 
+    public function operationIndex(Request $request)
+    {
+        $size = $request->input('size', 5);
+        $search = $request->input('search', '');
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'id');
+
+        $query = RenoProgress::query();
+
+        // Apply search filter if provided
+        if (!empty($search)) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        // Get the authenticated user's ID
+        $userId = Auth::user()->id;
+
+        // Filter RenoProgress records where permission_id is not 1
+        $query->where('permission_id', '!=', 1)
+            ->whereDoesntHave('itemPermissions.userPermissions', function ($q) use ($userId) {
+                $q->where('user_id', $userId)
+                    ->where('user_item_permission.permission_id', 1); // Exclude records where permission_id is 1
+            })->orWhereDoesntHave('itemPermissions'); // Include records with no item permissions
+
+        // Apply sorting and pagination
+        $query->orderBy($sortField, $sortOrder);
+        $renoProgress = $query->paginate($size);
+
+        // Return the response
+        return response()->json([
+            "page" => $renoProgress->currentPage(),
+            "pageCount" => $renoProgress->lastPage(),
+            "sortField" => $sortField,
+            "sortOrder" => $sortOrder,
+            "totalCount" => $renoProgress->total(),
+            "data" => OperationRenoProgressResource::collection($renoProgress, false),
+        ], 200);
+    }
+
 
     // public function retrieveRenoProgresses(Request $request)
     // {
@@ -204,12 +245,30 @@ class RenoProgressController extends BaseController
                 'description' => 'nullable|string|max:500',
             ]);
 
-
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
+            // Create RenoProgress
+            $input['resource_id'] = 1;
+
+            // Default permission_id set to restricted (1)
+            $input['permission_id'] = 1;
+
             $renoProgress = RenoProgress::create($input);
+
+            // Count only ResourceItems with item_name starting with "Progress" for this resource_id
+            $number = ResourceItem::where('resource_id', 1)
+                ->where('item_name', 'like', 'Progress%')
+                ->count() + 1;
+
+            // Create ResourceItem with the next number
+            ResourceItem::create([
+                'resource_id' => 1,
+                'item_reference_id' => $renoProgress->id,
+                'item_reference_type' => 'App\Models\RenoProgress',
+                'item_name' => "Progress{$number}",
+            ]);
 
             return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress added successfully.');
         } catch (\Throwable $th) {

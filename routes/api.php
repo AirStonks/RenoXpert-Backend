@@ -140,7 +140,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/task/{taskId}/comments', [JobTaskController::class, 'changeComments']);
 
 
-    Route::get('/op/reno/progresses', [RenoProgressController::class, 'index']);
+    Route::get('/op/reno/progresses', [RenoProgressController::class, 'operationIndex']);
     
     Route::get('/op/properties', [PropertyController::class, 'getOperationProperties']);
     Route::get('/op/reno/progress/{id}/properties', [RenoProgressController::class, 'getProgressFormDetail']);
