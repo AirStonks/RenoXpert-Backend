@@ -28,18 +28,18 @@ class ResourceItem extends Model
         'deleted_at',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
+    // protected static function boot()
+    // {
+    //     parent::boot();
 
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
+    //     static::creating(function ($model) {
+    //         $model->created_by = auth()->id(); // or your logic to get the user ID
+    //     });
 
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
-    }
+    //     static::updating(function ($model) {
+    //         $model->updated_by = auth()->id(); // or your logic to get the user ID
+    //     });
+    // }
 
     public function resource()
     {

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\DefectInspectionForm;
 use App\Http\Resources\OrderResource;
 use App\Events\SaleStatusUpdated; // Updated event name
+use App\Models\ResourceItem;
 
 class TriggerCreateRenoProgress
 {
@@ -41,7 +42,22 @@ class TriggerCreateRenoProgress
             // Create a new RenoProgress record with 'in_progress' status
             $renoProgress = RenoProgress::create([
                 'sale_id' => $sale->id,
+                'resource_id' => 1,
+                'permission_id' => 1,
                 'status' => 'in_progress',
+            ]);
+
+            // Count only ResourceItems with item_name starting with "Progress" for this resource_id
+            $number = ResourceItem::where('resource_id', 1)
+                ->where('item_name', 'like', 'Progress%')
+                ->count() + 1;
+
+            // Create ResourceItem with the next number
+            ResourceItem::create([
+                'resource_id' => 1,
+                'item_reference_id' => $renoProgress->id,
+                'item_reference_type' => 'App\Models\RenoProgress',
+                'item_name' => "Progress{$number}",
             ]);
 
             $preRenoPhase = ProgressPhase::create([
