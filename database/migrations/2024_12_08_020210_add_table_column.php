@@ -135,9 +135,9 @@ return new class extends Migration
         //     $table->dropColumn('po_id');
         // });
 
-        // Staging: Done
+        // // Staging: Done
         Schema::table('reno_progress', function (Blueprint $table) {
-            $table->foreignId('resource_id')->after('contractor_handover_date')->constrained()->onDelete('cascade');
+            // $table->foreignId('resource_id')->after('contractor_handover_date')->constrained()->onDelete('cascade');
             $table->unsignedBigInteger('permission_id')->default(1)->after('resource_id');
         });
     }
