@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class PurchaseOrder extends Model
+class POPackage extends Model
 {
     use SoftDeletes;
     use HasFactory;
+
+    protected $table = 'po_packages';
 
     /**
      * The attributes that are mass assignable.
@@ -17,20 +19,19 @@ class PurchaseOrder extends Model
      * @var array
      */
     protected $fillable = [
-        'po_no',
-        'sale_id',
-        'vendor_id',
-        'total_amount',
-        'shipping_date',
-        'shipped_date',
-        'delivery_date',
-        'delivered_date',
-        'payment_status',
-        'order_status',
+        'po_id',
+        'package_id',
+        'name',
         'description',
-        'internal_note',
+        'description_internal',
+        'category',
+        'quantity',
+        'total_price',
+        'status',
         'created_by',
         'updated_by',
+        'archived_at',
+        'archived_by',
         'deleted_at',
     ];
 
@@ -47,16 +48,13 @@ class PurchaseOrder extends Model
         });
     }
 
-    public function sale() {
-        return $this->belongsTo(Sale::class, 'sale_id', 'id');
-    }
-
-    public function vendor() {
-        return $this->belongsTo(User::class, 'vendor_id', 'id');
-    }
-
-    public function poPackages()
+    public function purchaseOrder()
     {
-        return $this->hasMany(POPackage::class, 'po_id', 'id');
+        return $this->belongsTo(PurchaseOrder::class, 'po_id', 'id');
+    }
+
+    public function poItems()
+    {
+        return $this->hasMany(POItem::class, 'po_package_id', 'id');
     }
 }

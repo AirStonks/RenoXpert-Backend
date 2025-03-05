@@ -58,7 +58,7 @@ return new class extends Migration
         // Schema::create('resource_items', function (Blueprint $table) {
         //     $table->id();
         //     $table->foreignId('resource_id')->constrained()->onDelete('cascade');
-        //     $table->foreignId('item_reference_id')->constrained()->onDelete('cascade');
+        //     $table->unsignedBigInteger('item_reference_id');
         //     $table->string('item_reference_type');
         //     $table->string('item_name');
         //     $table->timestamps();
@@ -95,18 +95,44 @@ return new class extends Migration
         // Schema::create('user_item_permission', function (Blueprint $table) {
         //     $table->foreignId('user_id')->constrained()->onDelete('cascade');
         //     $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-        //     $table->foreignId('item_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('item_id')->constrained('resource_items')->onDelete('cascade');
         //     $table->unique(['user_id', 'permission_id', 'item_id']);
         //     $table->timestamps();
         // });
 
         // // Staging: Done
         // Schema::create('role_item_permission', function (Blueprint $table) {
-        //     $table->foreignId('role_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
         //     $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-        //     $table->foreignId('item_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('item_id')->constrained('resource_items')->onDelete('cascade');
         //     $table->unique(['role_id', 'permission_id', 'item_id']);
         //     $table->timestamps();
+        // });
+
+        // // Staging: Done
+        // Schema::create('po_packages', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->foreignId('po_id')->constrained('purchase_orders')->onDelete('cascade');
+        //     $table->string('name')->nullable();
+        //     $table->string('description')->nullable();
+        //     $table->string('description_internal')->nullable();
+        //     $table->string('category')->nullable();
+        //     $table->integer('quantity')->default(1);
+        //     $table->double('total_price')->nullable();
+        //     $table->string('status')->nullable()->default('pending');
+        //     $table->unsignedBigInteger('created_by')->nullable();
+        //     $table->unsignedBigInteger('updated_by')->nullable();
+        //     $table->timestamps();
+        //     $table->softDeletes();
+        // });
+
+        // // Staging: Done
+        // Schema::table('po_items', function (Blueprint $table) {
+        //     $table->foreignId('po_package_id')->after('po_id')->constrained()->onDelete('cascade');
+        //     $table->double('install_price')->nullable()->after('install');
+        //     $table->double('supply_price')->nullable()->after('supply');
+        //     $table->string('uom')->nullable()->after('qty');
+        //     $table->dropColumn('po_id');
         // });
 
         // // Staging: Done

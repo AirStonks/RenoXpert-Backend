@@ -28,14 +28,14 @@ class PurchaseOrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // includeItems = true will return the items as well
         $data = [
             'id' => $this->id,
             'po_no' => $this->po_no,
             'sale_id' => $this->sale_id,
             'sale' => $this->sale,
             'vendor_id' => $this->vendor_id,
-            'vendor' => $this->vendor,
+            'vendor' => $this->vendor()->with('address')->first(),
+            'po_packages' => $this->poPackages()->with('poItems')->get(),
             'total_amount' => $this->total_amount,
             'shipping_date' => $this->shipping_date ? $this->shipping_date->format('d/m/Y') : null,
             'shipped_date' => $this->shipped_date ? $this->shipped_date->format('d/m/Y') : null,
@@ -50,11 +50,6 @@ class PurchaseOrderResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-
-        // Conditionally include the items based on $includeItems flag
-        if ($this->includeItems) {
-            $data['items'] = $this->poItems;
-        }
 
         return $data;
     }

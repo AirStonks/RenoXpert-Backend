@@ -19,14 +19,17 @@ class POItem extends Model
      * @var array
      */
     protected $fillable = [
-        'po_id',
+        'po_package_id',
         'product_id',
         'product_name',
         'product_desc',
         'sku',
         'qty',
+        'uom',
         'supply',
         'install',
+        'supply_price',
+        'install_price',
         'unit_price',
         'total_price',
         'status',
@@ -53,8 +56,8 @@ class POItem extends Model
         });
     }
 
-    public function purchaseOrder()
+    public function poPackage()
     {
-        return $this->belongsTo(PurchaseOrder::class, 'po_id', 'id');
+        return $this->belongsTo(POPackage::class, 'po_package_id', 'id');
     }
 }
