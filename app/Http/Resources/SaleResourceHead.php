@@ -20,9 +20,7 @@ class SaleResourceHead extends JsonResource
             'id' => $this->id,
             'sales_no' => $this->sales_no,
             'order_id' => $this->order_id,
-            'order' => [
-                'order_no' => $this->order->order_no
-            ],
+            'order' => new OrderResource($this->order),
             // 'reno_progress' => new RenoProgressResource($this->renoProgress),
             'reno_progress_id' => $this->renoProgress ? $this->renoProgress->id : null,
             'user_id' => $this->user_id,
