@@ -19,7 +19,8 @@ class PurchaseOrderResourceHead extends JsonResource
             'po_no' => $this->po_no,
             'sale_id' => $this->sale_id,
             'sale' => [
-                'sales_no' => $this->sale->sales_no
+                'sales_no' => $this->sale->sales_no,
+                'order' => new OrderResource($this->sale->order),
             ],
             'vendor_id' => $this->vendor_id,
             'total_amount' => $this->total_amount,
