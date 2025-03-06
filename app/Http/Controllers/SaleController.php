@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\SaleResource;
+use App\Http\Resources\SaleResourceHead;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 
@@ -36,7 +37,7 @@ class SaleController extends BaseController
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
             "totalCount" => $sales->total(),  // Total number of items
-            "data" => SaleResource::collection($sales) // Transformed product data
+            "data" => $request->input('head') === 'true' ? SaleResourceHead::collection($sales) : SaleResource::collection($sales) // Transformed product data
         ];
 
         return response()->json($response, 200);

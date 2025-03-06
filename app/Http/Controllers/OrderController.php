@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use App\Http\Resources\OrderResource;
+use App\Http\Resources\OrderResourceHead;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
@@ -73,7 +74,7 @@ class OrderController extends BaseController
             "sortField" => !empty($filter) ? 'order_no' : $sortField, // Sorting field
             "sortOrder" => !empty($filter) ? 'asc' : $sortOrder, // Sorting order
             "totalCount" => $orders->total(),   // Total number of items
-            "data" => OrderResource::collection($orders) // Transformed order data
+            "data" => $request->input('head') === 'true' ? OrderResourceHead::collection($orders) : OrderResource::collection($orders) // Transformed order data
         ];
 
         return response()->json($response, 200);

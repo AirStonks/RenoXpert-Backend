@@ -329,6 +329,25 @@ class DefectInspectionFormController extends BaseController
         return $this->sendResponse(new DefectInspectionFormResource($diForm), 'QC Form retrieved successfully.');
     }
 
+    public function markAsCompleted($id)
+    {
+        $diForm = DefectInspectionForm::find($id);
+        $renoProgress = $diForm->renoProgress;
+        $diTask = $renoProgress->progressPhases[0]->jobs[1]->tasks[0];
+
+        if (is_null($diForm)) {
+            return $this->sendError('Form not found.');
+        }
+
+        $diForm->status = 'completed';
+        $diForm->save();
+
+        $diTask->status = 'completed';
+        $diTask->save();
+
+        return $this->sendResponse(new DefectInspectionFormResource($diForm), 'QC Form retrieved successfully.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */

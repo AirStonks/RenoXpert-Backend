@@ -25,9 +25,6 @@ class OrderResourceHead extends JsonResource
 
         $latestQuotation = $orderQuotations->first(); // Get the latest quotation from sorted collection
 
-        // Remove the latest quotation from the collection
-        $orderQuotations = $orderQuotations->slice(1);
-
         return [
             'id' => $this->id,
             'order_no' => $this->order_no,
@@ -53,11 +50,14 @@ class OrderResourceHead extends JsonResource
                 'state' => $this->property->state,
                 'description' => $this->property->description,
             ] : null,
-            'sale' => new OwnerSaleResource($this->sale),
+            // 'sale' => new OwnerSaleResource($this->sale),
             'bedroom_count' => $this->bedroom_count,
             'bathroom_count' => $this->bathroom_count,
             'include_partition' => $this->include_partition ? true : false,
-            'latest_quotation' => $latestQuotation ? new OrderQuotationResource($latestQuotation) : null,
+            'latest_quotation' => $latestQuotation ? [
+                'id' => $latestQuotation->id,
+                'bonus' => json_decode($latestQuotation->bonus),
+            ] : null,
             // 'latest_quotation' => $latestQuotation ? $latestQuotation : null,
             'unit_type' => $this->unit_type,
             'block' => $this->block,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\PurchaseOrderResource;
+use App\Http\Resources\PurchaseOrderResourceHead;
 use App\Models\Inventory;
 use App\Models\POItem;
 use App\Models\POPackage;
@@ -30,24 +31,22 @@ class PurchaseOrderController extends BaseController
         if (!empty($search)) {
             $query->where(function ($query) use ($search) {
                 // Search across individual fields
-                $query->where('po_no', 'like', '%' . $search . '%')
-                    ->orWhere('product_name', 'like', '%' . $search . '%')
-                    ->orWhere('sku', 'like', '%' . $search . '%');
+                $query->where('po_no', 'like', '%' . $search . '%');
             });
         }
 
         // Paginate the results
-        $form = $query->paginate($size);
+        $po = $query->paginate($size);
 
 
         // Custom response to fit with Tailwind DataTable JSON format
         $response = [
-            "page" => $form->currentPage(),  // Current page number
-            "pageCount" => $form->lastPage(), // Total number of pages
+            "page" => $po->currentPage(),  // Current page number
+            "pageCount" => $po->lastPage(), // Total number of pages
             "sortField" => null,                 // Sorting field, if applicable
             "sortOrder" => null,                 // Sorting order, if applicable
-            "totalCount" => $form->total(),  // Total number of items
-            "data" => PurchaseOrderResource::collection($form->items()) // Transformed property data
+            "totalCount" => $po->total(),  // Total number of items
+            "data" => $request->input('head') === 'true' ? PurchaseOrderResourceHead::collection($po) : PurchaseOrderResource::collection($po)
         ];
 
         return response()->json($response, 200);

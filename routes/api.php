@@ -193,6 +193,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('quotations/{id}/restore', [QuotationController::class, 'restoreQuotation']);
     Route::get('quotations/index/archived', [QuotationController::class, 'indexArchived']);
 
+    Route::get('defect-inspection-forms/{id}/completed', [DefectInspectionFormController::class, 'markAsCompleted']);
+
     Route::get('key-management/{keyManagementId}/{category}/add', [KeyManagementController::class, 'addCategoryItem']);
     Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/name', [KeyManagementController::class, 'changeKeyManagementItemName']);
     Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/remark', [KeyManagementController::class, 'changeKeyManagementItemRemark']);
