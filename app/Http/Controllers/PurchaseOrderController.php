@@ -85,7 +85,7 @@ class PurchaseOrderController extends BaseController
                         'name' => $packageData['name'],
                         'description' => $packageData['description'] ?? null,
                         'description_internal' => $packageData['description_internal'] ?? null,
-                        'category' => $packageData['category'],
+                        'category' => $packageData['category'] ?? null,
                         'quantity' => $packageData['quantity'],
                         'total_price' => $packageData['total_price'],
                     ]);
@@ -98,7 +98,7 @@ class PurchaseOrderController extends BaseController
                                 'product_id' => $itemData['product_id'],
                                 'product_name' => $itemData['product_name'],
                                 'qty' => $itemData['qty'],
-                                'uom' => $itemData['uom'],
+                                'uom' => $itemData['uom'] ?? null,
                                 'supply' => $itemData['supply'],
                                 'install' => $itemData['install'],
                                 'supply_price' => $itemData['supply_price'],
