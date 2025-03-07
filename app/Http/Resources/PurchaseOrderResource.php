@@ -18,7 +18,11 @@ class PurchaseOrderResource extends JsonResource
             'id' => $this->id,
             'po_no' => $this->po_no,
             'sale_id' => $this->sale_id,
-            'sale' => $this->sale,
+            'sale' => [
+                'id' => $this->sale->id,
+                'sales_no' => $this->sale->sales_no,
+                'order' => new OrderResource($this->sale->order),
+            ],
             'vendor_id' => $this->vendor_id,
             'vendor' => $this->vendor()->with('address')->first(),
             'po_packages' => $this->poPackages()->with('poItems')->get(),
