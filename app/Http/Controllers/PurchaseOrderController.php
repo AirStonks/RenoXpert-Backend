@@ -238,9 +238,12 @@ class PurchaseOrderController extends BaseController
                 ->pluck('id')
                 ->all();
 
+            // Track new package IDs
+            $newPackageIds = [];
+
             // Step 4: Process each input package with sequence
             foreach ($inputPackages as $index => $packageData) {
-                $sequence = $index + 1; // Sequence starts at 1
+                $sequence = $index + 1;
 
                 if (isset($packageData['id']) && $packageData['id']) {
                     // Existing package: update it
@@ -251,7 +254,6 @@ class PurchaseOrderController extends BaseController
                             ['sequence' => $sequence]
                         ));
                     } else {
-                        // Skip if package not found
                         continue;
                     }
                 } else {
@@ -262,6 +264,7 @@ class PurchaseOrderController extends BaseController
                             'sequence' => $sequence,
                         ])
                     );
+                    $newPackageIds[] = $package->id; // Add new package ID
                 }
 
                 // Step 5: Handle items for this package with sequence
@@ -271,8 +274,10 @@ class PurchaseOrderController extends BaseController
                     ->pluck('id')
                     ->all();
 
+                $newItemIds = []; // Track new item IDs
+
                 foreach ($inputItems as $itemIndex => $itemData) {
-                    $itemSequence = $itemIndex + 1; // Sequence starts at 1
+                    $itemSequence = $itemIndex + 1;
 
                     if (isset($itemData['id']) && $itemData['id']) {
                         // Existing item: update it
@@ -285,24 +290,27 @@ class PurchaseOrderController extends BaseController
                         }
                     } else {
                         // New item: create it
-                        POItem::create(
+                        $item = POItem::create(
                             array_merge($itemData, [
                                 'po_package_id' => $package->id,
                                 'sequence' => $itemSequence,
                             ])
                         );
+                        $newItemIds[] = $item->id; // Add new item ID
                     }
                 }
 
                 // Step 6: Remove items not in the input (soft delete)
+                $allItemIds = array_merge($inputItemIds, $newItemIds); // Include new IDs
                 POItem::where('po_package_id', $package->id)
-                    ->whereNotIn('id', $inputItemIds)
+                    ->whereNotIn('id', $allItemIds)
                     ->delete();
             }
 
             // Step 7: Remove packages not in the input (soft delete)
+            $allPackageIds = array_merge($inputPackageIds, $newPackageIds);
             POPackage::where('po_id', $purchaseOrder->id)
-                ->whereNotIn('id', $inputPackageIds)
+                ->whereNotIn('id', $allPackageIds)
                 ->delete();
         });
 
@@ -312,8 +320,6 @@ class PurchaseOrderController extends BaseController
             'Purchase Order updated successfully.'
         );
     }
-
-
 
     /**
      * Remove the specified resource from storage.

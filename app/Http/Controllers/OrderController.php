@@ -102,6 +102,8 @@ class OrderController extends BaseController
     {
         try {
             $input = $request->all();
+            
+            return $this->sendError('test', $input['metadata']);
 
             // Validate the input
             $validator = Validator::make($input, [
@@ -306,6 +308,8 @@ class OrderController extends BaseController
     {
         try {
             $input = $request->all();
+
+            return $this->sendError('test', $input['metadata']);
 
             $validator = Validator::make($input, [
                 'user_id' => 'nullable|numeric|max:255',
