@@ -18,11 +18,12 @@ class PurchaseOrderResourceHead extends JsonResource
             'id' => $this->id,
             'po_no' => $this->po_no,
             'sale_id' => $this->sale_id,
-            'sale' => [
+            'sale' => $this->sale ? [
                 'sales_no' => $this->sale->sales_no,
                 'order' => new OrderResource($this->sale->order),
-            ],
+            ] : null,
             'vendor_id' => $this->vendor_id,
+            'vendor' => $this->vendor,
             'total_amount' => $this->total_amount,
             'shipping_date' => $this->shipping_date ? $this->shipping_date->format('d/m/Y') : null,
             'shipped_date' => $this->shipped_date ? $this->shipped_date->format('d/m/Y') : null,

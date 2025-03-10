@@ -11,6 +11,8 @@ class PurchaseOrder extends Model
     use SoftDeletes;
     use HasFactory;
 
+    protected $with = ['poPackages'];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -47,11 +49,13 @@ class PurchaseOrder extends Model
         });
     }
 
-    public function sale() {
+    public function sale()
+    {
         return $this->belongsTo(Sale::class, 'sale_id', 'id');
     }
 
-    public function vendor() {
+    public function vendor()
+    {
         return $this->belongsTo(User::class, 'vendor_id', 'id');
     }
 

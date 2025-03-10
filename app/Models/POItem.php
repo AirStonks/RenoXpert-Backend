@@ -40,6 +40,7 @@ class POItem extends Model
         'created_by',
         'updated_by',
         'deleted_at',
+        'sequence',
     ];
 
 

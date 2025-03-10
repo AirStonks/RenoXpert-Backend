@@ -12,6 +12,7 @@ class POPackage extends Model
     use HasFactory;
 
     protected $table = 'po_packages';
+    protected $with = ['poItems'];
 
     /**
      * The attributes that are mass assignable.
@@ -33,6 +34,7 @@ class POPackage extends Model
         'archived_at',
         'archived_by',
         'deleted_at',
+        'sequence',
     ];
 
     protected static function boot()

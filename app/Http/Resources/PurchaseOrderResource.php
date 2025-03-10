@@ -18,14 +18,20 @@ class PurchaseOrderResource extends JsonResource
             'id' => $this->id,
             'po_no' => $this->po_no,
             'sale_id' => $this->sale_id,
-            'sale' => [
+            'sale' => $this->sale ? [
                 'id' => $this->sale->id,
                 'sales_no' => $this->sale->sales_no,
                 'order' => new OrderResource($this->sale->order),
-            ],
+            ] : null,
             'vendor_id' => $this->vendor_id,
-            'vendor' => $this->vendor()->with('address')->first(),
-            'po_packages' => $this->poPackages()->with('poItems')->get(),
+            // 'vendor' => $this->vendor()->with('address')->first(),
+            'vendor' => $this->vendor,
+            'po_packages' => $this->poPackages()
+                ->with(['poItems' => function ($query) {
+                    $query->orderBy('sequence', 'asc');
+                }])
+                ->orderBy('sequence', 'asc')
+                ->get(),
             'total_amount' => $this->total_amount,
             'shipping_date' => $this->shipping_date ? $this->shipping_date->format('d/m/Y') : null,
             'shipped_date' => $this->shipped_date ? $this->shipped_date->format('d/m/Y') : null,
