@@ -102,8 +102,6 @@ class OrderController extends BaseController
     {
         try {
             $input = $request->all();
-            
-            return $this->sendError('test', $input['metadata']);
 
             // Validate the input
             $validator = Validator::make($input, [
