@@ -309,8 +309,6 @@ class OrderController extends BaseController
         try {
             $input = $request->all();
 
-            return $this->sendError('test', $input['metadata']);
-
             $validator = Validator::make($input, [
                 'user_id' => 'nullable|numeric|max:255',
                 'property_id' => 'nullable|numeric|min:0',
