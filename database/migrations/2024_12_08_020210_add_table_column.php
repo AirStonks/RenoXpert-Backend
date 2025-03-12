@@ -29,17 +29,9 @@ return new class extends Migration
         //     $table->softDeletes();
         // });
 
-        // // Staging: Done
-        // Schema::table('po_packages', function (Blueprint $table) {
-        //     $table->unsignedBigInteger('package_id')->nullable()->after('po_id');
-        // });
-
+        // Staging: Done
         Schema::table('po_packages', function (Blueprint $table) {
-            $table->unsignedInteger('sequence')->default(0)->after('id');
-        });
-
-        Schema::table('po_items', function (Blueprint $table) {
-            $table->unsignedInteger('sequence')->default(0)->after('id');
+            $table->unsignedBigInteger('package_id')->nullable()->after('po_id');
         });
     }
 
