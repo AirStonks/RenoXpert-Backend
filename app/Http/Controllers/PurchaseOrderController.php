@@ -19,6 +19,8 @@ class PurchaseOrderController extends BaseController
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
+
         // Retrieve the size parameter from the request with a default value of 5
         $size = $request->input('size', 5);
 
@@ -27,6 +29,12 @@ class PurchaseOrderController extends BaseController
 
         // Build the query to retrieve property
         $query = PurchaseOrder::query();
+
+        // Filter out unreleased POs for backend-vendor users
+        if ($user->type === 'backend-vendor') {
+            $query->where('order_status', '!=', 'unreleased')
+                ->where('vendor_id', $user->id);
+        }
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {
@@ -38,7 +46,6 @@ class PurchaseOrderController extends BaseController
 
         // Paginate the results
         $po = $query->paginate($size);
-
 
         // Custom response to fit with Tailwind DataTable JSON format
         $response = [
@@ -201,10 +208,23 @@ class PurchaseOrderController extends BaseController
      */
     public function show($id)
     {
-        $po = PurchaseOrder::find($id);
+        $user = auth()->user();
 
-        if (is_null($po)) {
-            return $this->sendError('Purchase Order not found.');
+        // If the user->type is backend-vendor, retrieve the po if the po->order_status != unreleased 
+        if ($user->type === 'backend-vendor') {
+            $po = PurchaseOrder::where('id', $id)
+                ->where('order_status', '!=', 'unreleased')
+                ->first();
+
+            if (is_null($po)) {
+                return $this->sendError('Purchase Order not found.');
+            }
+        } else {
+            $po = PurchaseOrder::find($id);
+
+            if (is_null($po)) {
+                return $this->sendError('Purchase Order not found.');
+            }
         }
 
         return $this->sendResponse(new PurchaseOrderResource($po, true), 'Purchase Order retrieved successfully.');
@@ -321,6 +341,34 @@ class PurchaseOrderController extends BaseController
             $purchaseOrder->fresh()->load('poPackages.poItems'),
             'Purchase Order updated successfully.'
         );
+    }
+
+    public function acceptPO($id)
+    {
+        $po = PurchaseOrder::find($id);
+
+        if (is_null($po)) {
+            return $this->sendError('Purchase Order not found.');
+        }
+
+        $po->order_status = 'accepted';
+        $po->save();
+
+        return $this->sendResponse(new PurchaseOrderResource($po, true), 'Purchase Order accepted successfully.');
+    }
+
+    public function rejectPO($id)
+    {
+        $po = PurchaseOrder::find($id);
+
+        if (is_null($po)) {
+            return $this->sendError('Purchase Order not found.');
+        }
+
+        $po->order_status = 'rejected';
+        $po->save();
+
+        return $this->sendResponse(new PurchaseOrderResource($po, true), 'Purchase Order rejected successfully.');
     }
 
     /**

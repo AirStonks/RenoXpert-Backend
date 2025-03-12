@@ -178,6 +178,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reno-progress/{id}/task/{taskId}/visibility/toggle', [JobTaskController::class, 'toggleTaskVisibility']);
 
     Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);
+    Route::get('/purchase-orders/{id}/order/status/accepted', [PurchaseOrderController::class, 'acceptPO']);
+    Route::get('/purchase-orders/{id}/order/status/rejected', [PurchaseOrderController::class, 'rejectPO']);
 
     Route::post('/products/{id}/attachments/thumbnail/change', [ProductController::class, 'changeThumbnail']);
     Route::get('/products/{id}/attachments/photos/{photoIndex}/remove', [ProductController::class, 'removeProductPhoto']);
