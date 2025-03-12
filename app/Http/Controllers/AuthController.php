@@ -82,7 +82,7 @@ class AuthController extends BaseController
             if ($user->type === 'owner') {
                 $success['token'] = $user->createToken('OwnerSite')->plainTextToken;
                 $success['name'] = $user->name;
-            } elseif ($user->type === 'staff' || $user->type === 'admin' || $user->type === 'super-admin') {
+            } elseif ($user->type === 'staff' || $user->type === 'admin' || $user->type === 'super-admin' || 'backend-vendor') {
                 $success['token'] = $user->createToken('StaffSite')->plainTextToken;
                 $success['name'] = $user->name;
             }
@@ -156,6 +156,36 @@ class AuthController extends BaseController
             } else {
                 return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
             }
+        } else {
+            return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
+        }
+    }
+
+    public function vendorLogin(Request $request): JsonResponse
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        // Attempt login
+        if (Auth::attempt($request->only('email', 'password'))) {
+            $user = Auth::user();
+
+            if ($user->type === 'owner') {
+                $success['token'] = $user->createToken('OwnerSite')->plainTextToken;
+                $success['name'] = $user->name;
+            } elseif ($user->type === 'staff' || $user->type === 'admin' || $user->type === 'super-admin' || 'backend-vendor') {
+                $success['token'] = $user->createToken('StaffSite')->plainTextToken;
+                $success['name'] = $user->name;
+            }
+
+            return $this->sendResponse($success, 'User logged in successfully.');
         } else {
             return $this->sendError('Unauthorised.', ['error' => 'Invalid credentials']);
         }

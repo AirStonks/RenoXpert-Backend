@@ -74,6 +74,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('owner/staff/login', 'staffLoginToOwner');
     Route::post('operation/login', 'operationLogin');
     Route::post('credential/verify', 'isAuthenticated');
+    Route::post('vendor/login', 'vendorLogin');
 });
 
 Route::middleware('auth:sanctum')->group(function () {
