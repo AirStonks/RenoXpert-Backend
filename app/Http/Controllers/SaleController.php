@@ -25,18 +25,32 @@ class SaleController extends BaseController
 
         // Apply search filter if a search term is provided
         if (!empty($search)) {
-            $query->where('sales_no', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+            $query->where(function ($query) use ($search) {
+                $query->where('sales_no', 'like', '%' . $search . '%')
+                    ->orWhereHas('order', function ($q) use ($search) {
+                        // Search in property relationship
+                        $q->whereHas('property', function ($q2) use ($search) {
+                            $q2->where('name', 'like', '%' . $search . '%');
+                        })
+                            // Search in user relationship
+                            ->orWhereHas('user', function ($q2) use ($search) {
+                                $q2->where('name_first', 'like', '%' . $search . '%')
+                                    ->orWhere('name_last', 'like', '%' . $search . '%')
+                                    ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%']);
+                            });
+                    });
+            });
         }
 
         $sales = $query->paginate($size);
 
-        // Custome response to fit with Tailwind DataTable JSON format
+        // Custom response to fit with Tailwind DataTable JSON format
         $response = [
             "page" => $sales->currentPage(),  // Current page number
             "pageCount" => $sales->lastPage(), // Total number of pages
-            "sortField" => null,                 // Sorting field, if applicable
-            "sortOrder" => null,                 // Sorting order, if applicable
-            "totalCount" => $sales->total(),  // Total number of items
+            "sortField" => null,                // Sorting field, if applicable
+            "sortOrder" => null,                // Sorting order, if applicable
+            "totalCount" => $sales->total(),    // Total number of items
             "data" => $request->input('head') === 'true' ? SaleResourceHead::collection($sales) : SaleResource::collection($sales) // Transformed product data
         ];
 
