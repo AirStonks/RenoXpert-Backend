@@ -95,8 +95,10 @@ class PurchaseOrderController extends BaseController
             }
 
             // Step 2: Generate PO number
-            $lastPOId = PurchaseOrder::max('id') ?? 0;
-            $input['po_no'] = 'RPO-' . now()->format('y') . str_pad($lastPOId + 1, 5, '0', STR_PAD_LEFT);
+            $lastPO = PurchaseOrder::orderBy('po_no', 'desc')->first(); // Get the latest PO by po_no
+            $lastNumber = $lastPO ? (int) substr($lastPO->po_no, -5) : 0; // Extract the last 5 digits or default to 0
+            $input['po_no'] = 'RPO-' . now()->format('y') . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+
 
             // Step 3: Calculate total amount
             $totalAmount = $this->calculateTotalAmount($input['po_packages'] ?? []);

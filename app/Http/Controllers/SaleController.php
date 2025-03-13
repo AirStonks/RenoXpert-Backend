@@ -14,25 +14,21 @@ class SaleController extends BaseController
      */
     public function index(Request $request)
     {
-        // Retrieve the size parameter from the request with a default value of 10
         $size = $request->input('size', 10);
-
-        // Retrieve the search term from the request
         $search = $request->input('search', '');
+        $sortField = $request->input('sortField', '');
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $filters = $request->input('filter', []); // Get all filter parameters
 
-        // Build the query to retrieve product categories
         $query = Sale::query();
 
-        // Apply search filter if a search term is provided
         if (!empty($search)) {
             $query->where(function ($query) use ($search) {
                 $query->where('sales_no', 'like', '%' . $search . '%')
                     ->orWhereHas('order', function ($q) use ($search) {
-                        // Search in property relationship
                         $q->whereHas('property', function ($q2) use ($search) {
                             $q2->where('name', 'like', '%' . $search . '%');
                         })
-                            // Search in user relationship
                             ->orWhereHas('user', function ($q2) use ($search) {
                                 $q2->where('name_first', 'like', '%' . $search . '%')
                                     ->orWhere('name_last', 'like', '%' . $search . '%')
@@ -42,20 +38,43 @@ class SaleController extends BaseController
             });
         }
 
+        // Apply multiple filters
+        if (!empty($filters)) {
+            foreach ($filters as $field => $value) {
+                if ($field === 'property_id') {
+                    $query->whereHas('order', function ($q) use ($value) {
+                        $q->whereHas('property', function ($q2) use ($value) {
+                            $q2->where('id', $value);
+                        });
+                    });
+                } elseif ($field === 'user_id') { // Example additional filter
+                    $query->whereHas('order', function ($q) use ($value) {
+                        $q->where('user_id', $value);
+                    });
+                } else {
+                    $query->where($field, $value); // Direct fields on Sale model
+                }
+            }
+            $query->orderBy('sales_no', 'asc');
+        } elseif (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
         $sales = $query->paginate($size);
 
-        // Custom response to fit with Tailwind DataTable JSON format
         $response = [
-            "page" => $sales->currentPage(),  // Current page number
-            "pageCount" => $sales->lastPage(), // Total number of pages
-            "sortField" => null,                // Sorting field, if applicable
-            "sortOrder" => null,                // Sorting order, if applicable
-            "totalCount" => $sales->total(),    // Total number of items
-            "data" => $request->input('head') === 'true' ? SaleResourceHead::collection($sales) : SaleResource::collection($sales) // Transformed product data
+            "page" => $sales->currentPage(),
+            "pageCount" => $sales->lastPage(),
+            "sortField" => $sortField,
+            "sortOrder" => $sortOrder,
+            "totalCount" => $sales->total(),
+            "data" => $request->input('head') === 'true' ? SaleResourceHead::collection($sales) : SaleResource::collection($sales)
         ];
 
         return response()->json($response, 200);
     }
+
+
 
     /**
      * Store a newly created resource in storage.
