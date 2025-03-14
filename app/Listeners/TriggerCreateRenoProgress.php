@@ -495,6 +495,7 @@ class TriggerCreateRenoProgress
                     ['name' => 'main_door_key', 'remark' => '', 'value' => []],
                     ['name' => 'room_door_key', 'remark' => '', 'value' => []],
                     ['name' => 'yard_door_key', 'remark' => '', 'value' => []],
+                    ['name' => 'grill_door_key', 'remark' => '', 'value' => []],
                     ['name' => 'mailbox_key', 'remark' => '', 'value' => []],
                     ['name' => 'ac_ledge_key', 'remark' => '', 'value' => []],
                     ['name' => 'ac_remote', 'remark' => '', 'value' => []],

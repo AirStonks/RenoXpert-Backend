@@ -206,6 +206,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/photo', [KeyManagementController::class, 'changeKeyManagementItemPhoto']);
     Route::get('key-management/{keyManagementId}/{category}/remove/{itemIndex}', [KeyManagementController::class, 'removeKeyManagementItem']);
     Route::post('key-management/{keyManagementId}/info/update', [KeyManagementController::class, 'updateKeyManagementInfo']);
+    Route::post('key-management/{keyManagementId}/quantity/update', [KeyManagementController::class, 'updateKeyCategoryQuantity']);
 
     Route::post('resource-items/add/user/permission', [ResourceItemController::class, 'createUserPermission']);
     Route::post('resource-items/{userId}/{itemId}/permission', [ResourceItemController::class, 'changeUserPermission']);

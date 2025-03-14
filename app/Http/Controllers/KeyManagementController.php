@@ -37,6 +37,7 @@ class KeyManagementController extends BaseController
             'main_door_key',
             'room_door_key',
             'yard_door_key',
+            'grill_door_key',
             'mailbox_key',
             'ac_ledge_key',
             'ac_remote',
@@ -102,6 +103,7 @@ class KeyManagementController extends BaseController
             'main_door_key',
             'room_door_key',
             'yard_door_key',
+            'grill_door_key',
             'mailbox_key',
             'ac_ledge_key',
             'ac_remote',
@@ -181,6 +183,50 @@ class KeyManagementController extends BaseController
         return $this->sendResponse(new KeyManagementResource($keyManagement), 'Key Management updated successfully.');
     }
 
+    public function updateKeyCategoryQuantity($keyManagementId, Request $request)
+    {
+        $input = $request->all();
+        $category = $input['category'];
+
+        $keyMgnt = KeyManagement::find($keyManagementId);
+
+        $allCategory = [
+            'ori_acc_card',
+            'dup_acc_card',
+            'car_acc_card',
+            'main_door_key',
+            'room_door_key',
+            'yard_door_key',
+            'grill_door_key',
+            'mailbox_key',
+            'ac_ledge_key',
+            'ac_remote',
+            'others',
+        ];
+
+        // Validate if category exists
+        if (!in_array($category, $allCategory)) {
+            return $this->sendError('Invalid category.');
+        }
+
+        // Get metadata and decode if it's a JSON string
+        $updatedMetadata = json_decode($keyMgnt->metadata, true);
+
+        // Find and update the matching category
+        foreach ($updatedMetadata as &$item) {
+            if ($item['name'] === $category) {
+                $item['quantity'] = $request->quantity;
+                break;
+            }
+        }
+
+        // Encode back to JSON string
+        $keyMgnt->metadata = json_encode($updatedMetadata);
+        $keyMgnt->save();
+
+        return $this->sendResponse($updatedMetadata, 'Key Management updated successfully.');
+    }
+
     public function changeKeyManagementItemName($renoProgressId, $category, $itemIndex, Request $request)
     {
         $keyManagement = KeyManagement::find($renoProgressId);
@@ -191,6 +237,7 @@ class KeyManagementController extends BaseController
             'main_door_key',
             'room_door_key',
             'yard_door_key',
+            'grill_door_key',
             'mailbox_key',
             'ac_ledge_key',
             'ac_remote',
@@ -234,6 +281,7 @@ class KeyManagementController extends BaseController
             'main_door_key',
             'room_door_key',
             'yard_door_key',
+            'grill_door_key',
             'mailbox_key',
             'ac_ledge_key',
             'ac_remote',
@@ -277,6 +325,7 @@ class KeyManagementController extends BaseController
             'main_door_key',
             'room_door_key',
             'yard_door_key',
+            'grill_door_key',
             'mailbox_key',
             'ac_ledge_key',
             'ac_remote',
@@ -353,6 +402,7 @@ class KeyManagementController extends BaseController
             'main_door_key',
             'room_door_key',
             'yard_door_key',
+            'grill_door_key',
             'mailbox_key',
             'ac_ledge_key',
             'ac_remote',
