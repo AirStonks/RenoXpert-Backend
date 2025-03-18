@@ -37,9 +37,16 @@ class Order extends Model
         'internal_remark',
         'completion_day',
         'status',
+        'released_at',
+        'confirmed_at',
         'created_by',
         'updated_by',
         'deleted_at',
+    ];
+
+    protected $casts = [
+        'released_at' => 'datetime',
+        'confirmed_at' => 'datetime',
     ];
 
     protected static function boot()

@@ -30,8 +30,9 @@ return new class extends Migration
         // });
 
         
-        Schema::table('po_packages', function (Blueprint $table) {
-            $table->unsignedBigInteger('package_id')->nullable()->after('po_id');
+        // Staging: Done
+        Schema::table('orders', function (Blueprint $table) {
+            $table->timestamp('released_at')->nullable()->after('status');
         });
     }
 

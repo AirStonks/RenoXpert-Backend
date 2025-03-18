@@ -142,7 +142,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::get('/op/reno/progresses', [RenoProgressController::class, 'operationIndex']);
-    
+
     Route::get('/op/properties', [PropertyController::class, 'getOperationProperties']);
     Route::get('/op/reno/progress/{id}/properties', [RenoProgressController::class, 'getProgressFormDetail']);
     Route::get('/op/reno/progress/{id}', [RenoProgressController::class, 'show']);
@@ -159,6 +159,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/op/reno/defect-inspection-forms/{id}/save', [DefectInspectionFormController::class, 'liveUpdateForm']);
     Route::post('/op/reno/defect-inspection-forms/{id}/attachment/remove', [DefectInspectionFormController::class, 'removeAttachment']);
 
+
+    Route::post('/orders/{id}/internal-remark/update', [OrderController::class, 'updateInternalRemark']);
+    Route::get('/orders/{id}/re-release', [OrderController::class, 'reReleaseOrder']);
 
     Route::post('/reno-progress/{id}/contractual/overall/date', [RenoProgressController::class, 'changeContractualDate']);
     Route::post('/reno-progress/{id}/contractual/p1/date', [RenoProgressController::class, 'changeContractualP1Date']);
@@ -188,11 +191,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/products/{id}/archive', [ProductController::class, 'archiveProduct']);
     Route::get('/products/{id}/restore', [ProductController::class, 'restoreProduct']);
     Route::get('/products/index/archived', [ProductController::class, 'indexArchived']);
-    
+
     Route::get('packages/{id}/archive', [PackageController::class, 'archivePackage']);
     Route::get('packages/{id}/restore', [PackageController::class, 'restorePackage']);
     Route::get('packages/index/archived', [PackageController::class, 'indexArchived']);
-    
+
     Route::get('quotations/{id}/archive', [QuotationController::class, 'archiveQuotation']);
     Route::get('quotations/{id}/restore', [QuotationController::class, 'restoreQuotation']);
     Route::get('quotations/index/archived', [QuotationController::class, 'indexArchived']);
@@ -368,25 +371,6 @@ Route::middleware('auth:sanctum')->group(function () {
         $bodyJson = json_encode($body, JSON_PRETTY_PRINT);
 
         Log::info($bodyJson);
-    });
-
-    // DEV TOOLS
-    Route::get('/dev/database/refresh', function () {
-        Artisan::call('migrate:refresh --seed');
-
-        return 'Database migrated and seeded successfully!';
-    });
-
-    Route::get('/dev/storage/clear', function () {
-
-        // Clear S3 data
-        $files = Storage::disk('s3')->allFiles();
-
-        foreach ($files as $file) {
-            Storage::disk('s3')->delete($file);
-        }
-
-        return 'Storage cleared successfully!';
     });
 });
 

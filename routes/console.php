@@ -11,3 +11,4 @@ use Illuminate\Support\Facades\Schedule;
 // Schedule::command('test:cron')->everyFiveMinutes();
 
 Schedule::command('invoice:status-update')->daily();
+Schedule::command('order:release-status-check')->daily();

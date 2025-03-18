@@ -71,6 +71,8 @@ class OrderResource extends JsonResource
             'internal_remark' => $this->internal_remark,
             'completion_day' => $this->completion_day,
             'status' => $this->status,
+            'released_at' => $this->released_at ? $this->released_at->format('d/m/Y') : null,
+            'confirmed_at' => $this->confirmed_at ? $this->confirmed_at->format('d/m/Y') : null,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
             'created_at' => $this->created_at->format('d/m/Y'),

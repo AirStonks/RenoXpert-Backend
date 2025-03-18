@@ -27,9 +27,9 @@ class OrderController extends BaseController
     {
         // Retrieve the size parameter from the request with a default value of 10
         $size = $request->input('size', 10);
-        // Retrieve the search term from the request
         $search = $request->input('search', '');
-        // Retrieve the filter value from the request
+        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
         $filter = $request->input('filter', '');
 
         // Build the query to retrieve orders
@@ -58,15 +58,13 @@ class OrderController extends BaseController
         if (!empty($filter)) {
             $query->where('status', $filter);
             // If filter exists, always sort by order_no in ascending order
-            $query->orderBy('order_no', 'asc');
-        } else {
-            // Retrieve the sort order and field from the request
-            $sortOrder = $request->input('sortOrder', 'asc');
-            $sortField = $request->input('sortField', 'name');
+            $query->orderBy('id', 'desc');
+        }
 
-            if (!empty($sortField)) {
-                $query->orderBy($sortField, $sortOrder);
-            }
+        // Ensure sortField is valid before applying orderBy
+        if (empty($sortField)) {
+            $sortField = 'id'; // Fallback to 'id' if sortField is empty
+            $query->orderBy($sortField, $sortOrder);
         }
 
         // Paginate results
@@ -77,7 +75,7 @@ class OrderController extends BaseController
             "page" => $orders->currentPage(),  // Current page number
             "pageCount" => $orders->lastPage(), // Total number of pages
             "sortField" => !empty($filter) ? 'order_no' : $sortField, // Sorting field
-            "sortOrder" => !empty($filter) ? 'asc' : $sortOrder, // Sorting order
+            "sortOrder" => !empty($filter) ? 'desc' : $sortOrder, // Sorting order
             "totalCount" => $orders->total(),   // Total number of items
             "data" => $request->input('head') === 'true' ? OrderResourceHead::collection($orders) : OrderResource::collection($orders) // Transformed order data
         ];
@@ -424,6 +422,18 @@ class OrderController extends BaseController
         }
     }
 
+    public function updateInternalRemark(Request $request, $id)
+    {
+        $input = $request->all();
+
+        $order = Order::find($id);
+
+        $order->internal_remark = $input['internal_remark'];
+        $order->save();
+
+        return $this->sendResponse(new OrderResource($order), 'Internal Remark updated successfully.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -454,6 +464,7 @@ class OrderController extends BaseController
             if ($order) {
                 // Update the order status
                 $order->status = 'confirmed';
+                $order->confirmed_at = now();
                 $order->save(); // Use save() to persist changes
 
                 // Get the latest sales number
@@ -505,6 +516,28 @@ class OrderController extends BaseController
             if ($order) {
                 // Update the order status
                 $order->status = 'released';
+                $order->released_at = now();
+                $order->save(); // Use save() to persist changes
+
+                return $this->sendResponse([], 'Order Released');
+            } else {
+                return $this->sendError('Order Not Found.');
+            }
+        } catch (\Throwable $th) {
+            return $this->sendError('Error releasing order.', $th->getMessage());
+        }
+    }
+
+    public function reReleaseOrder($id)
+    {
+        try {
+            // Find the order by ID
+            $order = Order::find($id);
+
+            if ($order) {
+                // Update the order status
+                $order->status = 'released';
+                $order->released_at = now();
                 $order->save(); // Use save() to persist changes
 
                 return $this->sendResponse([], 'Order Released');

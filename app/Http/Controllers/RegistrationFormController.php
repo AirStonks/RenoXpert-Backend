@@ -29,6 +29,9 @@ class RegistrationFormController extends BaseController
         // Retrieve the search term from the request
         $search = $request->input('search', '');
 
+        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
+
         // Build the query to retrieve property
         $query = RegistrationForm::query();
 
@@ -45,11 +48,9 @@ class RegistrationFormController extends BaseController
             });
         }
 
-        // Retrieve the sort order and field from the request
-        $sortOrder = $request->input('sortOrder', 'asc');
-        $sortField = $request->input('sortField', 'name');
-
-        if (!empty($sortField)) {
+        // Ensure sortField is valid before applying orderBy
+        if (empty($sortField)) {
+            $sortField = 'id'; // Fallback to 'id' if sortField is empty
             $query->orderBy($sortField, $sortOrder);
         }
 

@@ -31,6 +31,9 @@ class ProductController extends BaseController
         // Retrieve the search term from the request
         $search = $request->input('search', '');
 
+        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
+
         // Build the query to retrieve products
         $query = Product::query();
 
@@ -44,9 +47,6 @@ class ProductController extends BaseController
                     ->orWhere('SKU', 'like', '%' . $search . '%');
             });
         }
-
-        // Retrieve the sort order and field from the request
-        $sortOrder = $request->input('sortOrder', 'asc');
         $sortField = $request->input('sortField', 'name');
 
         // Apply sorting by total price when sortField is 'price'
@@ -58,6 +58,12 @@ class ProductController extends BaseController
                 ->orderBy('total_price', $sortOrder);
         } elseif (!empty($sortField)) {
             // Apply sorting if a sort field is provided (other than 'price')
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        // Ensure sortField is valid before applying orderBy
+        if (empty($sortField)) {
+            $sortField = 'id'; // Fallback to 'id' if sortField is empty
             $query->orderBy($sortField, $sortOrder);
         }
 

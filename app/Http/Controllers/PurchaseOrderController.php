@@ -27,6 +27,9 @@ class PurchaseOrderController extends BaseController
         // Retrieve the search term from the request
         $search = $request->input('search', '');
 
+        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
+
         // Build the query to retrieve property
         $query = PurchaseOrder::query();
 
@@ -42,6 +45,12 @@ class PurchaseOrderController extends BaseController
                 // Search across individual fields
                 $query->where('po_no', 'like', '%' . $search . '%');
             });
+        }
+
+        // Ensure sortField is valid before applying orderBy
+        if (empty($sortField)) {
+            $sortField = 'id'; // Fallback to 'id' if sortField is empty
+            $query->orderBy($sortField, $sortOrder);
         }
 
         // Paginate the results
@@ -216,6 +225,7 @@ class PurchaseOrderController extends BaseController
         if ($user->type === 'backend-vendor') {
             $po = PurchaseOrder::where('id', $id)
                 ->where('order_status', '!=', 'unreleased')
+                ->where('vendor_id', $user->id)
                 ->first();
 
             if (is_null($po)) {

@@ -16,8 +16,8 @@ class SaleController extends BaseController
     {
         $size = $request->input('size', 10);
         $search = $request->input('search', '');
-        $sortField = $request->input('sortField', '');
-        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
         $filters = $request->input('filter', []); // Get all filter parameters
 
         $query = Sale::query();
@@ -47,7 +47,7 @@ class SaleController extends BaseController
                             $q2->where('id', $value);
                         });
                     });
-                } elseif ($field === 'user_id') { // Example additional filter
+                } elseif ($field === 'user_id') {
                     $query->whereHas('order', function ($q) use ($value) {
                         $q->where('user_id', $value);
                     });
@@ -55,10 +55,14 @@ class SaleController extends BaseController
                     $query->where($field, $value); // Direct fields on Sale model
                 }
             }
-            $query->orderBy('sales_no', 'asc');
-        } elseif (!empty($sortField)) {
-            $query->orderBy($sortField, $sortOrder);
+            $query->orderBy('id', 'desc'); // Optional: adjust if you want 'id' desc here too
         }
+
+        // Ensure sortField is valid before applying orderBy
+        if (empty($sortField)) {
+            $sortField = 'id'; // Fallback to 'id' if sortField is empty
+        }
+        $query->orderBy($sortField, $sortOrder);
 
         $sales = $query->paginate($size);
 

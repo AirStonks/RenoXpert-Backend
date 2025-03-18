@@ -23,6 +23,10 @@ class PackageController extends BaseController
         // Retrieve the search term from the request
         $search = $request->input('search', '');
 
+        // Retrieve the sort order and field from the request
+        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
+
         // Build the query to retrieve product categories
         $query = Package::query();
 
@@ -34,11 +38,8 @@ class PackageController extends BaseController
             $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
         }
 
-        // Retrieve the sort order and field from the request
-        $sortOrder = $request->input('sortOrder', 'asc');
-        $sortField = $request->input('sortField', 'name');
-
-        if (!empty($sortField)) {
+        if (empty($sortField)) {
+            $sortField = 'id'; // Fallback to 'id' if sortField is empty
             $query->orderBy($sortField, $sortOrder);
         }
 
