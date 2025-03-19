@@ -180,16 +180,38 @@ class RenoProgressController extends BaseController
 
     public function operationIndex(Request $request)
     {
+        // Retrieve the size parameter from the request with a default value of 5
         $size = $request->input('size', 5);
+
+        // Retrieve the search term from the request
         $search = $request->input('search', '');
+
+        // Retrieve the sort order and field from the request
         $sortOrder = $request->input('sortOrder', 'asc');
         $sortField = $request->input('sortField', 'id');
 
+        // Build the query
         $query = RenoProgress::query();
 
-        // Apply search filter if provided
+        // Filter by status if available
+        if ($request->input('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        // Apply search filter if a search term is provided
         if (!empty($search)) {
-            $query->where('name', 'like', '%' . $search . '%');
+            // Normalize the search term by removing '-' and spaces
+            $normalizedSearch = str_replace(['-', ' '], '', $search);
+
+            $query->whereHas('sale.order.property', function ($q) use ($normalizedSearch) {
+                $q->where('name', 'like', '%' . $normalizedSearch . '%');
+            })
+                ->orWhereHas('sale.order', function ($q) use ($normalizedSearch) {
+                    $q->whereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+                })
+                ->orWhereHas('sale', function ($q) use ($normalizedSearch) {
+                    $q->whereRaw("REPLACE(REPLACE(sales_no, '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+                });
         }
 
         // Get the authenticated user's ID
@@ -202,19 +224,27 @@ class RenoProgressController extends BaseController
                     ->where('user_item_permission.permission_id', 1); // Exclude records where permission_id is 1
             })->orWhereDoesntHave('itemPermissions'); // Include records with no item permissions
 
-        // Apply sorting and pagination
-        $query->orderBy($sortField, $sortOrder);
+        // Apply sorting if a sort field is provided
+        if (!empty($sortField)) {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        // Paginate the results
         $renoProgress = $query->paginate($size);
 
-        // Return the response
-        return response()->json([
-            "page" => $renoProgress->currentPage(),
-            "pageCount" => $renoProgress->lastPage(),
-            "sortField" => $sortField,
-            "sortOrder" => $sortOrder,
-            "totalCount" => $renoProgress->total(),
-            "data" => OperationRenoProgressResource::collection($renoProgress, false),
-        ], 200);
+        // Custom response to fit with Tailwind DataTable JSON format
+        $response = [
+            "page" => $renoProgress->currentPage(),  // Current page number
+            "pageCount" => $renoProgress->lastPage(), // Total number of pages
+            "sortField" => $sortField,               // Sorting field
+            "sortOrder" => $sortOrder,               // Sorting order
+            "totalCount" => $renoProgress->total(),  // Total number of items
+            "data" => $request->input('head') === 'true'
+                ? OperationRenoProgressResource::collection($renoProgress)
+                : OperationRenoProgressResource::collection($renoProgress) // Assuming you might want a head version
+        ];
+
+        return response()->json($response, 200);
     }
 
 
