@@ -78,8 +78,6 @@ class SaleController extends BaseController
         return response()->json($response, 200);
     }
 
-
-
     /**
      * Store a newly created resource in storage.
      */
