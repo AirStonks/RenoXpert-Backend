@@ -49,6 +49,11 @@ class RenoProgressController extends BaseController
                 })
                 ->orWhereHas('sale', function ($q) use ($normalizedSearch) {
                     $q->whereRaw("REPLACE(REPLACE(sales_no, '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+                })
+                ->orWhereHas('sale.order.user', function ($q) use ($normalizedSearch) {
+                    $q->where('name_first', 'like', '%' . $normalizedSearch . '%')
+                        ->orWhere('name_last', 'like', '%' . $normalizedSearch . '%')
+                        ->orWhereRaw("REPLACE(CONCAT(name_first, ' ', name_last), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%']);
                 });
         }
 
