@@ -13,7 +13,8 @@ class Invoice extends Model
     use HasFactory;
 
     protected $fillable = [
-        'sale_id',
+        'item_id',
+        'item_type',
         'invoice_no',
         'percentage',
         'amount',
@@ -47,7 +48,7 @@ class Invoice extends Model
 
     public function sale()
     {
-        return $this->belongsTo(Sale::class, 'sale_id', 'id');
+        return $this->belongsTo(Sale::class, 'item_id', 'id');
     }
 
     public function payments()

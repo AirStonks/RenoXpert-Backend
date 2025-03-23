@@ -25,6 +25,8 @@ class PurchaseOrderResourceHead extends JsonResource
             'vendor_id' => $this->vendor_id,
             'vendor' => $this->vendor,
             'total_amount' => $this->total_amount,
+            'remaining_amount' => $this->remaining_amount,
+            'remaining_percentage' => $this->remaining_percentage,
             'shipping_date' => $this->shipping_date ? $this->shipping_date->format('d/m/Y') : null,
             'shipped_date' => $this->shipped_date ? $this->shipped_date->format('d/m/Y') : null,
             'delivery_date' => $this->delivery_date ? $this->delivery_date->format('d/m/Y') : null,

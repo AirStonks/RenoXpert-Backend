@@ -23,6 +23,8 @@ class PurchaseOrder extends Model
         'sale_id',
         'vendor_id',
         'total_amount',
+        'remaining_amount',
+        'remaining_percentage',
         'shipping_date',
         'shipped_date',
         'delivery_date',
@@ -62,5 +64,11 @@ class PurchaseOrder extends Model
     public function poPackages()
     {
         return $this->hasMany(POPackage::class, 'po_id', 'id');
+    }
+
+    public function invoices()
+    {
+        return $this->morphMany(Invoice::class, 'item', 'item_type', 'item_id', 'id')
+            ->where('item_type', 'App\Models\PurchaseOrder');
     }
 }

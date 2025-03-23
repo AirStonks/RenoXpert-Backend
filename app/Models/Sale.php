@@ -70,7 +70,8 @@ class Sale extends Model
 
     public function invoices()
     {
-        return $this->hasMany(Invoice::class, 'sale_id', 'id');
+        return $this->morphMany(Invoice::class, 'item', 'item_type', 'item_id', 'id')
+            ->where('item_type', 'App\Models\Sale');
     }
 
     public function renoProgress()

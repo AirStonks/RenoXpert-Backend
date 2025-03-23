@@ -29,15 +29,29 @@ return new class extends Migration
         //     $table->softDeletes();
         // });
 
+
+        // // Staging: Done
+        // Schema::table('invoices', function (Blueprint $table) {
+        //     // Remove the foreign key constraint for sale_id
+        //     $table->dropForeign(['sale_id']);
+
+        //     // Rename sale_id column to item_id
+        //     $table->renameColumn('sale_id', 'item_id');
+
+        //     // Add item_type column
+        //     $table->string('item_type')->after('item_id');
+        // });
         
-        // Staging: Done
-        Schema::table('orders', function (Blueprint $table) {
-            $table->timestamp('released_at')->nullable()->after('status');
+        
+        Schema::table('purchase_orders', function (Blueprint $table) {
+            // Add item_type column
+            $table->double('remaining_percentage')->nullable()->after('total_amount');
+            $table->double('remaining_amount')->nullable()->after('total_amount');
         });
     }
 
     public function down()
     {
-        //
+        // 
     }
 };

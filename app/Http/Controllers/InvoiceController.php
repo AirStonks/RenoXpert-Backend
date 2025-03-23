@@ -6,6 +6,7 @@ use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\PaymentResource;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\PurchaseOrder;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -39,7 +40,7 @@ class InvoiceController extends BaseController
             }
 
             // Get the selected Sale
-            $sale = Sale::find($input['sale_id']);
+            $sale = Sale::find($input['item_id']);
             if (!$sale) {
                 return $this->sendError('Sale not found.', [], 404);
             }
@@ -49,7 +50,10 @@ class InvoiceController extends BaseController
             $newInvoiceNumber = 'INV-RNV-1000001'; // Default in case there are no invoices
             $newVersion = 1; // Default version in case there are no invoices
 
-            $selectedSaleLatestInvoice = Invoice::where('sale_id', $sale->id)->orderBy('id', 'desc')->first();
+            $selectedSaleLatestInvoice = Invoice::where('item_id', $sale->id)
+                ->where('item_type', 'App\Model\Sale')
+                ->orderBy('id', 'desc')
+                ->first();
 
             // Check if there's a latest invoice for the sale
             if ($latestInvoice) {
@@ -124,6 +128,9 @@ class InvoiceController extends BaseController
             // Set invoice to unpaid
             $input['status'] = 'unpaid';
 
+            // Set invoice item type
+            $input['item_type'] = 'App\Models\Sale';
+
             // Create the Invoice
             $invoice = Invoice::create($input);
 
@@ -137,6 +144,126 @@ class InvoiceController extends BaseController
         }
     }
 
+    public function storePOInvoice(Request $request)
+    {
+        try {
+            $input = $request->all();
+
+            // Validate the input
+            $validator = Validator::make($input, [
+                'percentage' => 'required|numeric|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->sendError('Validation Error.', $validator->errors(), 422);
+            }
+
+            // Get the selected Sale
+            $po = PurchaseOrder::find($input['item_id']);
+            if (!$po) {
+                return $this->sendError('PO not found.', [], 404);
+            }
+
+            // Determine the new invoice number and version
+            $latestInvoice = Invoice::orderBy('id', 'desc')->first();
+            $newInvoiceNumber = 'INV-RPO-1000001'; // Default in case there are no invoices
+            $newVersion = 1; // Default version in case there are no invoices
+
+            $selectedPPOLatestInvoice = Invoice::where('item_id', $po->id)
+                ->where('item_type', 'App\Model\PurchaseOrder')
+                ->orderBy('id', 'desc')
+                ->first();
+
+            // Check if there's a latest invoice for the sale
+            if ($latestInvoice) {
+                // Increment the version number
+
+                $newVersion = 1;
+
+                if ($selectedPPOLatestInvoice) {
+                    $newVersion = $selectedPPOLatestInvoice->version + 1;
+                }
+
+
+                $newInvoiceNumber = 'INV-' . $po->po_no . '-' . $po->invoices->count() + 1;
+            }
+
+            // Set the new invoice number and version in the input array
+            $input['invoice_no'] = $newInvoiceNumber;
+            $input['version'] = $newVersion; // Add the version to the input
+
+            // Calculate due date based on version
+            $dueDate = now()->addDays(3); // Current date
+            $input['due_date'] = $dueDate; // Add the due date to the input
+
+            // Extract discount and fee into collection 
+            $discounts = json_decode($input['discountsData'], true);
+            $fees = json_decode($input['feesData'], true);
+
+            // Calculate balance amount
+            $po->remaining_amount -= round($po->total_amount * $input['percentage'], 2);
+
+
+            // If there are discounts, deduct from balance amount
+            $totalDiscount = 0;
+            $totalFee = 0;
+
+
+            // Calculate total discounts
+            foreach ($discounts as $discount) {
+                if ($discount['valueType'] === 'percentage') {
+                    $totalDiscount += ($po->total_amount * $input['percentage']) * $discount['value'];
+                } else {
+                    $totalDiscount += $discount['value'];
+                }
+            }
+
+            // Calculate total fees
+            foreach ($fees as $fee) {
+                if ($fee['valueType'] === 'percentage') {
+                    $totalFee += ($po->total_amount * $input['percentage']) * $fee['value'];
+                } else {
+                    $totalFee += $fee['value'];
+                }
+            }
+
+
+            // Calculate remaining percentage
+            $po->remaining_percentage -= $input['percentage'];
+
+            // Update PO
+            $po->save();
+
+            // Calculate Payment Invoice Amount
+            $input['amount'] = ($po->total_amount * $input['percentage']) - $totalDiscount + $totalFee;
+
+            // Round up to two decimal places
+            $input['amount'] = ceil($input['amount'] * 100) / 100;
+
+            // Store the metadata as JSON
+            $input['discountsData'] = json_encode($discounts);
+            $input['feesData'] = json_encode($fees);
+
+            // Set invoice to unpaid
+            $input['status'] = 'unpaid';
+
+            // Set invoice item type
+            $input['item_type'] = 'App\Models\PurchaseOrder';
+
+            // Create the Invoice
+            $invoice = Invoice::create($input);
+
+            return $this->sendResponse(new InvoiceResource($invoice), 'Invoice created successfully.');
+        } catch (\Throwable $th) {
+            // Return a more specific error response including the line number
+            return $this->sendError('Database Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+                'line' => $th->getLine(), // Add the line number
+                'file' => $th->getFile(), // Optionally add the file name for more context
+            ]);
+        }
+    }
 
 
     /**
