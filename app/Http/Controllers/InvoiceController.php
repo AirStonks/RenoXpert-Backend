@@ -265,7 +265,6 @@ class InvoiceController extends BaseController
         }
     }
 
-
     /**
      * Display the specified resource.
      */
@@ -451,12 +450,18 @@ class InvoiceController extends BaseController
             return $this->sendError('Invoice not found.');
         }
 
-        // Recalculate the sale remaining percentage and remaining amount 
-        $sale = $invoice->sale;
-        if ($sale) {
+        // Recalculate based on whether it's related to Sale or PurchaseOrder
+        if ($invoice->sale) {
+            $sale = $invoice->sale;
             $sale->remaining_percentage = $sale->remaining_percentage + $invoice->percentage;
             $sale->remaining_amount = $sale->remaining_amount + $invoice->amount;
             $sale->save();
+        } elseif ($invoice->po) {
+            $purchaseOrder = $invoice->po;
+            // Adjust these fields based on your PurchaseOrder model structure
+            $purchaseOrder->remaining_percentage = $purchaseOrder->remaining_percentage + $invoice->percentage;
+            $purchaseOrder->remaining_amount = $purchaseOrder->remaining_amount + $invoice->amount;
+            $purchaseOrder->save();
         }
 
         $invoice->delete();

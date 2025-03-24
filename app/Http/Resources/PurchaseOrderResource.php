@@ -36,6 +36,7 @@ class PurchaseOrderResource extends JsonResource
             'total_amount' => $this->total_amount,
             'remaining_amount' => $this->remaining_amount,
             'remaining_percentage' => $this->remaining_percentage,
+            'paid_percentage' => $this->invoices->where('status', 'paid')->sum('percentage'),
             'shipping_date' => $this->shipping_date ? $this->shipping_date->format('d/m/Y') : null,
             'shipped_date' => $this->shipped_date ? $this->shipped_date->format('d/m/Y') : null,
             'delivery_date' => $this->delivery_date ? $this->delivery_date->format('d/m/Y') : null,
