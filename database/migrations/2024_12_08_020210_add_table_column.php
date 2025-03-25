@@ -31,18 +31,20 @@ return new class extends Migration
 
 
         // // Staging: Done
-        // Schema::table('invoices', function (Blueprint $table) {
-        //     // Remove the foreign key constraint for sale_id
-        //     $table->dropForeign(['sale_id']);
+        Schema::table('invoices', function (Blueprint $table) {
+            // Remove the foreign key constraint for sale_id
+            $table->dropForeign(['sale_id']);
 
-        //     // Rename sale_id column to item_id
-        //     $table->renameColumn('sale_id', 'item_id');
+            // Rename sale_id column to item_id
+            $table->renameColumn('sale_id', 'item_id');
 
-        //     // Add item_type column
-        //     $table->string('item_type')->after('item_id');
-        // });
+            // Add item_type column
+            $table->string('item_type')->after('item_id');
+        });
         
         
+        // Staging: Done
+        // PRD: Done
         Schema::table('purchase_orders', function (Blueprint $table) {
             // Add item_type column
             $table->double('remaining_percentage')->nullable()->after('total_amount');
