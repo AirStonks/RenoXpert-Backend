@@ -21,7 +21,7 @@ class UserItemPermissionController extends Controller
     {
         $input = $request->all();
 
-        UserItemPer
+        // UserItemPer
     }
 
     /**

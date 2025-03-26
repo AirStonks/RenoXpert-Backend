@@ -62,6 +62,7 @@ class OwnerOrderResource extends JsonResource
             'floor' => $this->floor,
             'unit_no' => $this->unit_no,
             'include_partition' => $this->include_partition ? true : false,
+            'is_progressive_payment' => $this->is_progressive_payment ? true : false,
             'total_amount' => ($this->final_amount ? $this->final_amount - ($bonus ? $bonus['value'] : 0) : $this->total_amount),
             'f_1' => $this->final_amount ? true : false,
             'description' => $this->description,

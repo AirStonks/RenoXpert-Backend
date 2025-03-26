@@ -181,6 +181,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/reno-progress/{id}/task/{taskId}/visibility/toggle', [JobTaskController::class, 'toggleTaskVisibility']);
 
+    Route::get('/purchase-orders/table/advance', [PurchaseOrderController::class, 'getAdvanceTable']);
     Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);
     Route::get('/purchase-orders/{id}/order/status/released', [PurchaseOrderController::class, 'releasePO']);
     Route::get('/purchase-orders/{id}/order/status/accepted', [PurchaseOrderController::class, 'acceptPO']);

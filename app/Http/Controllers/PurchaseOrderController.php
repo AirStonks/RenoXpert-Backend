@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PurchaseOrderAdTable;
 use App\Http\Resources\PurchaseOrderResource;
 use App\Http\Resources\PurchaseOrderResourceHead;
 use App\Models\Inventory;
@@ -67,6 +68,55 @@ class PurchaseOrderController extends BaseController
         ];
 
         return response()->json($response, 200);
+    }
+
+    public function getAdvanceTable(Request $request)
+    {
+        $user = auth()->user();
+
+        // Extract query parameters
+        $groupBy = $request->query('groubBy'); // Match frontend typo if needed, or correct to 'groupBy'
+        $groupOp = $request->query('groupOp');
+        $groupValue = $request->query('groupValue');
+
+        // Build the query to retrieve property
+        $query = PurchaseOrder::query();
+
+        // Apply filtering based on groupBy, groupOp, and groupValue
+        if ($groupBy && $groupOp && $groupValue !== null) {
+            switch ($groupOp) {
+                case 'equals':
+                    $query->where($groupBy, '=', $groupValue);
+                    break;
+                case 'not_equals':
+                    $query->where($groupBy, '!=', $groupValue);
+                    break;
+                case 'greater':
+                    $query->where($groupBy, '>', $groupValue);
+                    break;
+                case 'less':
+                    $query->where($groupBy, '<', $groupValue);
+                    break;
+                default:
+                    // Invalid operator, ignore or return an error
+                    break;
+            }
+        }
+
+        // Fetch total count first
+        $totalCount = $query->count();
+
+        // Fetch the data
+        $po = $query->get();
+
+        // Custom response to fit with Tailwind DataTable JSON format
+        return response()->json([
+            "sortField" => null,
+            "sortOrder" => null,
+            "totalCount" => $totalCount,  // Use count() result here
+            'data' => PurchaseOrderAdTable::collection($po),
+            'success' => true,
+        ], 200);
     }
 
     /**

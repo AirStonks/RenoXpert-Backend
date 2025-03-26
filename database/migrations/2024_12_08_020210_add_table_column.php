@@ -37,6 +37,12 @@ return new class extends Migration
         //     $table->double('remaining_percentage')->nullable()->after('total_amount');
         //     $table->double('remaining_amount')->nullable()->after('total_amount');
         // });
+
+        // Staging: Done
+        Schema::table('orders', function (Blueprint $table) {
+            // Add item_type column
+            $table->boolean('is_progressive_payment')->default(true)->after('include_partition');
+        });
     }
 
     public function down()

@@ -119,6 +119,7 @@ class OrderController extends BaseController
                 'bedroom_count' => 'nullable',
                 'bathroom_count' => 'nullable',
                 'include_partition' => 'nullable|boolean',
+                'is_progressive_payment' => 'nullable|boolean',
                 'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:0',
@@ -400,6 +401,7 @@ class OrderController extends BaseController
             $order->bedroom_count = $validatedData['bedroom_count'];
             $order->bathroom_count = $validatedData['bathroom_count'];
             $order->include_partition = $input['include_partition'];
+            $order->is_progressive_payment = $input['is_progressive_payment'];
             $order->description = $validatedData['description'];
             $order->internal_remark = $validatedData['internal_remark'];
             $order->completion_day = $validatedData['completion_day'];
