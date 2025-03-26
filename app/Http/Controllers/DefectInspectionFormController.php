@@ -18,11 +18,11 @@ class DefectInspectionFormController extends BaseController
      */
     public function index(Request $request)
     {
-        // Retrieve the size parameter from the request with a default value of 10
         $size = $request->input('size', 10);
-
-        // Retrieve the search term from the request
         $search = $request->input('search', '');
+        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
+        $filters = $request->input('filter', []); // Get all filter parameters
 
         // Build the query to retrieve product categories
         $query = DefectInspectionForm::query();
@@ -45,14 +45,12 @@ class DefectInspectionFormController extends BaseController
             });
         }
 
-        // Retrieve the sort order and field from the request
-        $sortOrder = $request->input('sortOrder', 'asc');
-        // $sortField = $request->input('sortField', 'name');
-
-        if (!empty($sortField)) {
-            $query->orderBy($sortField, $sortOrder);
+        if (empty($sortField)) {
+            $sortField = 'id'; // Fallback to 'id' if sortField is empty
         }
 
+        $query->orderBy($sortField, $sortOrder);
+        
         $diForms = $query->paginate($size);
 
         // Custome response to fit with Tailwind DataTable JSON format

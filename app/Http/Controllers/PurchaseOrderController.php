@@ -121,6 +121,8 @@ class PurchaseOrderController extends BaseController
                     'sale_id' => $input['sale_id'] ?? null, // Allow null
                     'vendor_id' => $input['vendor_id'],
                     'total_amount' => $input['total_amount'],
+                    'remaining_amount' => $input['total_amount'],
+                    'remaining_percentage' => 1,
                     'order_status' => $input['order_status'] ?? 'unreleased',
                     'payment_status' => $input['payment_status'] ?? 'unpaid',
                 ]);

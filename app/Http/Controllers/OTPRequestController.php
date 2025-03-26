@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\OTPRequestResource;
 use App\Models\User;
 use GuzzleHttp\Client;
 use App\Models\OTPRequest;
@@ -10,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use GuzzleHttp\Exception\RequestException;
 
-class OTPRequestController extends Controller
+class OTPRequestController extends BaseController
 {
     protected $username;
     protected $password;
@@ -21,6 +22,48 @@ class OTPRequestController extends Controller
         $this->username = 'roomzasia';
         $this->password = 'FGk@A2kwuUewkYu';
         $this->senderId = 'MOBIWEB';
+    }
+
+    public function index(Request $request)
+    {
+        $size = $request->input('size', 10);
+        $search = $request->input('search', '');
+        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
+        $filters = $request->input('filter', []); // Get all filter parameters
+
+        $query = OTPRequest::query();
+
+        if (!empty($search)) {
+            $query->where(function ($query) use ($search) {
+                $query->where('mobile', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Apply multiple filters
+        foreach ($filters as $key => $value) {
+            $query->where($key, $value);
+        }
+
+        // Apply sorting
+        if (empty($sortField)) {
+            $sortField = 'id'; // Fallback to 'id' if sortField is empty
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        // Apply pagination
+        $otpRequests = $query->paginate($size);
+
+        $response = [
+            "page" => $otpRequests->currentPage(),
+            "pageCount" => $otpRequests->lastPage(),
+            "sortField" => $sortField,
+            "sortOrder" => $sortOrder,
+            "totalCount" => $otpRequests->total(),
+            "data" => OTPRequestResource::collection($otpRequests)
+        ];
+
+        return response()->json($response, 200);
     }
 
     public function requestOtp($country_code = '60', $mobile)

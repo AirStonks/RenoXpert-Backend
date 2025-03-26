@@ -116,6 +116,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/users', UserController::class);
     Route::apiResource('/owner/reno-registration-form', RegistrationFormController::class);
     Route::apiResource('/reno-progress', RenoProgressController::class);
+    Route::apiResource('/otp-requests', OTPRequestController::class);
     Route::apiResource('/purchase-orders', PurchaseOrderController::class);
     Route::apiResource('/inventory', InventoryController::class);
     Route::apiResource('/defect-inspection-forms', DefectInspectionFormController::class);

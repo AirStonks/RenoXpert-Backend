@@ -25,4 +25,8 @@ class OTPRequest extends Model
         'updated_by',
         'deleted_at',
     ];
+
+    protected $casts = [
+        'expires_at' => 'datetime'
+    ];
 }

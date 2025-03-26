@@ -38,6 +38,7 @@ class DefectInspectionFormResource extends JsonResource
                 'level' => $this->level,
                 'unit' => $this->unit,
             ] : null,
+            'reno_progress' => $this->renoProgress,
             'contractor_name' => $this->contractor_name,
             'contractor_email' => $this->contractor_email,
             'bedroom_count' => $this->bedroom_count,
