@@ -142,12 +142,24 @@ class OrderController extends BaseController
                 // Generate new draft order number
                 $input['order_no'] = 'DRAFT-' . now()->format('y') . str_pad($lastOrderNumber + 1, 5, '0', STR_PAD_LEFT);
             } else {
-                // Get the last confirmed order's number
-                $lastConfirmedOrder = Order::where('order_no', 'like', 'QUO-%')->orderBy('id', 'desc')->first();
+                // Get the highest existing order number with prefix 'QUO-'
+                $lastConfirmedOrder = Order::where('order_no', 'like', 'QUO-%')
+                    ->orderBy('order_no', 'desc') // Order by order_no to get the highest number
+                    ->first();
+                
                 $lastOrderNumber = $lastConfirmedOrder ? ((int)substr($lastConfirmedOrder->order_no, -5)) : 0;
-
-                // Generate new confirmed order number
-                $input['order_no'] = 'QUO-' . now()->format('y') . str_pad($lastOrderNumber + 1, 5, '0', STR_PAD_LEFT);
+            
+                // Generate a unique order number
+                do {
+                    $lastOrderNumber++; // Increment the number
+                    $newOrderNumber = 'QUO-' . now()->format('y') . str_pad($lastOrderNumber, 5, '0', STR_PAD_LEFT);
+                    
+                    // Check if this order number already exists
+                    $exists = Order::where('order_no', $newOrderNumber)->exists();
+                } while ($exists); // Keep looping until a unique number is found
+            
+                // Assign the unique order number
+                $input['order_no'] = $newOrderNumber;
             }
 
             $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && (float)$input['bonus']['value'] != 0
