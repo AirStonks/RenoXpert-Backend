@@ -449,6 +449,20 @@ class PurchaseOrderController extends BaseController
         return $this->sendResponse(new PurchaseOrderResource($po, true), 'Purchase Order rejected successfully.');
     }
 
+    public function revertPO($id)
+    {
+        $po = PurchaseOrder::find($id);
+
+        if (is_null($po)) {
+            return $this->sendError('Purchase Order not found.');
+        }
+
+        $po->order_status = 'unreleased';
+        $po->save();
+
+        return $this->sendResponse(new PurchaseOrderResource($po, true), 'Purchase Order reverted successfully.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */

@@ -186,6 +186,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/purchase-orders/{id}/order/status/released', [PurchaseOrderController::class, 'releasePO']);
     Route::get('/purchase-orders/{id}/order/status/accepted', [PurchaseOrderController::class, 'acceptPO']);
     Route::get('/purchase-orders/{id}/order/status/rejected', [PurchaseOrderController::class, 'rejectPO']);
+    Route::get('/purchase-orders/{id}/order/status/unreleased', [PurchaseOrderController::class, 'revertPO']);
     Route::post('/purchase-orders/invoice/create', [InvoiceController::class, 'storePOInvoice']);
 
     Route::post('/products/{id}/attachments/thumbnail/change', [ProductController::class, 'changeThumbnail']);
