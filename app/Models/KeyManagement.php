@@ -16,8 +16,6 @@ class KeyManagement extends Model
         'date_received_key',
         'date_posted',
         'pic_name',
-        'no_main_door',
-        'no_room',
         'status',
         'metadata',
         'created_by',
