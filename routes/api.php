@@ -69,6 +69,9 @@ Route::post('/owner/reno-registration-form/overview/submit', [RegistrationFormCo
 Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
 Route::get('/orders/{id}/release', [OrderController::class, 'releaseOrder'])->name('orders.releaseOrder');
 
+
+Route::get('defect-inspection-forms/public/{hashedString}', [DefectInspectionFormController::class, 'publicShow']);
+
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login', 'login');
@@ -207,7 +210,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('defect-inspection-forms/{id}/completed', [DefectInspectionFormController::class, 'markAsCompleted']);
     Route::get('defect-inspection-forms/{id}/report-link/toggle', [DefectInspectionFormController::class, 'toggleDIReportLink']);
-    Route::get('defect-inspection-forms/public/{hashedString}', [DefectInspectionFormController::class, 'publicShow']);
 
     Route::get('key-management/{keyManagementId}/{category}/add', [KeyManagementController::class, 'addCategoryItem']);
     Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/name', [KeyManagementController::class, 'changeKeyManagementItemName']);
