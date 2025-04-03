@@ -49,10 +49,15 @@ class Sale extends Model
         static::updating(function ($model) {
             $model->updated_by = auth()->id(); // or your logic to get the user ID
 
-            if ($model->isDirty('status') && $model->status === 'partial-paid') {
-                // Dispatch the event
-                if ($model->renoProgress === null) {
-                    event(new SaleStatusUpdated($model));
+            if ($model->isDirty('status')) {
+                // Check for either partial-paid OR issued changing to fully-paid
+                if (
+                    ($model->getOriginal('status') === 'issued' && $model->status === 'partial-paid') ||
+                    ($model->getOriginal('status') === 'issued' && $model->status === 'fully-paid')
+                ) {
+                    if ($model->renoProgress === null) {
+                        event(new SaleStatusUpdated($model));
+                    }
                 }
             }
         });
