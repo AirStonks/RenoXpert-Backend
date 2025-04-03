@@ -6,14 +6,15 @@ use stdClass;
 use App\Models\JobTask;
 use App\Models\PhaseJob;
 use App\Models\Inventory;
+use Illuminate\Support\Str;
 use App\Models\RenoProgress;
+use App\Models\ResourceItem;
 use App\Models\KeyManagement;
 use App\Models\ProgressPhase;
 use Illuminate\Support\Facades\Log;
 use App\Models\DefectInspectionForm;
 use App\Http\Resources\OrderResource;
 use App\Events\SaleStatusUpdated; // Updated event name
-use App\Models\ResourceItem;
 
 class TriggerCreateRenoProgress
 {
@@ -471,6 +472,11 @@ class TriggerCreateRenoProgress
                 $metadata['bathrooms']["bathroom{$i}"] = $bathroomTemplate;
             }
 
+            // Generate hashed link for report
+            $randomString = Str::random(32); // 32-character random string
+            $base64String = base64_encode($randomString);
+            $base64UrlString = str_replace(['+', '/', '='], ['-', '_', ''], $base64String);
+
             $form = DefectInspectionForm::create([
                 'reno_progress_id' => $renoProgress->id,
                 'property_name' => $sale->order->property_id,
@@ -483,7 +489,10 @@ class TriggerCreateRenoProgress
                 'bedroom_count' => $sale->order->bedroom_count,
                 'bathroom_count' => $sale->order->bathroom_count,
                 'metadata' => json_encode($metadata),
+                'report_hash' => $base64UrlString
             ]);
+
+            
 
             // Create KeyManagement
             $keyManagement = KeyManagement::create([

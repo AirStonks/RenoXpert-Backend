@@ -28,15 +28,13 @@ return new class extends Migration
         // Schema::table('quo_pkg_prods', function (Blueprint $table) {
         //     $table->softDeletes();
         // });
-        
-        
-        // // Staging: Done
-        // // PRD: Done
-        // Schema::table('purchase_orders', function (Blueprint $table) {
-        //     // Add item_type column
-        //     $table->double('remaining_percentage')->nullable()->after('total_amount');
-        //     $table->double('remaining_amount')->nullable()->after('total_amount');
-        // });
+
+
+        // Staging: Done
+        Schema::table('defect_inspection_forms', function (Blueprint $table) {
+            $table->string('link_status')->default('unactive')->after('status'); // Status column
+            $table->string('report_hash')->unique()->after('status'); // Column for the Base64url-encoded string
+        });
     }
 
     public function down()

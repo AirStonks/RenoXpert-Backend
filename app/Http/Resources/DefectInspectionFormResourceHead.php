@@ -45,6 +45,8 @@ class DefectInspectionFormResourceHead extends JsonResource
             'bathroom_count' => $this->bathroom_count,
             // 'area' => $metadata,
             'status' => $this->status,
+            'report_hash' => $this->report_hash,
+            'link_status' => $this->link_status,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
             'created_at' => $this->created_at,

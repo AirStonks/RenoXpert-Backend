@@ -50,7 +50,7 @@ class DefectInspectionFormController extends BaseController
         }
 
         $query->orderBy($sortField, $sortOrder);
-        
+
         $diForms = $query->paginate($size);
 
         // Custome response to fit with Tailwind DataTable JSON format
@@ -182,6 +182,19 @@ class DefectInspectionFormController extends BaseController
 
         if (is_null($form)) {
             return $this->sendError('Form not found.');
+        }
+
+        return $this->sendResponse(new DefectInspectionFormResource($form), 'Form retrieved successfully.');
+    }
+
+    public function publicShow($hashedString)
+    {
+        $form = DefectInspectionForm::where('report_hash', $hashedString)
+            ->where('link_status', 'active')
+            ->first();
+
+        if (is_null($form)) {
+            return $this->sendError('DI Report not found.');
         }
 
         return $this->sendResponse(new DefectInspectionFormResource($form), 'Form retrieved successfully.');
@@ -343,7 +356,26 @@ class DefectInspectionFormController extends BaseController
         $diTask->status = 'completed';
         $diTask->save();
 
-        return $this->sendResponse(new DefectInspectionFormResource($diForm), 'QC Form retrieved successfully.');
+        return $this->sendResponse(new DefectInspectionFormResource($diForm), 'DI Form mark as paid successfully.');
+    }
+
+    public function toggleDIReportLink($id)
+    {
+        $diForm = DefectInspectionForm::find($id);
+
+        if (is_null($diForm)) {
+            return $this->sendError('Form not found.');
+        }
+
+        if ($diForm->link_status === 'unactive') {
+            $diForm->link_status = 'active';
+        } else {
+            $diForm->link_status = 'unactive';
+        }
+
+        $diForm->save();
+
+        return $this->sendResponse(new DefectInspectionFormResource($diForm), 'DI Form link status toggled successfully.');
     }
 
     /**

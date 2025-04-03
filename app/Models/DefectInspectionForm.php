@@ -28,6 +28,8 @@ class DefectInspectionForm extends Model
         'bathroom_count',
         'status',
         'metadata',
+        'report_hash',
+        'link_status',
         'created_by',
         'updated_by',
         'deleted_at',

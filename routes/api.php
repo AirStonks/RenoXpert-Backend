@@ -44,6 +44,7 @@ use App\Http\Controllers\DefectInspectionFormController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ResourceItemController;
 use App\Http\Controllers\UserItemPermissionController;
+use App\Models\DefectInspectionForm;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -205,6 +206,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('quotations/index/archived', [QuotationController::class, 'indexArchived']);
 
     Route::get('defect-inspection-forms/{id}/completed', [DefectInspectionFormController::class, 'markAsCompleted']);
+    Route::get('defect-inspection-forms/{id}/report-link/toggle', [DefectInspectionFormController::class, 'toggleDIReportLink']);
+    Route::get('defect-inspection-forms/public/{hashedString}', [DefectInspectionFormController::class, 'publicShow']);
 
     Route::get('key-management/{keyManagementId}/{category}/add', [KeyManagementController::class, 'addCategoryItem']);
     Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/name', [KeyManagementController::class, 'changeKeyManagementItemName']);
@@ -559,4 +562,24 @@ Route::get('/test/unauth', function () {
     Log::info($bodyJson);
 
     return $bodyJson;
+});
+
+Route::get('/setDiFormHashed', function () {
+    // Fetch all records where report_hash is null
+    $forms = DefectInspectionForm::get();
+
+    foreach ($forms as $form) {
+        // Combine id and reno_progress_id to create a unique base string
+        $baseString = $form->id . '-' . ($form->reno_progress_id ?? '0');
+
+        // Generate SHA-256 hash and take the first 32 characters
+        $hash = hash('sha256', $baseString);
+        $shortHash = substr($hash, 0, 12); // Truncate to 16 characters for brevity
+
+        // Update the record with the new report_hash
+        $form->report_hash = $shortHash;
+        $form->save();
+    }
+
+    return response()->json(['message' => 'Report hashes updated successfully', 'count' => $forms->count()]);
 });
