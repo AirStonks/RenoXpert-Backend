@@ -112,6 +112,7 @@ class PackageController extends BaseController
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'description_internal' => 'nullable|string',
+                'is_addon' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -182,6 +183,7 @@ class PackageController extends BaseController
                 'description' => 'nullable|string',
                 'description_internal' => 'nullable|string',
                 'category' => 'required|string',
+                'is_addon' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -194,6 +196,7 @@ class PackageController extends BaseController
             $package->description = $validatedData['description'];
             $package->description_internal = $validatedData['description_internal'];
             $package->category = $validatedData['category'];
+            $package->is_addon = $validatedData['is_addon'];
 
             // OPTION 1: Remove all associated product_package and Insert the newest product_package
 
