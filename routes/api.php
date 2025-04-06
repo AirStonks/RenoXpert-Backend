@@ -92,6 +92,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/order/public/view/{id}', [OrderController::class, 'showOrderOverview']);
     Route::get('/owner/order/{id}', [OrderController::class, 'showOwnerOrder']);
     Route::get('/owner/orders', [OrderController::class, 'getOwnerOrders']);
+    Route::put('/owner/orders/{id}/addon-packages/update', [OrderController::class, 'updateOwnerAddonPackages']);
     Route::get('/owner/form/reno-registration-forms', [RegistrationFormController::class, 'retrieveRegistrationForms']);
     Route::get('/owner/form/reno-registration-forms/{id}', [RegistrationFormController::class, 'showRegistrationForm']);
     Route::get('/owner/reno/progresses', [RenoProgressController::class, 'ownerIndex']);

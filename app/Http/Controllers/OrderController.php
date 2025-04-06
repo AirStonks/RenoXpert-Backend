@@ -147,18 +147,18 @@ class OrderController extends BaseController
                 $lastConfirmedOrder = Order::where('order_no', 'like', 'QUO-%')
                     ->orderBy('order_no', 'desc') // Order by order_no to get the highest number
                     ->first();
-                
+
                 $lastOrderNumber = $lastConfirmedOrder ? ((int)substr($lastConfirmedOrder->order_no, -5)) : 0;
-            
+
                 // Generate a unique order number
                 do {
                     $lastOrderNumber++; // Increment the number
                     $newOrderNumber = 'QUO-' . now()->format('y') . str_pad($lastOrderNumber, 5, '0', STR_PAD_LEFT);
-                    
+
                     // Check if this order number already exists
                     $exists = Order::where('order_no', $newOrderNumber)->exists();
                 } while ($exists); // Keep looping until a unique number is found
-            
+
                 // Assign the unique order number
                 $input['order_no'] = $newOrderNumber;
             }
@@ -446,6 +446,28 @@ class OrderController extends BaseController
         $order->save();
 
         return $this->sendResponse(new OrderResource($order), 'Internal Remark updated successfully.');
+    }
+
+    public function updateOwnerAddonPackages(Request $request, $id)
+    {
+
+        try {
+            $input = $request->all();
+
+            $latestQuotation = $input['latest_quotation'];
+
+            $updatedLatestQuotation = OrderQuotation::find($latestQuotation['id']);
+            $updatedLatestQuotation->metadata = $latestQuotation['metadata'];
+
+            $updatedLatestQuotation->save();
+
+            return $this->sendResponse(new OwnerOrderResource(Order::find($id)), 'Addon Packages updated successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError('Database Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
+        }
     }
 
     /**
