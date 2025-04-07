@@ -22,6 +22,7 @@ class Package extends Model
         'description',
         'description_internal',
         'category',
+        'is_addon',
         'total_price',
         'status',
         'created_by',

@@ -218,6 +218,11 @@ class TriggerCreateRenoProgress
                 $originalName = $originalPkg->name;
                 $products = $originalPkg->products;
 
+                // Skip if package is an addon and not included
+                if ($originalPkg->is_addon && !$originalPkg->is_addon_included) {
+                    continue;  // Skip to next iteration
+                }
+
                 if ($quantity > 1) {
                     for ($i = 1; $i <= $quantity; $i++) {
                         $pkg = new stdClass();
@@ -492,7 +497,7 @@ class TriggerCreateRenoProgress
                 'report_hash' => $base64UrlString
             ]);
 
-            
+
 
             // Create KeyManagement
             $keyManagement = KeyManagement::create([

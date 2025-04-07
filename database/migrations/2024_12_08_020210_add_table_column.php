@@ -31,9 +31,8 @@ return new class extends Migration
 
 
         // Staging: Done
-        Schema::table('defect_inspection_forms', function (Blueprint $table) {
-            $table->string('link_status')->default('unactive')->after('status'); // Status column
-            $table->string('report_hash')->unique()->after('status'); // Column for the Base64url-encoded string
+        Schema::table('packages', function (Blueprint $table) {
+            $table->boolean('is_addon')->default(false)->after('category'); // Status column
         });
     }
 

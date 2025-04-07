@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\InvoiceResource;
-use App\Http\Resources\PaymentResource;
+use App\Models\Sale;
 use App\Models\Invoice;
 use App\Models\Payment;
-use App\Models\PurchaseOrder;
-use App\Models\Sale;
 use Illuminate\Http\Request;
+use App\Models\PurchaseOrder;
+use Illuminate\Support\Facades\Log;
+use App\Http\Resources\InvoiceResource;
+use App\Http\Resources\PaymentResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -450,19 +451,10 @@ class InvoiceController extends BaseController
             return $this->sendError('Invoice not found.');
         }
 
-        // Recalculate based on whether it's related to Sale or PurchaseOrder
-        if ($invoice->sale) {
-            $sale = $invoice->sale;
-            $sale->remaining_percentage = $sale->remaining_percentage + $invoice->percentage;
-            $sale->remaining_amount = $sale->remaining_amount + $invoice->amount;
-            $sale->save();
-        } elseif ($invoice->po) {
-            $purchaseOrder = $invoice->po;
-            // Adjust these fields based on your PurchaseOrder model structure
-            $purchaseOrder->remaining_percentage = $purchaseOrder->remaining_percentage + $invoice->percentage;
-            $purchaseOrder->remaining_amount = $purchaseOrder->remaining_amount + $invoice->amount;
-            $purchaseOrder->save();
-        }
+        $this->recalculateRemaining(
+            $invoice->sale ?? $invoice->po,
+            $invoice
+        );
 
         $invoice->delete();
 
@@ -482,5 +474,34 @@ class InvoiceController extends BaseController
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th);
         }
+    }
+
+    private function recalculateRemaining($entity, $invoice)
+    {
+        if (!$entity) return;
+
+        $entity->remaining_percentage += $invoice->percentage;
+
+        if ($invoice->discountsData) {
+            foreach (json_decode($invoice->discountsData) as $discount) {
+                $value = $discount->valueType == 'percentage'
+                    ? ($entity->total_amount * $invoice->percentage) *$discount->value
+                    : $discount->value;
+                $invoice->amount += $value;
+            }
+        }
+
+        if ($invoice->feesData) {
+            foreach (json_decode($invoice->feesData) as $fee) {
+                $value = $fee->valueType == 'percentage'
+                    ? ($entity->total_amount * $invoice->percentage) * $fee->value
+                    : $fee->value;
+                $invoice->amount -= $value; // Changed from -= to +=
+            }
+        }
+
+
+        $entity->remaining_amount += $invoice->amount;
+        $entity->save();
     }
 }

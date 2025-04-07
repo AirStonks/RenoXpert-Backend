@@ -147,18 +147,18 @@ class OrderController extends BaseController
                 $lastConfirmedOrder = Order::where('order_no', 'like', 'QUO-%')
                     ->orderBy('order_no', 'desc') // Order by order_no to get the highest number
                     ->first();
-                
+
                 $lastOrderNumber = $lastConfirmedOrder ? ((int)substr($lastConfirmedOrder->order_no, -5)) : 0;
-            
+
                 // Generate a unique order number
                 do {
                     $lastOrderNumber++; // Increment the number
                     $newOrderNumber = 'QUO-' . now()->format('y') . str_pad($lastOrderNumber, 5, '0', STR_PAD_LEFT);
-                    
+
                     // Check if this order number already exists
                     $exists = Order::where('order_no', $newOrderNumber)->exists();
                 } while ($exists); // Keep looping until a unique number is found
-            
+
                 // Assign the unique order number
                 $input['order_no'] = $newOrderNumber;
             }
@@ -448,6 +448,28 @@ class OrderController extends BaseController
         return $this->sendResponse(new OrderResource($order), 'Internal Remark updated successfully.');
     }
 
+    public function updateOwnerAddonPackages(Request $request, $id)
+    {
+
+        try {
+            $input = $request->all();
+
+            $latestQuotation = $input['latest_quotation'];
+
+            $updatedLatestQuotation = OrderQuotation::find($latestQuotation['id']);
+            $updatedLatestQuotation->metadata = $latestQuotation['metadata'];
+
+            $updatedLatestQuotation->save();
+
+            return $this->sendResponse(new OwnerOrderResource(Order::find($id)), 'Addon Packages updated successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError('Database Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -487,14 +509,56 @@ class OrderController extends BaseController
                 // Generate new sales number
                 $input['sales_no'] = 'RSO-' . now()->format('y') . str_pad($lastSaleId + 1, 5, '0', STR_PAD_LEFT);
 
+                // Get the latest quotation
+                $latestQuotation = $order->orderQuotations()->latest()->first();
+
                 if ($order->final_amount) {
-                    $totalAmount = $order->final_amount;
+                    $totalAmount = $order->final_amount; // Use final_amount if available
                 } else {
-                    $totalAmount = $order->orderQuotations()->latest()->first()->total_amount;
+                    // Parse metadata from the latest quotation (assumed to be JSON)
+                    $packages = json_decode($latestQuotation->metadata, true);
+
+                    // Calculate total amount, excluding add-ons where is_addon_included === false
+                    $totalAmount = array_reduce($packages, function ($carry, $package) {
+                        // Skip if it's an add-on and not included
+                        if (
+                            isset($package['is_addon']) && $package['is_addon'] === true &&
+                            isset($package['is_addon_included']) && $package['is_addon_included'] === false
+                        ) {
+                            return $carry;
+                        }
+
+                        // Calculate package total
+                        $packageTotal = array_reduce($package['products'], function ($sum, $product) {
+                            $quantity = $product['pivot']['quantity'] ?? 1;
+
+                            // Supply price
+                            $supplyPrice = 0;
+                            if ($product['pivot']['includeSupply']) {
+                                $supplyPrice = ($product['provisioning']['supply']['retail_price'] * $quantity) ?? 0;
+                            } else {
+                                $supplyPrice = ($product['provisioning']['supply']['retail_price'] -
+                                    $product['provisioning']['supply']['excluded_price']) ?? 0;
+                            }
+
+                            // Install price
+                            $installPrice = 0;
+                            if ($product['pivot']['includeInstall']) {
+                                $installPrice = ($product['provisioning']['install']['retail_price'] * $quantity) ?? 0;
+                            } else {
+                                $installPrice = ($product['provisioning']['install']['retail_price'] -
+                                    $product['provisioning']['install']['excluded_price']) ?? 0;
+                            }
+
+                            return $sum + $supplyPrice + $installPrice;
+                        }, 0) * ($package['quantity'] ?? 1);
+
+                        return $carry + $packageTotal;
+                    }, 0);
                 }
 
-                // If bonus exists, add it to the total amount
-                $bonus = json_decode($order->orderQuotations()->latest()->first()->bonus);
+                // If bonus exists, subtract it from the total amount
+                $bonus = json_decode($latestQuotation->bonus);
                 $bonusValue = $bonus->value ?? 0;
                 $totalAmount -= $bonusValue;
 
