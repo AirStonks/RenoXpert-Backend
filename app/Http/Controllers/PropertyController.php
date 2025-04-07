@@ -137,7 +137,7 @@ class PropertyController extends BaseController
         // Update the property
         $property->name = $validatedData['name'];
         $property->address = $validatedData['address'];
-        $property->street = $validatedData['street'];
+        $property->street = $validatedData['street'] ?? null;
         $property->postcode = $validatedData['postcode'];
         $property->city = $validatedData['city'];
         $property->state = $validatedData['state'];
