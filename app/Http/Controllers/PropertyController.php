@@ -122,7 +122,6 @@ class PropertyController extends BaseController
         $validator = Validator::make($input, [
             'name' => 'required|string|max:255',
             'address' => 'required|string|max:255',
-            'street' => 'required|string|max:255',
             'postcode' => 'required|string|max:10',
             'city' => 'required|string|max:100',
             'state' => 'required|string|max:100',
