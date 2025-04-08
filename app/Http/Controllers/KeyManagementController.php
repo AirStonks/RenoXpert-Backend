@@ -171,8 +171,6 @@ class KeyManagementController extends BaseController
         $keyManagement->date_received_key = $input['date_received_key'];
         $keyManagement->date_posted = $input['date_posted'];
         $keyManagement->pic_name = $input['pic_name'];
-        $keyManagement->no_main_door = $input['no_main_door'];
-        $keyManagement->no_room = $input['no_room'];
         $keyManagement->status = $input['status'];
         $keyManagement->save();
 
