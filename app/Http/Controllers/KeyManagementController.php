@@ -151,6 +151,18 @@ class KeyManagementController extends BaseController
         return $this->sendResponse(new KeyManagementResource($keyManagement), 'Key Management retrieved successfully.');
     }
 
+    public function getRenoKeyManagement($renoProgressId)
+    {
+        
+        $keyManagement = KeyManagement::where('reno_progress_id', $renoProgressId)->first();
+
+        if (is_null($keyManagement)) {
+            return $this->sendError('Key Management not found.');
+        }
+
+        return $this->sendResponse(new KeyManagementResource($keyManagement), 'Key Management retrieved successfully.');
+    }
+
     /**
      * Update the specified resource in storage.
      */

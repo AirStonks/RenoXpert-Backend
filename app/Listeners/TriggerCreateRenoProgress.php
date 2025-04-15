@@ -219,7 +219,7 @@ class TriggerCreateRenoProgress
                 $products = $originalPkg->products;
 
                 // Skip if package is an addon and not included
-                if ($originalPkg->is_addon && !$originalPkg->is_addon_included) {
+                if (($originalPkg->is_addon ?? false) && !($originalPkg->is_addon_included ?? false)) {
                     continue;  // Skip to next iteration
                 }
 
