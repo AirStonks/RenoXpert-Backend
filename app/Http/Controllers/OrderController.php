@@ -39,6 +39,7 @@ class OrderController extends BaseController
             $query->where(function ($query) use ($search) {
                 // Search across individual fields in the orders table
                 $query->where('order_no', 'like', '%' . $search . '%')
+                    ->orWhere('internal_remark', 'like', '%' . $search . '%')
 
                     // Search in the related user's fields
                     ->orWhereHas('user', function ($q) use ($search) {
@@ -469,6 +470,56 @@ class OrderController extends BaseController
             ]);
         }
     }
+
+    public function toggleOwnerAddonPackage($id, $package_id)
+    {
+        try {
+            $order = Order::where('id', $id)->first();
+            if (!$order) {
+                return $this->sendError('Order not found', [], 404);
+            }
+
+            $updatedLatestQuotation = $order->orderQuotations()->latest()->first();
+            if (!$updatedLatestQuotation) {
+                return $this->sendError('Order quotation not found', [], 404);
+            }
+
+            // Decode the metadata JSON string into an array
+            $metadata = json_decode($updatedLatestQuotation->metadata, true);
+            if (!is_array($metadata)) {
+                return $this->sendError('Invalid metadata format', [], 400);
+            }
+
+            // Find and toggle the package with matching package_id
+            $packageFound = false;
+            foreach ($metadata as $index => $package) {
+                if (isset($package['id']) && $package['id'] == $package_id) {
+                    // Toggle the is_addon_included field
+                    $package['is_addon_included'] = !isset($package['is_addon_included']) ? true : !$package['is_addon_included'];
+                    $metadata[$index] = $package;
+                    $packageFound = true;
+                    break;
+                }
+            }
+
+            if (!$packageFound) {
+                return $this->sendError("Package with ID {$package_id} not found in metadata", [], 404);
+            }
+
+            // Save the updated metadata back to the model
+            $updatedLatestQuotation->metadata = json_encode($metadata);
+            $updatedLatestQuotation->save();
+
+            return $this->sendResponse(new OwnerOrderResource(Order::find($id)), 'Addon Packages updated successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError('Error', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
+        }
+    }
+
+
 
     /**
      * Remove the specified resource from storage.
