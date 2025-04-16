@@ -31,8 +31,8 @@ return new class extends Migration
 
 
         // Staging: Done
-        Schema::table('packages', function (Blueprint $table) {
-            $table->boolean('is_addon')->default(false)->after('category'); // Status column
+        Schema::table('job_tasks', function (Blueprint $table) {
+            $table->json('external_attachment')->nullable()->after('attachments');
         });
     }
 

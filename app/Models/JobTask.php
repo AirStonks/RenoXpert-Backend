@@ -12,7 +12,7 @@ class JobTask extends Model
     use HasFactory;
 
     protected $fillable = [
-        'job_id',   
+        'job_id',
         'product_id',
         'name',
         'qty',
@@ -31,16 +31,18 @@ class JobTask extends Model
         'owner_comment',
         'internal_comment',
         'attachments',
+        'external_attachment',
         'completed_at',
         'created_by',
         'updated_by',
         'deleted_at',
     ];
-    
+
     protected $casts = [
         'supply_date' => 'datetime',
         'install_date' => 'datetime',
         'attachments' => 'array',
+        'external_attachment' => 'array',
     ];
 
     protected static function boot()

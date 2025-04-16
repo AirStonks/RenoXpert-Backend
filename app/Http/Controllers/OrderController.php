@@ -519,8 +519,6 @@ class OrderController extends BaseController
         }
     }
 
-
-
     /**
      * Remove the specified resource from storage.
      */
