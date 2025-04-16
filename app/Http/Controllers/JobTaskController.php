@@ -124,7 +124,20 @@ class JobTaskController extends BaseController
     {
         $task = JobTask::find($taskId);
 
-        return $this->sendResponse($task->attachments, 'Task Documents retrieved successfully.');
+        if (!$task) {
+            return $this->sendError('Task not found.');
+        }
+
+        $taskArr = [
+            'attachments' => $task->attachments ?? null,
+            'external_attachment' => $task->external_attachment ?? null
+        ];
+
+        if (!$task->attachments) {
+            return $this->sendError('Task has no documents.');
+        }
+
+        return $this->sendResponse($taskArr, 'Task Documents retrieved successfully.');
     }
 
     /**
