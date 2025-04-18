@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\JobTask;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use App\Http\Resources\JobTaskResource;
 use App\Models\Inventory;
 use App\Models\RenoProgress;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use App\Http\Resources\JobTaskResource;
 use Illuminate\Support\Facades\Storage;
 
 class JobTaskController extends BaseController
@@ -35,6 +36,8 @@ class JobTaskController extends BaseController
             $job = $task->job;
 
             $directory = 'reno/progress/' . $renoProgressId . '/jobs/' . $job->id;
+
+            return $this->sendError('TEST.', $request->hasFile('attachment'));
 
             if ($request->hasFile('attachment')) {
                 $file = $request->file('attachment');
@@ -69,24 +72,17 @@ class JobTaskController extends BaseController
         }
     }
 
-    public function uploadDocuments(Request $request, $id, $taskId)
+    public function uploadTaskExternalImage(Request $request, $renoProgressId, $taskId)
     {
-        $input = $request->input();
+        try {
+            $task = JobTask::find($taskId);
+            $job = $task->job;
 
-        $task = JobTask::find($taskId);
-        $job = $task->job;
+            $directory = 'reno/progress/' . $renoProgressId . '/jobs/external/' . $job->id;
 
-        $directory = 'reno/progress/' . $id . '/jobs/' . $job->id;
-
-        if ($request->hasFile('attachments')) {
-            $files = $request->file('attachments'); // This should be an array of uploaded files
-            $newAttachments = $task->attachments ?? [];
-
-            foreach ($files as $file) {
-                // Generate a unique filename to prevent conflicts
+            if ($request->hasFile('external_attachment')) {
+                $file = $request->file('external_attachment');
                 $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-
-                // Store the file in the specified directory on the S3 disk
                 $path = Storage::disk('s3')->putFileAs(
                     $directory,
                     $file,
@@ -94,23 +90,117 @@ class JobTaskController extends BaseController
                     'public'
                 );
 
-                // Prepare new attachment data
-                $newAttachments[] = [
-                    // Use the full URL path for S3
+                $updatedAttachment = $task->external_attachnment ?? [];
+
+                $updatedAttachment[] = [
                     'file_url' => Storage::disk('s3')->path($path),
                     'size' => $file->getSize(),
                     'original_name' => $file->getClientOriginalName(),
                 ];
+
+                // Update task's external_attachnment field with the new data
+                $task->external_attachnment = $updatedAttachment;
+
+                $task->save();
+
+                return $this->sendResponse($task->external_attachnment, 'Image uploaded successfully.');
             }
-
-            // Update task's attachments field with the new data
-            $task->attachments = $newAttachments;
-            $task->save(); // Save the task with the updated attachments
-
-            return $this->sendResponse($task->attachments, 'Documents uploaded successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError('Error.', [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+            ]);
         }
+    }
 
-        return $this->sendError('Upload Failed.', 'something error occurred.');
+    public function uploadDocuments(Request $request, $id, $taskId)
+    {
+        $task = JobTask::find($taskId);
+        $job = $task->job;
+
+        $directory = 'reno/progress/' . $id . '/jobs/' . $job->id;
+
+        $files = $request->file('attachments');
+
+        try {
+            if (!empty($files)) {
+                $newAttachments = $task->attachments ?? [];
+
+                foreach ($files as $file) {
+                    // Generate a unique filename to prevent conflicts
+                    $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+
+                    // Store the file in the specified directory on the S3 disk
+                    $path = Storage::disk('s3')->putFileAs(
+                        $directory,
+                        $file,
+                        $filename,
+                        'public'
+                    );
+
+                    // Prepare new attachment data
+                    $newAttachments[] = [
+                        // Use the full URL path for S3
+                        'file_url' => Storage::disk('s3')->path($path),
+                        'size' => $file->getSize(),
+                        'original_name' => $file->getClientOriginalName(),
+                    ];
+                }
+
+                // Update task's attachments field with the new data
+                $task->attachments = $newAttachments;
+                $task->save(); // Save the task with the updated attachments
+
+                return $this->sendResponse($task->attachments, 'Documents uploaded successfully.');
+            }
+        } catch (\Exception $e) {
+            return $this->sendError('Upload Failed.', $e->getMessage());
+        }
+    }
+
+    public function uploadExternalDocuments(Request $request, $id, $taskId)
+    {
+        $task = JobTask::find($taskId);
+        $job = $task->job;
+
+        $directory = 'reno/progress/' . $id . '/jobs/external/' . $job->id;
+
+        $files = $request->file('external_attachment');
+
+        try {
+            if (!empty($files)) {
+                $newAttachments = $task->external_attachment ?? [];
+
+                foreach ($files as $file) {
+                    // Generate a unique filename to prevent conflicts
+                    $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+
+                    // Store the file in the specified directory on the S3 disk
+                    $path = Storage::disk('s3')->putFileAs(
+                        $directory,
+                        $file,
+                        $filename,
+                        'public'
+                    );
+
+                    // Prepare new attachment data
+                    $newAttachments[] = [
+                        // Use the full URL path for S3
+                        'file_url' => Storage::disk('s3')->path($path),
+                        'size' => $file->getSize(),
+                        'original_name' => $file->getClientOriginalName(),
+                    ];
+                }
+
+                // Update task's external_attachment field with the new data
+                $task->external_attachment = $newAttachments;
+                $task->save(); // Save the task with the updated external_attachment
+
+                return $this->sendResponse($task->external_attachment, 'Documents uploaded successfully.');
+            }
+        } catch (\Exception $e) {
+            return $this->sendError('Upload Failed.', $e->getMessage());
+        }
     }
     /**
      * Display the specified resource.
@@ -124,20 +214,10 @@ class JobTaskController extends BaseController
     {
         $task = JobTask::find($taskId);
 
-        if (!$task) {
-            return $this->sendError('Task not found.');
-        }
-
-        $taskArr = [
-            'attachments' => $task->attachments ?? null,
-            'external_attachment' => $task->external_attachment ?? null
-        ];
-
-        if (!$task->attachments) {
-            return $this->sendError('Task has no documents.');
-        }
-
-        return $this->sendResponse($taskArr, 'Task Documents retrieved successfully.');
+        return $this->sendResponse([
+            'attachments' => $task->attachments,
+            'external_attachment' => $task->external_attachment,
+        ], 'Task Documents retrieved successfully.');
     }
 
     /**
@@ -361,5 +441,42 @@ class JobTaskController extends BaseController
         $task->save();
 
         return $this->sendResponse($task->attachments, 'Document removed successfully.');
+    }
+
+    public function removeExternalTaskDocument($id, $taskId, $documentIndex)
+    {
+        $task = JobTask::find($taskId);
+        $documentIndex = (int) $documentIndex;
+        $newTaskAttachments = $task->external_attachment;
+
+        // Get the file URL from external_attachment
+        $fileUrl = $newTaskAttachments[$documentIndex]['file_url'];
+
+        // Convert the full storage URL to the correct relative path
+        // Remove "/storage/" from the beginning of the path
+        $relativePath = str_replace('/storage/', '', $fileUrl);
+
+        // Try to delete the file
+        $deleted = Storage::disk('s3')->delete($relativePath);
+
+        if (!$deleted || Storage::disk('s3')->exists($relativePath)) {
+            return $this->sendError('File not found in storage.', 'File could not be deleted.');
+        }
+
+        // Remove the document from the array
+        unset($newTaskAttachments[$documentIndex]);
+
+        // Reorder the remaining external_attachment
+        $newTaskAttachments = array_values($newTaskAttachments);
+
+        // If array empty, null it
+        if (empty($newTaskAttachments)) {
+            $newTaskAttachments = null;
+        }
+
+        $task->external_attachment = $newTaskAttachments;
+        $task->save();
+
+        return $this->sendResponse($task->external_attachment, 'Document removed successfully.');
     }
 }

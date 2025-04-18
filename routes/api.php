@@ -94,7 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/owner/order/{id}', [OrderController::class, 'showOwnerOrder']);
     Route::get('/owner/orders', [OrderController::class, 'getOwnerOrders']);
     Route::put('/owner/orders/{id}/addon-packages/update', [OrderController::class, 'updateOwnerAddonPackages']);
-    Route::get('/owner/orders/{orderId}/addon-packages/{packageId}/toggle', [OrderController::class, 'toggleOwnerAddonPackage']);
+    Route::get('/owner/orders/{id}/addon-packages/{package_id}/toggle', [OrderController::class, 'toggleOwnerAddonPackage']);
     Route::get('/owner/form/reno-registration-forms', [RegistrationFormController::class, 'retrieveRegistrationForms']);
     Route::get('/owner/form/reno-registration-forms/{id}', [RegistrationFormController::class, 'showRegistrationForm']);
     Route::get('/owner/reno/progresses', [RenoProgressController::class, 'ownerIndex']);
@@ -144,9 +144,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/task/{taskId}/internal-comment/change', [JobTaskController::class, 'changeInternalComment']);
     Route::post('/reno-progress/{id}/task/{taskId}/documents/upload', [JobTaskController::class, 'uploadDocuments']);
     Route::post('/reno-progress/{id}/task/{taskId}/document/upload', [JobTaskController::class, 'uploadTaskImage']);
-    Route::get('/reno-progress/{id}/key-management', [KeyManagementController::class, 'getRenoKeyManagement']);
+    Route::post('/reno-progress/{id}/task/{taskId}/documents/external/upload', [JobTaskController::class, 'uploadExternalDocuments']);
+    Route::post('/reno-progress/{id}/task/{taskId}/document/external/upload', [JobTaskController::class, 'uploadTaskExternalImage']);
     Route::get('/reno-progress/{id}/task/{taskId}/documents/fetch', [JobTaskController::class, 'fetchTaskDocuments']);
     Route::get('/reno-progress/{id}/task/{taskId}/documents/{documentIndex}/remove', [JobTaskController::class, 'removeTaskDocument']);
+    Route::get('/reno-progress/{id}/task/{taskId}/documents/external/{documentIndex}/remove', [JobTaskController::class, 'removeExternalTaskDocument']);
     Route::post('/reno-progress/{id}/task/{taskId}/comments', [JobTaskController::class, 'changeComments']);
 
 

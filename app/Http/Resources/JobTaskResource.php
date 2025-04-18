@@ -36,6 +36,7 @@ class JobTaskResource extends JsonResource
             'owner_comment' => $this->owner_comment,
             'internal_comment' => $this->internal_comment,
             'attachments' => $this->attachments,
+            'internal_attachment' => $this->external_attachment,
             'completed_at' => $this->completed_at ? $this->completed_at->format('m/d/Y') : null,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
