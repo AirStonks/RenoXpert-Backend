@@ -117,7 +117,9 @@ class OrderController extends BaseController
                 'block' => 'nullable|string|max:255',
                 'floor' => 'nullable|string|max:255',
                 'unit_no' => 'nullable|string|max:255',
-                'bedroom_count' => 'nullable',
+                // 'bedroom_count' => 'nullable',
+                'single_bedroom_count' => 'nullable',
+                'queen_bedroom_count' => 'nullable',
                 'bathroom_count' => 'nullable',
                 'include_partition' => 'nullable|boolean',
                 'is_progressive_payment' => 'nullable|boolean',
@@ -133,6 +135,7 @@ class OrderController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
+            $input['bedroom_count'] = $input['single_bedroom_count'] + $input['queen_bedroom_count'];
             $isDraftMode = $input['user_id'] == null;
 
             // Determine last order number based on draft or regular orders
@@ -334,7 +337,9 @@ class OrderController extends BaseController
                 'block' => 'nullable|string|max:255',
                 'floor' => 'nullable|string|max:255',
                 'unit_no' => 'nullable|string|max:255',
-                'bedroom_count' => 'nullable|numeric|min:1',
+                // 'bedroom_count' => 'nullable|numeric|min:1',
+                'single_bedroom_count' => 'nullable|numeric|min:1',
+                'queen_bedroom_count' => 'nullable|numeric|min:1',
                 'bathroom_count' => 'nullable|numeric|min:1',
                 'description' => 'nullable|string|max:0',
                 'internal_remark' => 'nullable|string|min:0',
@@ -347,6 +352,7 @@ class OrderController extends BaseController
             }
 
             $validatedData = $validator->validated();
+            $validatedData['bedroom_count'] = $input['single_bedroom_count'] + $input['queen_bedroom_count'];
 
             $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && (float)$input['bonus']['value'] != 0
                 ? (float)$input['bonus']['value']
