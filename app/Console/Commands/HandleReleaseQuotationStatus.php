@@ -21,7 +21,7 @@ class HandleReleaseQuotationStatus extends Command
      *
      * @var string
      */
-    protected $description = 'Check order released date daily and update the order status if released_at is 14 days ago';
+    protected $description = 'Check order released date daily and update the order status if released_at is 7 days ago';
 
     /**
      * Execute the console command.
@@ -35,7 +35,7 @@ class HandleReleaseQuotationStatus extends Command
             $releasedDate = Carbon::parse($order->released_at);
 
             // Check if released_at is 14 days ago
-            if ($releasedDate->addDays(14)->endOfDay()->lte(now())) {
+            if ($releasedDate->addDays(7)->endOfDay()->lte(now())) {
                 $order->status = 'voided';
                 $order->save();
             }

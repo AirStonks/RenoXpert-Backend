@@ -34,6 +34,12 @@ return new class extends Migration
         Schema::table('job_tasks', function (Blueprint $table) {
             $table->json('external_attachment')->nullable()->after('attachments');
         });
+
+        // Staging: Done
+        Schema::table('orders', function (Blueprint $table) {
+            $table->integer('queen_bedroom_count')->nullable()->after('bedroom_count');
+            $table->integer('single_bedroom_count')->nullable()->after('bedroom_count');
+        });
     }
 
     public function down()
