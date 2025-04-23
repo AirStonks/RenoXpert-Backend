@@ -29,6 +29,8 @@ class Order extends Model
         'floor',
         'unit_no',
         'bedroom_count',
+        'single_bedroom_count',
+        'queen_bedroom_count',
         'bathroom_count',
         'include_partition',
         'is_progressive_payment',

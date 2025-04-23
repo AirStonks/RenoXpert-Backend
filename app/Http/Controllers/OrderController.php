@@ -406,6 +406,8 @@ class OrderController extends BaseController
             $order->floor = $validatedData['floor'];
             $order->unit_no = $validatedData['unit_no'];
             $order->bedroom_count = $validatedData['bedroom_count'];
+            $order->single_bedroom_count = $validatedData['single_bedroom_count'];
+            $order->queen_bedroom_count = $validatedData['queen_bedroom_count'];
             $order->bathroom_count = $validatedData['bathroom_count'];
             $order->include_partition = $input['include_partition'];
             $order->is_progressive_payment = $input['is_progressive_payment'];
