@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Property;
+use Illuminate\Support\Str;
 use App\Models\RenoProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -74,102 +76,65 @@ class DefectInspectionFormController extends BaseController
         //
     }
 
-    public function submitForm($renoProgressId)
+    public function submitForm($formId)
     {
         try {
             $user = Auth::user();
 
-            // $input = $request->all();
-
-            // $updatedArea = $input['area'];
-
-            // $directory = 'form/defect/inspection/' . now()->format('Y-m-d_H-i-s');
-
-            // foreach ($updatedArea as $areaIndex => $questions) {
-            //     if ($areaIndex === 'bedrooms' || $areaIndex === 'bathrooms') {
-
-            //         $dynamicField = $questions;
-
-            //         foreach ($dynamicField as $dynamicKey => $questions) {
-            //             foreach ($questions as $questionIndex => $question) {
-            //                 if (isset($question['attachments']) && is_array($question['attachments'])) {
-            //                     foreach ($question['attachments'] as $key => $attachment) {
-            //                         // Store the file in the public storage
-            //                         $filename = uniqid() . '.' . $attachment['file']->getClientOriginalExtension();
-            //                         $path = Storage::disk('s3')->putFileAs(
-            //                             $directory,
-            //                             $attachment['file'],
-            //                             $filename,
-            //                             'public'
-            //                         );
-
-            //                         // Update the attachment details
-            //                         $updatedArea[$areaIndex][$dynamicKey][$questionIndex]['attachments'][$key] = [
-            //                             'file_url' => Storage::disk('s3')->path($path),
-            //                             'original_name' => $attachment['file']->getClientOriginalName(),
-            //                         ];
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     } else {
-            //         foreach ($questions as $questionIndex => $question) {
-            //             if (isset($question['attachments']) && is_array($question['attachments'])) {
-            //                 foreach ($question['attachments'] as $key => $attachment) {
-            //                     // Store the file in the public storage
-            //                     $filename = uniqid() . '.' . $attachment['file']->getClientOriginalExtension();
-            //                     $path = Storage::disk('s3')->putFileAs(
-            //                         $directory,
-            //                         $attachment['file'],
-            //                         $filename,
-            //                         'public'
-            //                     );
-
-            //                     // Update the attachment details
-            //                     $updatedArea[$areaIndex][$questionIndex]['attachments'][$key] = [
-            //                         'file_url' => Storage::disk('s3')->path($path), // Get the public URL of the stored file
-            //                         'original_name' => $attachment['file']->getClientOriginalName(),
-            //                     ];
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
-
-            // $input['property_name'] = $input['property']['property_name'];
-            // $input['other_property_name'] = $input['property']['other_property_name'];
-            // $input['block'] = $input['property']['block'];
-            // $input['level'] = $input['property']['level'];
-            // $input['unit'] = $input['property']['unit'];
-            // $input['status'] = 'submitted';
-            // $input['metadata'] = json_encode($updatedArea);
-
-            // $metadata = json_decode($input['metadata']);
-
-            // $form = DefectInspectionForm::create($input);
-
             // Update complete date of the Progress
-            $renoProgress = RenoProgress::find($renoProgressId);
-            $diTask = $renoProgress->progressPhases[0]->jobs[1]->tasks[0];
-            $diForm = $renoProgress->defectInspectionForm;
-
-            $diTask->is_installed = 1;
-            $diTask->install_date = Carbon::now();
-            $diTask->status = 'submitted';
-            $diTask->save();
-
+            $diForm = DefectInspectionForm::find($formId);
 
             $diForm->contractor_name = $user->name;
             $diForm->contractor_email = $user->email;
+            $diForm->submitted_at = Carbon::now();
             $diForm->status = 'submitted';
             $diForm->save();
 
             return $this->sendResponse('success', 'Form submitted successfully.');
+
         } catch (\Throwable $th) {
             return $this->sendError('Database Error.', [
                 'message' => $th->getMessage(),
                 'code' => $th->getCode(),
             ]);
+        }
+    }
+
+    public function addDIF(Request $request)
+    {
+        $input = $request->input();
+
+        try {
+            // Generate hashed link for report
+            $randomString = Str::random(12); // 32-character random string
+            $base64String = base64_encode($randomString);
+            $base64UrlString = str_replace(['+', '/', '='], ['-', '_', ''], $base64String);
+
+            $formStatus = $input['isDISubmitted'] ? 'submitted' : 'not_available';
+
+            $diBy = $input['inspectionType'] === 'By Owner' ? 'owner' : 'belive';
+
+            $submitDate = $input['isDISubmitted'] ? Carbon::parse($input['submitted_at'])->format('Y-m-d H:i:s') : null;
+
+            $form = DefectInspectionForm::create([
+                'property_name' => $input['property_id'],
+                'owner_email' => $input['owner_email'],
+                // 'other_property_name' => null,
+                'di_by' => $diBy,
+                'block' => $input['block'],
+                'level' => $input['floor'],
+                'unit' => $input['unit'],
+                'status' => $formStatus,
+                'bedroom_count' => $input['bedrooms'],
+                'bathroom_count' => $input['bathrooms'],
+                'metadata' => null,
+                'report_hash' => $base64UrlString,
+                'submitted_at' => $submitDate,
+            ]);
+
+            return $this->sendResponse(new DefectInspectionFormResource($form), 'Form created successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError($th->getMessage());
         }
     }
 
@@ -219,37 +184,16 @@ class DefectInspectionFormController extends BaseController
         //
     }
 
-
-    // $request->input() = {
-    //     "area": "bedrooms",
-    //     "sub-area": "bedroom1",
-    //     "question": "q1",
-    //     "value": "has_defect",
-    // }
-
-    // $request->input() = {
-    //     "area": "foyer",
-    //     "question": "q2",
-    //     "remark": "some remark",
-    // }
-
-    // $request->input() = {
-    //     "area": "bathrooms",
-    //     "sub-area": "bedroom2",
-    //     "question": "q5",
-    //     "attachment": "file_value"
-    // }
-
-    public function liveUpdateForm(Request $request, $renoProgressId)
+    public function liveUpdateForm(Request $request, $formId)
     {
-        $diForm = DefectInspectionForm::where('reno_progress_id', $renoProgressId)->first();
+        $diForm = DefectInspectionForm::find($formId);
 
         if (is_null($diForm)) {
             return $this->sendError('Form not found.');
         }
 
         // s3 files directory
-        $directory = 'form/defect/inspection/' . $renoProgressId;
+        $directory = 'form/defect/inspection/' . $formId;
 
         // Get $diForm->metadata
         $updatedMetadata = json_decode($diForm->metadata);
@@ -376,6 +320,109 @@ class DefectInspectionFormController extends BaseController
         $diForm->save();
 
         return $this->sendResponse(new DefectInspectionFormResource($diForm), 'DI Form link status toggled successfully.');
+    }
+
+    public function generateDIForm($id)
+    {
+        $diForm = DefectInspectionForm::find($id);
+
+        if (is_null($diForm)) {
+            return $this->sendError('Form not found.');
+        }
+
+
+
+        $metadata = [
+            'yard' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+                'q5' => ['value' => '', 'remark' => null],
+                'q6' => ['value' => '', 'remark' => null],
+            ],
+            'foyer' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+            ],
+            'living' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+                'q5' => ['value' => '', 'remark' => null],
+                'q6' => ['value' => '', 'remark' => null],
+                'q7' => ['value' => '', 'remark' => null],
+                'q8' => ['value' => '', 'remark' => null],
+                'q9' => ['value' => '', 'remark' => null],
+            ],
+            'balcony' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+            ],
+            'hallway' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+            ],
+            'kitchen' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+                'q5' => ['value' => '', 'remark' => null],
+                'q6' => ['value' => '', 'remark' => null],
+                'q7' => ['value' => '', 'remark' => null],
+                'q8' => ['value' => '', 'remark' => null],
+            ],
+            'bedrooms' => [],
+            'bathrooms' => [],
+        ];
+
+        // Generate bedroom entries dynamically
+        $bedroomTemplate = [
+            'q1' => ['value' => '', 'remark' => null],
+            'q2' => ['value' => '', 'remark' => null],
+            'q3' => ['value' => '', 'remark' => null],
+            'q4' => ['value' => '', 'remark' => null],
+            'q5' => ['value' => '', 'remark' => null],
+            'q6' => ['value' => '', 'remark' => null],
+            'q7' => ['value' => '', 'remark' => null],
+            'q8' => ['value' => '', 'remark' => null],
+            'q9' => ['value' => '', 'remark' => null],
+        ];
+
+        for ($i = 1; $i <= $diForm->bedroom_count; $i++) {
+            $metadata['bedrooms']["bedroom{$i}"] = $bedroomTemplate;
+        }
+
+        // Generate bathroom entries dynamically
+        $bathroomTemplate = [
+            'q1' => ['value' => '', 'remark' => null],
+            'q2' => ['value' => '', 'remark' => null],
+            'q3' => ['value' => '', 'remark' => null],
+            'q4' => ['value' => '', 'remark' => null],
+            'q5' => ['value' => '', 'remark' => null],
+            'q6' => ['value' => '', 'remark' => null],
+            'q7' => ['value' => '', 'remark' => null],
+            'q8' => ['value' => '', 'remark' => null],
+            'q9' => ['value' => '', 'remark' => null],
+        ];
+
+        for ($i = 1; $i <= $diForm->bathroom_count; $i++) {
+            $metadata['bathrooms']["bathroom{$i}"] = $bathroomTemplate;
+        }
+
+        $diForm->status = 'not_submitted';
+        $diForm->metadata = json_encode($metadata);
+        $diForm->save();
+
+        return $this->sendResponse(new DefectInspectionFormResource($diForm), 'DI Form generated successfully.');
     }
 
     /**

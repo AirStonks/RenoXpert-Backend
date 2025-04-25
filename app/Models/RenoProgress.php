@@ -38,6 +38,7 @@ class RenoProgress extends Model
         'contractor_handover_date',
         'resource_id',
         'completed_at',
+        'rpm_version',
         'created_by',
         'updated_by',
         'deleted_at',

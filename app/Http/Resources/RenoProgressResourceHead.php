@@ -74,6 +74,7 @@ class RenoProgressResourceHead extends JsonResource
             'remaining_percentage' => $this->sale->remaining_percentage,
             'paid_percentage' => $this->sale->invoices->where('status', 'paid')->sum('percentage'),
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
+            'rpm_version' => $this->rpm_version,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];

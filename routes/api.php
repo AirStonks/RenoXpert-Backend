@@ -170,6 +170,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/op/reno/defect-inspection-forms/{id}/save', [DefectInspectionFormController::class, 'liveUpdateForm']);
     Route::post('/op/reno/defect-inspection-forms/{id}/attachment/remove', [DefectInspectionFormController::class, 'removeAttachment']);
 
+    Route::post('/di-forms/addDIF', [DefectInspectionFormController::class, 'addDIF']);
+    Route::get('/di-forms/{id}', [DefectInspectionFormController::class, 'show']);
+    Route::get('/di-forms/{id}/generate', [DefectInspectionFormController::class, 'generateDIForm']);
+
 
     Route::post('/orders/{id}/internal-remark/update', [OrderController::class, 'updateInternalRemark']);
     Route::get('/orders/{id}/re-release', [OrderController::class, 'reReleaseOrder']);

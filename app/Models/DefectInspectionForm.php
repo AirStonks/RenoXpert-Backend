@@ -14,6 +14,7 @@ class DefectInspectionForm extends Model
     protected $fillable = [
         'id',
         'reno_progress_id',
+        'di_by',
         'date',
         'time',
         'owner_email',
@@ -30,6 +31,7 @@ class DefectInspectionForm extends Model
         'metadata',
         'report_hash',
         'link_status',
+        'submitted_at',
         'created_by',
         'updated_by',
         'deleted_at',
