@@ -22,6 +22,7 @@ class DefectInspectionFormResource extends JsonResource
         return [
             'id' => $this->id,
             'reno_progress_id' => $this->reno_progress_id,
+            'di_by' => $this->di_by,
             'date' => $this->date,
             'time' => $this->time,
             'owner_email' => $this->owner_email,
@@ -47,6 +48,7 @@ class DefectInspectionFormResource extends JsonResource
             'status' => $this->status,
             'report_hash' => $this->report_hash,
             'link_status' => $this->link_status,
+            'submitted_at' => $this->submitted_at,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
             'created_at' => $this->created_at,

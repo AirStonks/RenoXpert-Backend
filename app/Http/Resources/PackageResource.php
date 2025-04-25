@@ -26,7 +26,7 @@ class PackageResource extends JsonResource
             'description' => $this->description,
             'description_internal' => $this->description_internal,
             'total_price' => $totalPrice,
-            'is_addon' => $this->is_addon,
+            'is_addon' => $this->is_addon ? true : false,
             'quantity' => $this->pivot->quantity ?? 1,
             'products' => ProductResource::collection($this->products),
             'status' => $this->status,

@@ -26,6 +26,7 @@ class PackageResourceHead extends JsonResource
             'description' => $this->description,
             'description_internal' => $this->description_internal,
             'total_price' => $totalPrice,
+            'is_addon' => $this->is_addon ? true : false,
             // 'products' => ProductResource::collection($this->products),
             'status' => $this->status,
             'created_by' => User::find($this->created_by),

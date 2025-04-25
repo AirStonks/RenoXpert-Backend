@@ -29,16 +29,15 @@ return new class extends Migration
         //     $table->softDeletes();
         // });
 
-
         // Staging: Done
-        Schema::table('job_tasks', function (Blueprint $table) {
-            $table->json('external_attachment')->nullable()->after('attachments');
+        Schema::table('reno_progress', function (Blueprint $table) {
+            $table->integer('rpm_version')->default(3)->after('completed_at');
         });
 
         // Staging: Done
-        Schema::table('orders', function (Blueprint $table) {
-            $table->integer('queen_bedroom_count')->nullable()->after('bedroom_count');
-            $table->integer('single_bedroom_count')->nullable()->after('bedroom_count');
+        Schema::table('defect_inspection_forms', function (Blueprint $table) {
+            $table->timestamp('submitted_at')->nullable()->after('link_status');
+            $table->string('di_by')->default('belive')->after('reno_progress_id');
         });
     }
 

@@ -71,6 +71,7 @@ class RenoProgressResource extends JsonResource
             'resource_item_id' => $this->resourceItem->id,
             'permission_id' => $this->permission_id,
             'permissions' => $this->itemPermissions->userPermissions,
+            'rpm_version' => $this->rpm_version,
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
