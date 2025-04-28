@@ -151,6 +151,7 @@ class ProductController extends BaseController
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
                 'SKU' => 'nullable|string',
+                'supplier_name' => 'nullable|string',
                 'pm_category_id' => 'required|numeric',
                 'type' => 'required|string',
                 'description' => 'nullable|string',
@@ -359,6 +360,7 @@ class ProductController extends BaseController
         $validator = Validator::make($input, [
             'name' => 'required|string|max:255',
             'SKU' => 'nullable|string',
+            'supplier_name' => 'nullable|string',
             'pm_category_id' => 'required|numeric',
             'type' => 'required|string',
             'description' => 'nullable|string',

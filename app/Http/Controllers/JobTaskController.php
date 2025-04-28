@@ -130,6 +130,7 @@ class JobTaskController extends BaseController
                     // Generate a unique filename to prevent conflicts
                     $filename = uniqid() . '.' . $file->getClientOriginalExtension();
 
+
                     // Store the file in the specified directory on the S3 disk
                     $path = Storage::disk('s3')->putFileAs(
                         $directory,

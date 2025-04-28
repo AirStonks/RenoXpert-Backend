@@ -30,14 +30,8 @@ return new class extends Migration
         // });
 
         // Staging: Done
-        Schema::table('reno_progress', function (Blueprint $table) {
-            $table->integer('rpm_version')->default(3)->after('completed_at');
-        });
-
-        // Staging: Done
-        Schema::table('defect_inspection_forms', function (Blueprint $table) {
-            $table->timestamp('submitted_at')->nullable()->after('link_status');
-            $table->string('di_by')->default('belive')->after('reno_progress_id');
+        Schema::table('products', function (Blueprint $table) {
+            $table->string('supplier_name')->nullable()->after('pm_category_id');
         });
     }
 
