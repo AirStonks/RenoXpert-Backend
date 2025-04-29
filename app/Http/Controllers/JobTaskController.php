@@ -37,8 +37,6 @@ class JobTaskController extends BaseController
 
             $directory = 'reno/progress/' . $renoProgressId . '/jobs/' . $job->id;
 
-            return $this->sendError('TEST.', $request->hasFile('attachment'));
-
             if ($request->hasFile('attachment')) {
                 $file = $request->file('attachment');
                 $filename = uniqid() . '.' . $file->getClientOriginalExtension();
