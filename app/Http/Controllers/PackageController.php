@@ -179,7 +179,7 @@ class PackageController extends BaseController
             $input = $request->all();
 
             $validator = Validator::make($input, [
-                'name' => 'required|string|max:255',
+                'packageName' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'description_internal' => 'nullable|string',
                 'category' => 'required|string',
@@ -192,7 +192,7 @@ class PackageController extends BaseController
 
             $validatedData = $validator->validated();
 
-            $package->name = $validatedData['name'];
+            $package->name = $validatedData['packageName'];
             $package->description = $validatedData['description'];
             $package->description_internal = $validatedData['description_internal'];
             $package->category = $validatedData['category'];
