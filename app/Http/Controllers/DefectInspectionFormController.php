@@ -44,7 +44,10 @@ class DefectInspectionFormController extends BaseController
 
             $query->whereHas('renoProgress.sale.order.property', function ($q) use ($normalizedSearch) {
                 $q->where('name', 'like', '%' . $normalizedSearch . '%');
-            });
+            })
+                ->orWhereHas('renoProgress.sale.order', function ($q) use ($normalizedSearch) {
+                    $q->whereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+                });
         }
 
         if (empty($sortField)) {
@@ -91,7 +94,6 @@ class DefectInspectionFormController extends BaseController
             $diForm->save();
 
             return $this->sendResponse('success', 'Form submitted successfully.');
-
         } catch (\Throwable $th) {
             return $this->sendError('Database Error.', [
                 'message' => $th->getMessage(),

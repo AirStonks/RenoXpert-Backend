@@ -28,11 +28,6 @@ return new class extends Migration
         // Schema::table('quo_pkg_prods', function (Blueprint $table) {
         //     $table->softDeletes();
         // });
-
-        // Staging: Done
-        Schema::table('products', function (Blueprint $table) {
-            $table->string('supplier_name')->nullable()->after('pm_category_id');
-        });
     }
 
     public function down()

@@ -127,17 +127,17 @@ class PackageController extends BaseController
 
                 $product = Product::find($productInput['id']);
 
-                $totalAmount += ($product->productSupply->retail_price + $product->productInstall->retail_price) * $productInput['quantity'];
-
                 $package->products()->attach($productInput['id'], [
-                    'quantity' => $productInput['quantity'],
-                    'visibility' => $productInput['visibility'],
+                    'quantity' => $productInput['pivot']['quantity'],
+                    'visibility' => $productInput['pivot']['visibility'],
                     'included' => true,
                     'isOriginal' => true,
                     // 'internal_note' => $productInput['description_internal'],
-                    'includeSupply' => $productInput['supply'],
-                    'includeInstall' => $productInput['install']
+                    'includeSupply' => $productInput['pivot']['includeSupply'],
+                    'includeInstall' => $productInput['pivot']['includeInstall']
                 ]);
+
+                $totalAmount += ($product->productSupply->retail_price + $product->productInstall->retail_price) * $productInput['pivot']['quantity'];
             }
 
             $package->total_price = $totalAmount;
@@ -178,6 +178,8 @@ class PackageController extends BaseController
         try {
             $input = $request->all();
 
+            return $this->sendError($input);
+
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -197,9 +199,7 @@ class PackageController extends BaseController
             $package->description_internal = $validatedData['description_internal'];
             $package->category = $validatedData['category'];
             $package->is_addon = $validatedData['is_addon'];
-
-            // OPTION 1: Remove all associated product_package and Insert the newest product_package
-
+            
             $package->products()->detach();
 
             $totalAmount = 0.0;
@@ -210,7 +210,15 @@ class PackageController extends BaseController
 
                 $totalAmount += $product->product_retail_price * $productInput['quantity'];
 
-                $package->products()->attach($productInput['id'], ['quantity' => $productInput['quantity'], 'visibility' => $productInput['visibility'], 'included' => true, 'isOriginal' => true]);
+                $package->products()->attach(
+                    $productInput['id'],
+                    [
+                        'quantity' => $productInput['quantity'],
+                        'visibility' => $productInput['visibility'],
+                        'included' => true,
+                        'isOriginal' => true
+                    ]
+                );
             }
 
             $package->total_price = $totalAmount;
