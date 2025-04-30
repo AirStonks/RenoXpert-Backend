@@ -178,8 +178,6 @@ class PackageController extends BaseController
         try {
             $input = $request->all();
 
-            return $this->sendError($input);
-
             $validator = Validator::make($input, [
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
