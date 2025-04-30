@@ -197,7 +197,7 @@ class PackageController extends BaseController
             $package->description_internal = $validatedData['description_internal'];
             $package->category = $validatedData['category'];
             $package->is_addon = $validatedData['is_addon'];
-            
+
             $package->products()->detach();
 
             $totalAmount = 0.0;
@@ -206,13 +206,13 @@ class PackageController extends BaseController
 
                 $product = Product::find($productInput['id']);
 
-                $totalAmount += $product->product_retail_price * $productInput['quantity'];
+                $totalAmount += $product->product_retail_price * $productInput['pivot']['quantity'];
 
                 $package->products()->attach(
                     $productInput['id'],
                     [
-                        'quantity' => $productInput['quantity'],
-                        'visibility' => $productInput['visibility'],
+                        'quantity' => $productInput['pivot']['quantity'],
+                        'visibility' => $productInput['pivot']['visibility'],
                         'included' => true,
                         'isOriginal' => true
                     ]
@@ -227,7 +227,13 @@ class PackageController extends BaseController
 
             return $this->sendResponse(new PackageResource($package), 'Package updated successfully.');
         } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th);
+            return $this->sendError(
+                'Error.',
+                [
+                    'message' => $th->getMessage(),
+                    'code' => $th->getCode(),
+                ]
+            );
         }
     }
 
