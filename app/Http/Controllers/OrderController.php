@@ -128,8 +128,10 @@ class OrderController extends BaseController
                 'description' => 'nullable|string|max:0',
                 'internal_remark' => 'nullable|string|min:0',
                 'completion_day' => 'nullable|numeric|min:0',
-                'metadata' => 'nullable|array', // Added validation for metadata
+                'metadata' => 'nullable', // Added validation for metadata
             ]);
+
+            $input['metadata'] = json_decode($input['metadata']);
 
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
@@ -344,7 +346,7 @@ class OrderController extends BaseController
                 'description' => 'nullable|string|max:0',
                 'internal_remark' => 'nullable|string|min:0',
                 'completion_day' => 'nullable|numeric|min:0',
-                'metadata' => 'nullable|array', // Added validation for metadata
+                'metadata' => 'nullable', // Added validation for metadata
             ]);
 
             if ($validator->fails()) {
@@ -353,6 +355,8 @@ class OrderController extends BaseController
 
             $validatedData = $validator->validated();
             $validatedData['bedroom_count'] = $input['single_bedroom_count'] + $input['queen_bedroom_count'];
+
+            // return $this->sendError($validatedData);
 
             $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && (float)$input['bonus']['value'] != 0
                 ? (float)$input['bonus']['value']
@@ -431,7 +435,7 @@ class OrderController extends BaseController
                 'version' => $nextVersion,
                 'total_amount' => $order->total_amount + $bonusValue, // CHANGE IT LATER TO REAL DATA
                 'bonus' => $input['bonus'],
-                'metadata' => json_encode($input['metadata']) ?? null,
+                'metadata' => $validatedData['metadata'] ?? null,
             ]);
 
             $order->save();

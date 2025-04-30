@@ -45,6 +45,7 @@ class TriggerCreateRenoProgress
                 'sale_id' => $sale->id,
                 'resource_id' => 1,
                 'permission_id' => 1,
+                'rpm_version' => 2, // Change to version 3 after the new RPM flow is done
                 'status' => 'in_progress',
             ]);
 

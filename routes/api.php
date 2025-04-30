@@ -150,6 +150,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reno-progress/{id}/task/{taskId}/documents/{documentIndex}/remove', [JobTaskController::class, 'removeTaskDocument']);
     Route::get('/reno-progress/{id}/task/{taskId}/documents/external/{documentIndex}/remove', [JobTaskController::class, 'removeExternalTaskDocument']);
     Route::post('/reno-progress/{id}/task/{taskId}/comments', [JobTaskController::class, 'changeComments']);
+    Route::get('/reno-progress/{id}/key-management', [KeyManagementController::class, 'getRenoKeyManagement']);
 
 
     Route::get('/op/reno/progresses', [RenoProgressController::class, 'operationIndex']);
@@ -221,6 +222,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('defect-inspection-forms/{id}/completed', [DefectInspectionFormController::class, 'markAsCompleted']);
     Route::get('defect-inspection-forms/{id}/report-link/toggle', [DefectInspectionFormController::class, 'toggleDIReportLink']);
 
+    Route::get('key-management/{keyManagementId}/{category}/add', [KeyManagementController::class, 'addCategoryItem']);
     Route::get('key-management/{keyManagementId}/{category}/add', [KeyManagementController::class, 'addCategoryItem']);
     Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/name', [KeyManagementController::class, 'changeKeyManagementItemName']);
     Route::post('key-management/{keyManagementId}/{category}/change/{itemIndex}/remark', [KeyManagementController::class, 'changeKeyManagementItemRemark']);
