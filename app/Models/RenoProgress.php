@@ -95,6 +95,12 @@ class RenoProgress extends Model
         return $this->hasMany(ProgressPhase::class, 'progress_id', 'id');
     }
 
+    // V3
+    public function rpmJobs()
+    {
+        return $this->hasMany(RPMJob::class, 'reno_progress_id', 'id');
+    }
+
     public function defectInspectionForm()
     {
         return $this->hasOne(DefectInspectionForm::class, 'reno_progress_id', 'id');

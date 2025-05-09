@@ -153,7 +153,7 @@ class KeyManagementController extends BaseController
 
     public function getRenoKeyManagement($renoProgressId)
     {
-        
+
         $keyManagement = KeyManagement::where('reno_progress_id', $renoProgressId)->first();
 
         if (is_null($keyManagement)) {
@@ -186,9 +186,11 @@ class KeyManagementController extends BaseController
         $keyManagement->status = $input['status'];
         $keyManagement->save();
 
-        $renoProgress->progressPhases[0]->jobs[0]->tasks[2]->status = $input['status'];
-        $renoProgress->progressPhases[0]->jobs[0]->tasks[2]->install_date = Carbon::now();
-        $renoProgress->progressPhases[0]->jobs[0]->tasks[2]->save();
+        if ($renoProgress->rpm_version === 1 || $renoProgress->rpm_version === 2) {
+            $renoProgress->progressPhases[0]->jobs[0]->tasks[2]->status = $input['status'];
+            $renoProgress->progressPhases[0]->jobs[0]->tasks[2]->install_date = Carbon::now();
+            $renoProgress->progressPhases[0]->jobs[0]->tasks[2]->save();
+        }
 
         return $this->sendResponse(new KeyManagementResource($keyManagement), 'Key Management updated successfully.');
     }

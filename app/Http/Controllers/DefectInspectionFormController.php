@@ -93,6 +93,12 @@ class DefectInspectionFormController extends BaseController
             $diForm->status = 'submitted';
             $diForm->save();
 
+            if ($diForm->renoProgress->rpm_version === 3) {
+                $rpmTask = $diForm->renoProgress->rpmJobs[1]->tasks[0];
+                $rpmTask->status = 'completed';
+                $rpmTask->save();
+            }
+
             return $this->sendResponse('success', 'Form submitted successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Database Error.', [
@@ -290,7 +296,6 @@ class DefectInspectionFormController extends BaseController
     {
         $diForm = DefectInspectionForm::find($id);
         $renoProgress = $diForm->renoProgress;
-        $diTask = $renoProgress->progressPhases[0]->jobs[1]->tasks[0];
 
         if (is_null($diForm)) {
             return $this->sendError('Form not found.');
@@ -299,8 +304,14 @@ class DefectInspectionFormController extends BaseController
         $diForm->status = 'completed';
         $diForm->save();
 
-        $diTask->status = 'completed';
-        $diTask->save();
+        if ($diForm->renoProgress->rpm_version === 1 || $diForm->renoProgress->rpm_version === 2) {
+            $diTask = $renoProgress->progressPhases[0]->jobs[1]->tasks[0];
+
+            $diTask->status = 'completed';
+            $diTask->save();
+        } else {
+            // 
+        }
 
         return $this->sendResponse(new DefectInspectionFormResource($diForm), 'DI Form mark as paid successfully.');
     }

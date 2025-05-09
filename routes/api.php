@@ -46,6 +46,7 @@ use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\UserItemPermissionController;
 use App\Http\Controllers\DefectInspectionFormController;
+use App\Http\Controllers\RPMTaskController;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -151,6 +152,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reno-progress/{id}/task/{taskId}/documents/external/{documentIndex}/remove', [JobTaskController::class, 'removeExternalTaskDocument']);
     Route::post('/reno-progress/{id}/task/{taskId}/comments', [JobTaskController::class, 'changeComments']);
     Route::get('/reno-progress/{id}/key-management', [KeyManagementController::class, 'getRenoKeyManagement']);
+
+    Route::get('/rpm-task/{id}/status/{status}', [RPMTaskController::class, 'updateStatus']);
+    Route::put('/rpm-task/{id}/comment/internal', [RPMTaskController::class, 'updateInternalComment']);
+    Route::put('/rpm-task/{id}/comment/external', [RPMTaskController::class, 'updateExternalComment']);
+    Route::post('/rpm-task/{id}/attachment/internal/upload', [RPMTaskController::class, 'uploadInternalAttachment']);
+    Route::post('/rpm-task/{id}/attachment/external/upload', [RPMTaskController::class, 'uploadExternalAttachment']);
+    Route::get('/rpm-task/{id}/attachment/internal/{index}/remove', [RPMTaskController::class, 'removeInternalAttachment']);
+    Route::get('/rpm-task/{id}/attachment/external/{index}/remove', [RPMTaskController::class, 'removeExternalAttachment']);
 
 
     Route::get('/op/reno/progresses', [RenoProgressController::class, 'operationIndex']);
@@ -414,7 +423,7 @@ Route::get('/tmp/startSaleRenoProgress/saleId/{saleId}', function ($saleId) {
 
 
 Route::get('/tmp/progress/generate', function () {
-    $sale = Sale::find(1);
+    $sale = Sale::where('id', 26)->first();
 
     $sale->status = 'partial-paid';
 
