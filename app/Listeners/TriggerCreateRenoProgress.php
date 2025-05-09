@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Log;
 use App\Models\DefectInspectionForm;
 use App\Http\Resources\OrderResource;
 use App\Events\SaleStatusUpdated; // Updated event name
+use App\Models\RPMJob;
+use App\Models\RPMTask;
+use App\Models\RPMTaskQC;
 
 class TriggerCreateRenoProgress
 {
@@ -33,7 +36,8 @@ class TriggerCreateRenoProgress
     {
         $sale = $event->sale;
 
-        $this->createRenoProgress($sale);
+        // $this->createRenoProgress($sale);
+        $this->createRenoProgressV3($sale);
         // $this->updateOrCreateInventory($sale);
     }
 
@@ -522,6 +526,447 @@ class TriggerCreateRenoProgress
             // Optionally rethrow or handle the exception as needed
             throw $e;
         }
+    }
+
+    protected function createRenoProgressV3($sale)
+    {
+        try {
+            // Create a new RenoProgress record with 'in_progress' status
+            $renoProgress = RenoProgress::create([
+                'sale_id' => $sale->id,
+                'resource_id' => 1,
+                'permission_id' => 1,
+                'rpm_version' => 3,
+                'status' => 'in_progress',
+            ]);
+
+            // Count only ResourceItems with item_name starting with "Progress" for this resource_id
+            $number = ResourceItem::where('resource_id', 1)
+                ->where('item_name', 'like', 'Progress%')
+                ->count() + 1;
+
+            // Create ResourceItem with the next number
+            ResourceItem::create([
+                'resource_id' => 1,
+                'item_reference_id' => $renoProgress->id,
+                'item_reference_type' => 'App\Models\RenoProgress',
+                'item_name' => "Progress{$number}",
+            ]);
+
+            // Retrieve total bedroom and bathroom count
+            $totalBedroomCount = $sale->order->bedroom_count;
+            $totalBathroomCount = $sale->order->bathroom_count;
+
+            // Create RPMJobs and RPMTasks
+            // VP
+            $vpJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'vp',
+                'name' => 'VP Status',
+            ]);
+
+            $t1 = ['Key Management', 'TNB', 'Water Supply'];
+            $vpTasks = [];
+
+            foreach ($t1 as $t) {
+                $vpTasks[] = [
+                    'job_id' => $vpJob->id,
+                    'room_name' => null,
+                    'item_name' => $t,
+                    'is_visible' => true,
+                ];
+            }
+
+
+            RPMTask::insert($vpTasks);
+
+
+            // Defect
+            $defectJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'defect',
+                'name' => 'Defect',
+            ]);
+
+
+            $t2 = ['Defect Inspection', 'Defect Submission', 'Defect Rectification'];
+            $defectTasks = [];
+
+            foreach ($t2 as $t) {
+                $defectTasks[] = [
+                    'job_id' => $defectJob->id,
+                    'room_name' => null,
+                    'item_name' => $t,
+                    'is_visible' => true,
+                ];
+            }
+
+            RPMTask::insert($defectTasks);
+
+            // Permit
+            $permitJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'permit',
+                'name' => 'Permit',
+            ]);
+
+            $t3 = ['Permit Application & Submission', 'Permit Deposit paid by Owner', 'Reno Permit Approval & Issued by MO'];
+            $permitTasks = [];
+
+            foreach ($t3 as $t) {
+                $permitTasks[] = [
+                    'job_id' => $permitJob->id,
+                    'room_name' => null,
+                    'item_name' => $t,
+                    'is_visible' => true,
+                ];
+            }
+
+            RPMTask::insert($permitTasks);
+
+
+            // KeyManagement
+            $keyJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'key_management',
+                'name' => 'Key Management',
+            ]);
+
+            $t4 = ['Key Handover', 'Reno Permit Approval', 'Key Management'];
+            $keyTasks = [];
+
+            foreach ($t4 as $t) {
+                $keyTasks[] = [
+                    'job_id' => $keyJob->id,
+                    'room_name' => null,
+                    'item_name' => $t,
+                    'is_visible' => true,
+                ];
+            }
+
+            RPMTask::insert($keyTasks);
+
+
+            // Post-Reno
+            $postRenoJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'post_reno',
+                'name' => 'Post-Reno',
+            ]);
+
+            $items = ['QC', 'Lock Transfer', 'Meter Commissioning and Testing', 'WiFi Pairing', 'Account and Password', 'Deposit Refund Monitoring', 'RPM Handover'];
+
+            $postRenoTasks = [];
+
+            foreach ($items as $item) {
+                $postRenoTasks[] = [
+                    'job_id' => $postRenoJob->id,
+                    'room_name' => null,
+                    'item_name' => $item,
+                    'is_visible' => true,
+                ];
+            }
+
+            RPMTask::insert($postRenoTasks);
+
+
+            // Room Items/Furnitures
+            $items = ['Wiring', 'Painting', 'Bedframe', 'Wardrobe', 'Table', 'Chair', 'Mattress', 'Wall Mirror', 'Door Stopper', 'Curtain', 'Matterss Protector', 'Portriat', 'Air Cond', 'Mini Fridge'];
+
+            $furnitureJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'room_furnitures',
+                'name' => 'Room Furnitures',
+            ]);
+
+            $furnitureTaskQcs = [];
+
+            foreach ($items as $item) {
+                foreach (range(1, $totalBedroomCount) as $index) {
+                    // Create a single task
+                    $task = RPMTask::create([
+                        'job_id' => $furnitureJob->id,
+                        'room_name' => 'R' . $index,
+                        'item_name' => $item,
+                        'is_visible' => true,
+                    ]);
+
+                    // Store the task ID in furnitureTaskQcs
+                    $furnitureTaskQcs[] = [
+                        'task_id' => $task->id, // Assign the newly created task's ID
+                        'is_visible' => true,
+                    ];
+                }
+            }
+
+            // Insert the QC records
+            RPMTaskQC::insert($furnitureTaskQcs);
+
+
+            // Bathroom
+            $bathroomJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'bathroom',
+                'name' => 'Bathroom',
+            ]);
+
+            $items = ['Wiring', 'Cloth Hanger', 'Bidet', 'Wall Mirror', 'Water Heater'];
+
+            $bathroomTaskQcs = [];
+
+            foreach ($items as $item) {
+                foreach (range(1, $totalBathroomCount) as $index) {
+                    // Create a single task
+                    $task = RPMTask::create([
+                        'job_id' => $bathroomJob->id,
+                        'room_name' => 'B' . $index,
+                        'item_name' => $item,
+                        'is_visible' => true,
+                    ]);
+
+                    // Store the task ID in bathroomTaskQcs
+                    $bathroomTaskQcs[] = [
+                        'task_id' => $task->id, // Assign the newly created task's ID
+                        'is_visible' => true,
+                    ];
+                }
+            }
+
+            // Insert the QC records
+            RPMTaskQc::insert($bathroomTaskQcs);
+
+
+            // Living + Dining
+            $livingJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'living_dining',
+                'name' => 'Living + Dining',
+            ]);
+
+            $items = ['Wiring', 'Painting', 'Table', 'Chair', 'Cabinet', 'Shoe Cabinet', 'Portriat', 'CCTV', 'Main Door Lock', 'G2 Gateway Hub', 'Doorbell', 'Fire Extinguisher', 'Cleaning Tools Set', 'Door Stopper', 'Sofa', 'Coffee Table', 'TV Console'];
+
+            $livingTaskQcs = [];
+
+            foreach ($items as $item) {
+                // Create a single task
+                $task = RPMTask::create([
+                    'job_id' => $livingJob->id,
+                    'room_name' => null,
+                    'item_name' => $item,
+                    'is_visible' => true,
+                ]);
+
+                // Store the task ID in livingTaskQcs
+                $livingTaskQcs[] = [
+                    'task_id' => $task->id, // Assign the newly created task's ID
+                    'is_visible' => true,
+                ];
+            }
+
+            // Insert the QC records
+            RPMTaskQc::insert($livingTaskQcs);
+
+            // Kitchen
+            $kitchenJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'kitchen',
+                'name' => 'Kitchen',
+            ]);
+
+            $items = ['Wiring', 'Painting', 'Kitchen Cabinet', 'Kitchen Sink'];
+
+            $kitchenTaskQcs = [];
+
+            foreach ($items as $item) {
+                // Create a single task
+                $task = RPMTask::create([
+                    'job_id' => $kitchenJob->id,
+                    'room_name' => null,
+                    'item_name' => $item,
+                    'is_visible' => true,
+                ]);
+
+                // Store the task ID in kitchenTaskQcs
+                $kitchenTaskQcs[] = [
+                    'task_id' => $task->id, // Assign the newly created task's ID
+                    'is_visible' => true,
+                ];
+            }
+
+            // Insert the QC records
+            RPMTaskQc::insert($kitchenTaskQcs);
+
+            // Electrical
+            $electricalJob = RPMJob::create([
+                'reno_progress_id' => $renoProgress->id,
+                'job_category' => 'electrical',
+                'name' => 'Electrical',
+            ]);
+
+            $items = ['Water Dispenser', 'Microwave', 'Induction Cooker', 'Washer', 'Dryer'];
+
+            $electricalTaskQcs = [];
+
+            foreach ($items as $item) {
+                // Create a single task
+                $task = RPMTask::create([
+                    'job_id' => $electricalJob->id,
+                    'room_name' => null,
+                    'item_name' => $item,
+                    'is_visible' => true,
+                ]);
+
+                // Store the task ID in electricalTaskQcs
+                $electricalTaskQcs[] = [
+                    'task_id' => $task->id, // Assign the newly created task's ID
+                    'is_visible' => true,
+                ];
+            }
+
+            // Insert the QC records
+            RPMTaskQc::insert($electricalTaskQcs);
+
+
+            // Generate DefectInspectionForm
+            $this->generateDIForm($sale, $renoProgress->id);
+
+            // Generate KeyManagement
+            $this->generateKeyManagement($renoProgress->id);
+        } catch (\Exception $e) {
+            Log::error('Error triggering RenoProgress creation for sale ID ' . $sale->id . ': ' . $e->getMessage());
+            // Optionally rethrow or handle the exception as needed
+            throw $e;
+        }
+    }
+
+    protected function generateDIForm($sale, $reno_progress_id)
+    {
+        // Create DI Form
+        $metadata = [
+            'yard' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+                'q5' => ['value' => '', 'remark' => null],
+                'q6' => ['value' => '', 'remark' => null],
+            ],
+            'foyer' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+            ],
+            'living' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+                'q5' => ['value' => '', 'remark' => null],
+                'q6' => ['value' => '', 'remark' => null],
+                'q7' => ['value' => '', 'remark' => null],
+                'q8' => ['value' => '', 'remark' => null],
+                'q9' => ['value' => '', 'remark' => null],
+            ],
+            'balcony' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+            ],
+            'hallway' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+            ],
+            'kitchen' => [
+                'q1' => ['value' => '', 'remark' => null],
+                'q2' => ['value' => '', 'remark' => null],
+                'q3' => ['value' => '', 'remark' => null],
+                'q4' => ['value' => '', 'remark' => null],
+                'q5' => ['value' => '', 'remark' => null],
+                'q6' => ['value' => '', 'remark' => null],
+                'q7' => ['value' => '', 'remark' => null],
+                'q8' => ['value' => '', 'remark' => null],
+            ],
+            'bedrooms' => [],
+            'bathrooms' => [],
+        ];
+
+        // Generate bedroom entries dynamically
+        $bedroomTemplate = [
+            'q1' => ['value' => '', 'remark' => null],
+            'q2' => ['value' => '', 'remark' => null],
+            'q3' => ['value' => '', 'remark' => null],
+            'q4' => ['value' => '', 'remark' => null],
+            'q5' => ['value' => '', 'remark' => null],
+            'q6' => ['value' => '', 'remark' => null],
+            'q7' => ['value' => '', 'remark' => null],
+            'q8' => ['value' => '', 'remark' => null],
+            'q9' => ['value' => '', 'remark' => null],
+        ];
+
+        for ($i = 1; $i <= $sale->order->bedroom_count; $i++) {
+            $metadata['bedrooms']["bedroom{$i}"] = $bedroomTemplate;
+        }
+
+        // Generate bathroom entries dynamically
+        $bathroomTemplate = [
+            'q1' => ['value' => '', 'remark' => null],
+            'q2' => ['value' => '', 'remark' => null],
+            'q3' => ['value' => '', 'remark' => null],
+            'q4' => ['value' => '', 'remark' => null],
+            'q5' => ['value' => '', 'remark' => null],
+            'q6' => ['value' => '', 'remark' => null],
+            'q7' => ['value' => '', 'remark' => null],
+            'q8' => ['value' => '', 'remark' => null],
+            'q9' => ['value' => '', 'remark' => null],
+        ];
+
+        for ($i = 1; $i <= $sale->order->bathroom_count; $i++) {
+            $metadata['bathrooms']["bathroom{$i}"] = $bathroomTemplate;
+        }
+
+        $randomString = Str::random(9); // Generate a 9-character random string
+        $base64String = base64_encode($randomString); // Base64 encode the string
+        $base64UrlString = str_replace(['+', '/', '='], ['-', '_', ''], $base64String); // Replace URL-unsafe characters
+        $finalString = substr($base64UrlString, 0, 12); // Truncate to 12 characters
+
+        DefectInspectionForm::create([
+            'reno_progress_id' => $reno_progress_id,
+            'property_name' => $sale->order->property_id,
+            'owner_email' => $sale->order->user->email,
+            'other_property_name' => null,
+            'block' => $sale->order->block,
+            'level' => $sale->order->floor,
+            'unit' => $sale->order->unit_no,
+            'status' => 'not_submitted',
+            'bedroom_count' => $sale->order->bedroom_count,
+            'bathroom_count' => $sale->order->bathroom_count,
+            'metadata' => json_encode($metadata),
+            'report_hash' => $finalString
+        ]);
+    }
+
+    protected function generateKeyManagement($reno_progress_id)
+    {
+        KeyManagement::create([
+            'reno_progress_id' => $reno_progress_id,
+            'metadata' => json_encode([
+                ['name' => 'ori_acc_card', 'remark' => '', 'value' => []],
+                ['name' => 'dup_acc_card', 'remark' => '', 'value' => []],
+                ['name' => 'car_acc_card', 'remark' => '', 'value' => []],
+                ['name' => 'main_door_key', 'remark' => '', 'value' => []],
+                ['name' => 'room_door_key', 'remark' => '', 'value' => []],
+                ['name' => 'yard_door_key', 'remark' => '', 'value' => []],
+                ['name' => 'grill_door_key', 'remark' => '', 'value' => []],
+                ['name' => 'mailbox_key', 'remark' => '', 'value' => []],
+                ['name' => 'ac_ledge_key', 'remark' => '', 'value' => []],
+                ['name' => 'ac_remote', 'remark' => '', 'value' => []],
+                ['name' => 'others', 'remark' => '', 'value' => []],
+            ]),
+        ]);
     }
 
     // protected function updateOrCreateInventory($sale)
