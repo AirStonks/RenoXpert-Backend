@@ -554,8 +554,8 @@ class TriggerCreateRenoProgress
             ]);
 
             // Retrieve total bedroom and bathroom count
-            $totalBedroomCount = $sale->order->bedroom_count;
-            $totalBathroomCount = $sale->order->bathroom_count;
+            $defaultBedrooms = ['R1', 'R2', 'R3', 'R4', 'PR', 'Studio'];
+            $defaultBathrooms = ['B1', 'B2', 'B3'];
 
             // Create RPMJobs and RPMTasks
             // VP
@@ -682,11 +682,11 @@ class TriggerCreateRenoProgress
             $furnitureTaskQcs = [];
 
             foreach ($items as $item) {
-                foreach (range(1, $totalBedroomCount) as $index) {
+                foreach ($defaultBedrooms as $bedroom) {
                     // Create a single task
                     $task = RPMTask::create([
                         'job_id' => $furnitureJob->id,
-                        'room_name' => 'R' . $index,
+                        'room_name' => $bedroom,
                         'item_name' => $item,
                         'is_visible' => true,
                     ]);
@@ -715,11 +715,11 @@ class TriggerCreateRenoProgress
             $bathroomTaskQcs = [];
 
             foreach ($items as $item) {
-                foreach (range(1, $totalBathroomCount) as $index) {
+                foreach ($defaultBathrooms as $batroom) {
                     // Create a single task
                     $task = RPMTask::create([
                         'job_id' => $bathroomJob->id,
-                        'room_name' => 'B' . $index,
+                        'room_name' => $batroom,
                         'item_name' => $item,
                         'is_visible' => true,
                     ]);

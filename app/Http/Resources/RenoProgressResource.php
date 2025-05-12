@@ -62,6 +62,8 @@ class RenoProgressResource extends JsonResource
             'contractor_handover_date' => $this->contractor_handover_date ? Carbon::parse($this->contractor_handover_date)->format('Y-m-d') : null,
             'status' => $this->status,
             'rpm_jobs' => $this->rpm_version === 3 ? RPMJobResource::collection($this->rpmJobs) : null,
+            'remaining_percentage' => $this->sale->remaining_percentage,
+            'paid_percentage' => $this->sale->invoices->where('status', 'paid')->sum('percentage'),
             'resource_id' => $this->resource_id,
             'resource_item_id' => $this->resourceItem->id,
             'permission_id' => $this->permission_id,

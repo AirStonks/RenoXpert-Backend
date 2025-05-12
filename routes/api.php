@@ -421,15 +421,6 @@ Route::get('/tmp/startSaleRenoProgress/saleId/{saleId}', function ($saleId) {
     return response()->json(['message' => 'Sale status updated successfully']);
 });
 
-
-Route::get('/tmp/progress/generate', function () {
-    $sale = Sale::where('id', 26)->first();
-
-    $sale->status = 'partial-paid';
-
-    $sale->save();
-});
-
 Route::get('/test/unauth/{renoId}/{saleId}', function ($renoId, $saleId) {
 
     $renoProgress = \App\Models\RenoProgress::find($renoId);
