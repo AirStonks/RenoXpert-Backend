@@ -31,6 +31,11 @@ class RenoProgressController extends BaseController
         // Build the query to retrieve products
         $query = RenoProgress::query();
 
+        // If version v3 selected, filter it
+        if ($request->input('rpm_version') == 3) {
+            $query->where('rpm_version', 3);
+        }
+
         // Filter by status if available
         if ($request->input('status')) {
             $query->where('status', $request->input('status'));
