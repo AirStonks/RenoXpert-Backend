@@ -39,31 +39,6 @@ class RenoProgressResourceHead extends JsonResource
             'sale' => $sale,
             'sale_id' => $this->sale->id,
             'sales_no' => $this->sale->sales_no,
-            // Ensure that start_date and end_date are DateTime objects before calling format()
-            'start_date' => $this->start_date ? Carbon::parse($this->start_date)->format('Y-m-d') : null,
-            'end_date' => $this->end_date ? Carbon::parse($this->end_date)->format('Y-m-d') : null,
-            'contractual_start_date' => $this->contractual_start_date ? Carbon::parse($this->contractual_start_date)->format('Y-m-d') : null,
-            'contractual_end_date' => $this->contractual_end_date ? Carbon::parse($this->contractual_end_date)->format('Y-m-d') : null,
-            'contractual_p1_start_date' => $this->contractual_p1_start_date ? Carbon::parse($this->contractual_p1_start_date)->format('Y-m-d') : null,
-            'contractual_p1_end_date' => $this->contractual_p1_end_date ? Carbon::parse($this->contractual_p1_end_date)->format('Y-m-d') : null,
-            'contractual_p2_start_date' => $this->contractual_p2_start_date ? Carbon::parse($this->contractual_p2_start_date)->format('Y-m-d') : null,
-            'contractual_p2_end_date' => $this->contractual_p2_end_date ? Carbon::parse($this->contractual_p2_end_date)->format('Y-m-d') : null,
-            'contractual_qc_start_date' => $this->contractual_qc_start_date ? Carbon::parse($this->contractual_qc_start_date)->format('Y-m-d') : null,
-            'contractual_qc_end_date' => $this->contractual_qc_end_date ? Carbon::parse($this->contractual_qc_end_date)->format('Y-m-d') : null,
-            'contractual_pc_start_date' => $this->contractual_pc_start_date ? Carbon::parse($this->contractual_pc_start_date)->format('Y-m-d') : null,
-            'contractual_pc_end_date' => $this->contractual_pc_end_date ? Carbon::parse($this->contractual_pc_end_date)->format('Y-m-d') : null,
-            'contractual_handover_date' => $this->contractual_handover_date ? Carbon::parse($this->contractual_handover_date)->format('Y-m-d') : null,
-            'contractor_start_date' => $this->contractor_start_date ? Carbon::parse($this->contractor_start_date)->format('Y-m-d') : null,
-            'contractor_end_date' => $this->contractor_end_date ? Carbon::parse($this->contractor_end_date)->format('Y-m-d') : null,
-            'contractor_p1_start_date' => $this->contractor_p1_start_date ? Carbon::parse($this->contractor_p1_start_date)->format('Y-m-d') : null,
-            'contractor_p1_end_date' => $this->contractor_p1_end_date ? Carbon::parse($this->contractor_p1_end_date)->format('Y-m-d') : null,
-            'contractor_p2_start_date' => $this->contractor_p2_start_date ? Carbon::parse($this->contractor_p2_start_date)->format('Y-m-d') : null,
-            'contractor_p2_end_date' => $this->contractor_p2_end_date ? Carbon::parse($this->contractor_p2_end_date)->format('Y-m-d') : null,
-            'contractor_qc_start_date' => $this->contractor_qc_start_date ? Carbon::parse($this->contractor_qc_start_date)->format('Y-m-d') : null,
-            'contractor_qc_end_date' => $this->contractor_qc_end_date ? Carbon::parse($this->contractor_qc_end_date)->format('Y-m-d') : null,
-            'contractor_pc_start_date' => $this->contractor_pc_start_date ? Carbon::parse($this->contractor_pc_start_date)->format('Y-m-d') : null,
-            'contractor_pc_end_date' => $this->contractor_pc_end_date ? Carbon::parse($this->contractor_pc_end_date)->format('Y-m-d') : null,
-            'contractor_handover_date' => $this->contractor_handover_date ? Carbon::parse($this->contractor_handover_date)->format('Y-m-d') : null,
             'status' => $this->status,
             'remaining_percentage' => $this->sale->remaining_percentage,
             'paid_percentage' => $this->sale->invoices->where('status', 'paid')->sum('percentage'),
@@ -76,6 +51,32 @@ class RenoProgressResourceHead extends JsonResource
         // Include completion fields only if rpm_version is 1 or 2
         if (in_array($this->rpm_version, [1, 2])) {
             $data = array_merge($data, [
+
+                // Ensure that start_date and end_date are DateTime objects before calling format()
+                'start_date' => $this->start_date ? Carbon::parse($this->start_date)->format('Y-m-d') : null,
+                'end_date' => $this->end_date ? Carbon::parse($this->end_date)->format('Y-m-d') : null,
+                'contractual_start_date' => $this->contractual_start_date ? Carbon::parse($this->contractual_start_date)->format('Y-m-d') : null,
+                'contractual_end_date' => $this->contractual_end_date ? Carbon::parse($this->contractual_end_date)->format('Y-m-d') : null,
+                'contractual_p1_start_date' => $this->contractual_p1_start_date ? Carbon::parse($this->contractual_p1_start_date)->format('Y-m-d') : null,
+                'contractual_p1_end_date' => $this->contractual_p1_end_date ? Carbon::parse($this->contractual_p1_end_date)->format('Y-m-d') : null,
+                'contractual_p2_start_date' => $this->contractual_p2_start_date ? Carbon::parse($this->contractual_p2_start_date)->format('Y-m-d') : null,
+                'contractual_p2_end_date' => $this->contractual_p2_end_date ? Carbon::parse($this->contractual_p2_end_date)->format('Y-m-d') : null,
+                'contractual_qc_start_date' => $this->contractual_qc_start_date ? Carbon::parse($this->contractual_qc_start_date)->format('Y-m-d') : null,
+                'contractual_qc_end_date' => $this->contractual_qc_end_date ? Carbon::parse($this->contractual_qc_end_date)->format('Y-m-d') : null,
+                'contractual_pc_start_date' => $this->contractual_pc_start_date ? Carbon::parse($this->contractual_pc_start_date)->format('Y-m-d') : null,
+                'contractual_pc_end_date' => $this->contractual_pc_end_date ? Carbon::parse($this->contractual_pc_end_date)->format('Y-m-d') : null,
+                'contractual_handover_date' => $this->contractual_handover_date ? Carbon::parse($this->contractual_handover_date)->format('Y-m-d') : null,
+                'contractor_start_date' => $this->contractor_start_date ? Carbon::parse($this->contractor_start_date)->format('Y-m-d') : null,
+                'contractor_end_date' => $this->contractor_end_date ? Carbon::parse($this->contractor_end_date)->format('Y-m-d') : null,
+                'contractor_p1_start_date' => $this->contractor_p1_start_date ? Carbon::parse($this->contractor_p1_start_date)->format('Y-m-d') : null,
+                'contractor_p1_end_date' => $this->contractor_p1_end_date ? Carbon::parse($this->contractor_p1_end_date)->format('Y-m-d') : null,
+                'contractor_p2_start_date' => $this->contractor_p2_start_date ? Carbon::parse($this->contractor_p2_start_date)->format('Y-m-d') : null,
+                'contractor_p2_end_date' => $this->contractor_p2_end_date ? Carbon::parse($this->contractor_p2_end_date)->format('Y-m-d') : null,
+                'contractor_qc_start_date' => $this->contractor_qc_start_date ? Carbon::parse($this->contractor_qc_start_date)->format('Y-m-d') : null,
+                'contractor_qc_end_date' => $this->contractor_qc_end_date ? Carbon::parse($this->contractor_qc_end_date)->format('Y-m-d') : null,
+                'contractor_pc_start_date' => $this->contractor_pc_start_date ? Carbon::parse($this->contractor_pc_start_date)->format('Y-m-d') : null,
+                'contractor_pc_end_date' => $this->contractor_pc_end_date ? Carbon::parse($this->contractor_pc_end_date)->format('Y-m-d') : null,
+                'contractor_handover_date' => $this->contractor_handover_date ? Carbon::parse($this->contractor_handover_date)->format('Y-m-d') : null,
                 'pre_reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[0] ?? null),
                 'p1_completion' => $this->calculatePhaseCompletion($this->progressPhases[1] ?? null),
                 'p2a_completion' => $this->calculatePhaseCompletion($this->progressPhases[2] ?? null),
@@ -88,6 +89,7 @@ class RenoProgressResourceHead extends JsonResource
         if ($this->rpm_version === 3) {
             $data = array_merge($data, [
                 'completion' => $this->calculateV3Completion(),
+                'date_management' => $this->date_management,
             ]);
         }
 

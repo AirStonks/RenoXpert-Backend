@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\RenoProgressResource;
 use App\Models\RPMTask;
 use Illuminate\Http\Request;
 use App\Http\Resources\RPMTaskResource;
+use App\Models\RenoProgress;
+use App\Models\RPMJob;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class RPMTaskController extends BaseController
@@ -145,8 +150,68 @@ class RPMTaskController extends BaseController
     {
         $rpmTask = RPMTask::find($id);
 
+        if (!$rpmTask) {
+            return $this->sendError('Task not found.', 404);
+        }
+
         $rpmTask->status = $status;
         $rpmTask->save();
+
+        if ($rpmTask->job->name == 'Defect' || $rpmTask->job->name == 'Permit') {
+            $defectJob = RPMJob::where('reno_progress_id', $rpmTask->job->reno_progress_id)
+                ->where('name', 'Defect')
+                ->first();
+            $permitJob = RPMJob::where('reno_progress_id', $rpmTask->job->reno_progress_id)
+                ->where('name', 'Permit')
+                ->first();
+
+            $isDefectJobCompleted = false;
+            $isPermitJobCompleted = false;
+
+            // Check Defect job tasks
+            if ($defectJob && $defectJob->rpmTasks->isNotEmpty()) {
+                $isDefectJobCompleted = $defectJob->rpmTasks->every(function ($task) {
+                    return $task->status === 'completed';
+                });
+            }
+
+            // Check Permit job tasks
+            if ($permitJob && $permitJob->rpmTasks->isNotEmpty()) {
+                $isPermitJobCompleted = $permitJob->rpmTasks->every(function ($task) {
+                    return $task->status === 'completed';
+                });
+            }
+
+            // Proceed only if both jobs exist and are completed
+            if ($isDefectJobCompleted && $isPermitJobCompleted && $defectJob && $permitJob) {
+                $dateManagement = $rpmTask->job->renoProgress->date_management;
+
+                Log::info($rpmTask->job->renoProgress->sale->order->completion_day);
+
+                $dateManagement['defect_permit_date'] = Carbon::now()->format('Y-m-d');
+                $dateManagement['reno_date'] = Carbon::parse($dateManagement['defect_permit_date'])
+                    ->addDays($rpmTask->job->renoProgress->sale->order->completion_day)
+                    ->format('Y-m-d');
+                $dateManagement['ch_date'] = Carbon::parse($dateManagement['defect_permit_date'])
+                    ->addDays($rpmTask->job->renoProgress->sale->order->completion_day)
+                    ->format('Y-m-d');
+                $dateManagement['oh_date'] = $this->addWorkingDays(
+                    Carbon::parse($dateManagement['defect_permit_date']),
+                    $rpmTask->job->renoProgress->sale->order->completion_day
+                )->format('Y-m-d');
+                $dateManagement['qc_date'] = Carbon::parse($dateManagement['ch_date'])
+                    ->subDays(7)
+                    ->format('Y-m-d');
+                $dateManagement['cleaning_date'] = Carbon::parse($dateManagement['ch_date'])
+                    ->subDays(3)
+                    ->format('Y-m-d');
+
+                $rpmTask->job->renoProgress->date_management = $dateManagement;
+                $rpmTask->job->renoProgress->save();
+
+                return $this->sendResponse(new RenoProgressResource($rpmTask->job->renoProgress), 'Status updated successfully.');
+            }
+        }
 
         return $this->sendResponse(new RPMTaskResource($rpmTask), 'Status updated successfully.');
     }
@@ -244,5 +309,21 @@ class RPMTaskController extends BaseController
     public function removeTaskAttachment($renoProgressId, $taskId, $documentIndex)
     {
         //   
+    }
+
+    private function addWorkingDays(Carbon $date, int $days, array $holidays = []): Carbon
+    {
+        $date = $date->copy();
+        $daysToAdd = $days;
+
+        while ($daysToAdd > 0) {
+            $date->addDay();
+            // Skip weekends and holidays
+            if ($date->isWeekday() && !in_array($date->format('Y-m-d'), $holidays)) {
+                $daysToAdd--;
+            }
+        }
+
+        return $date;
     }
 }
