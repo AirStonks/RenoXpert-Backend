@@ -634,29 +634,7 @@ class TriggerCreateRenoProgress
 
             RPMTask::insert($permitTasks);
 
-
-            // KeyManagement
-            $keyJob = RPMJob::create([
-                'reno_progress_id' => $renoProgress->id,
-                'job_category' => 'key_management',
-                'name' => 'Key Management',
-            ]);
-
-            $t4 = ['Key Handover', 'Reno Permit Approval', 'Key Management'];
-            $keyTasks = [];
-
-            foreach ($t4 as $t) {
-                $keyTasks[] = [
-                    'job_id' => $keyJob->id,
-                    'room_name' => null,
-                    'item_name' => $t,
-                    'is_visible' => true,
-                ];
-            }
-
-            RPMTask::insert($keyTasks);
-
-
+            
             // Post-Reno
             $postRenoJob = RPMJob::create([
                 'reno_progress_id' => $renoProgress->id,
