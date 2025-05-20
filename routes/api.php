@@ -204,6 +204,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/general-permission', [RenoProgressController::class, 'changeGeneralPermission']);
 
     Route::get('/reno-progress/{id}/task/{taskId}/visibility/toggle', [JobTaskController::class, 'toggleTaskVisibility']);
+    
+    Route::get('/reno-progress/{id}/convert/v3', [RenoProgressController::class, 'convertV2toV3']);
+    Route::get('/reno-progress/{id}/old-ver', [RenoProgressController::class, 'showOldVersion']);
 
     Route::get('/purchase-orders/table/advance', [PurchaseOrderController::class, 'getAdvanceTable']);
     Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);
