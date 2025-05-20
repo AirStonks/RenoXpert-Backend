@@ -187,6 +187,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/orders/{id}/internal-remark/update', [OrderController::class, 'updateInternalRemark']);
     Route::get('/orders/{id}/re-release', [OrderController::class, 'reReleaseOrder']);
+    Route::get('/orders/{id}/void', [OrderController::class, 'voidOrder']);
 
     Route::post('/reno-progress/{id}/contractual/overall/date', [RenoProgressController::class, 'changeContractualDate']);
     Route::post('/reno-progress/{id}/contractual/p1/date', [RenoProgressController::class, 'changeContractualP1Date']);
