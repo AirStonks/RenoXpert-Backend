@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\RenoProgress;
 use App\Models\ResourceItem;
 use App\Models\Sale;
 use Illuminate\Http\Request;
@@ -20,6 +21,8 @@ class RenoProgressResource extends JsonResource
         // $resourceItem = ResourceItem::where('resource_id', $this->resource_id)
         //     ->where('item_reference_id', $this->id)
         //     ->first();
+
+        $oldRenoProgress = RenoProgress::where('sale_id', $this->sale_id)->onlyTrashed()->first();
 
         $data = [
             'id' => $this->id,
@@ -90,6 +93,12 @@ class RenoProgressResource extends JsonResource
         if ($this->rpm_version === 3) {
             $data = array_merge($data, [
                 'completion' => $this->calculateV3Completion(),
+            ]);
+        }
+
+        if (!is_null($oldRenoProgress)) {
+            $data = array_merge($data, [
+                'is_converted' => true,
             ]);
         }
 

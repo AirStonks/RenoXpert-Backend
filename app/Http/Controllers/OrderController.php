@@ -688,6 +688,26 @@ class OrderController extends BaseController
         }
     }
 
+    public function voidOrder($id)
+    {
+        try {
+            // Find the order by ID
+            $order = Order::find($id);
+
+            if ($order) {
+                // Update the order status
+                $order->status = 'voided';
+                $order->save(); // Use save() to persist changes
+
+                return $this->sendResponse([], 'Order Voided');
+            } else {
+                return $this->sendError('Order Not Found.');
+            }
+        } catch (\Throwable $th) {
+            return $this->sendError('Error voiding order.', $th->getMessage());
+        }
+    }
+
     /**
      * Generate a new sales number based on the latest sales number.
      *

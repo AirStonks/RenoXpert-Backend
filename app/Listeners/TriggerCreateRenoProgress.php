@@ -634,29 +634,7 @@ class TriggerCreateRenoProgress
 
             RPMTask::insert($permitTasks);
 
-
-            // KeyManagement
-            $keyJob = RPMJob::create([
-                'reno_progress_id' => $renoProgress->id,
-                'job_category' => 'key_management',
-                'name' => 'Key Management',
-            ]);
-
-            $t4 = ['Key Handover', 'Reno Permit Approval', 'Key Management'];
-            $keyTasks = [];
-
-            foreach ($t4 as $t) {
-                $keyTasks[] = [
-                    'job_id' => $keyJob->id,
-                    'room_name' => null,
-                    'item_name' => $t,
-                    'is_visible' => true,
-                ];
-            }
-
-            RPMTask::insert($keyTasks);
-
-
+            
             // Post-Reno
             $postRenoJob = RPMJob::create([
                 'reno_progress_id' => $renoProgress->id,
@@ -681,7 +659,7 @@ class TriggerCreateRenoProgress
 
 
             // Room Items/Furnitures
-            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting & Featured Wall', 'Bedframe', 'Wardrobe', 'Table', 'Chair', 'Curtain', 'Wall Mirror', 'Mattress', 'Matterss Protector', 'Portriat', 'Door Stopper', 'SMART METER', 'SMART LOCK (Room)', 'Mini Fridge', 'Partition Wall', 'Air Cond'];
+            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting & Featured Wall', 'Bedframe', 'Wardrobe', 'Table', 'Chair', 'Curtain', 'Wall Mirror', 'Mattress', 'Matterss Protector', 'Portrait', 'Door Stopper', 'SMART METER', 'SMART LOCK (Room)', 'Mini Fridge', 'Partition Wall', 'Air Cond'];
 
             $furnitureJob = RPMJob::create([
                 'reno_progress_id' => $renoProgress->id,
@@ -753,7 +731,7 @@ class TriggerCreateRenoProgress
                 'name' => 'Dining, Yard, Foyer',
             ]);
 
-            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting & Featured Wall', 'Dining Table', 'Dining Chair', 'Shoe Cabinet', 'Portriat', 'CCTV & Shelve', 'Smart Main Door Lock', 'G2 Gateway Hub', 'Cloth Drying Rack', 'Doorbell', 'Fire Extinguisher', 'Cleaning Tools Set', 'Door Stopper'];
+            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting & Featured Wall', 'Dining Table', 'Dining Chair', 'Shoe Cabinet', 'Portrait', 'CCTV & Shelve', 'Smart Main Door Lock', 'G2 Gateway Hub', 'Cloth Drying Rack', 'Doorbell', 'Fire Extinguisher', 'Cleaning Tools Set', 'Door Stopper'];
 
             $dyfTaskQcs = [];
 

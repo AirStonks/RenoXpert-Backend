@@ -187,6 +187,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/orders/{id}/internal-remark/update', [OrderController::class, 'updateInternalRemark']);
     Route::get('/orders/{id}/re-release', [OrderController::class, 'reReleaseOrder']);
+    Route::get('/orders/{id}/void', [OrderController::class, 'voidOrder']);
 
     Route::post('/reno-progress/{id}/contractual/overall/date', [RenoProgressController::class, 'changeContractualDate']);
     Route::post('/reno-progress/{id}/contractual/p1/date', [RenoProgressController::class, 'changeContractualP1Date']);
@@ -204,6 +205,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/general-permission', [RenoProgressController::class, 'changeGeneralPermission']);
 
     Route::get('/reno-progress/{id}/task/{taskId}/visibility/toggle', [JobTaskController::class, 'toggleTaskVisibility']);
+    
+    Route::get('/reno-progress/{id}/convert/v3', [RenoProgressController::class, 'convertV2toV3']);
+    Route::get('/reno-progress/{id}/old-ver', [RenoProgressController::class, 'showOldVersion']);
 
     Route::get('/purchase-orders/table/advance', [PurchaseOrderController::class, 'getAdvanceTable']);
     Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);

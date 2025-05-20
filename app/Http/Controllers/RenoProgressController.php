@@ -9,9 +9,14 @@ use App\Http\Resources\RenoProgressResourceAdTable;
 use App\Http\Resources\RenoProgressResourceHead;
 use App\Models\RenoProgress;
 use App\Models\ResourceItem;
+use App\Models\RPMJob;
+use App\Models\RPMTask;
+use App\Models\RPMTaskQC;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class RenoProgressController extends BaseController
@@ -330,6 +335,22 @@ class RenoProgressController extends BaseController
         return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
+    /**
+     * Display the specified resource.
+     */
+    public function showOldVersion($id)
+    {
+        $renoProgress = RenoProgress::find($id);
+
+        $oldRenoProgress = RenoProgress::where('sale_id', $renoProgress->sale_id)->onlyTrashed()->first();
+
+        if (is_null($oldRenoProgress)) {
+            return $this->sendError('Old Reno Progress not found.');
+        }
+
+        return $this->sendResponse(new RenoProgressResource($oldRenoProgress), 'Reno Progress retrieved successfully.');
+    }
+
     public function showOwnerRenoProgress($id)
     {
         $user = Auth::user();
@@ -473,6 +494,347 @@ class RenoProgressController extends BaseController
     public function destroy(RenoProgress $renoProgress)
     {
         //
+    }
+
+    public function convertV2toV3($id)
+    {
+        // Find the RenoProgress record by ID
+        $renoProgress = RenoProgress::find($id);
+
+        if (!$renoProgress) {
+            return $this->sendError('Reno progress not found.');
+        }
+
+        try {
+            // Create a new RenoProgress record with 'in_progress' status
+            $newRenoProgress = RenoProgress::create([
+                'sale_id' => $renoProgress->sale_id,
+                'resource_id' => 1,
+                'permission_id' => 1,
+                'rpm_version' => 3,
+                'status' => 'in_progress',
+                'date_management' => [
+                    'sales_date' => Carbon::now()->format('Y-m-d'),
+                    'oh_date' => '',
+                    'ch_date' => '',
+                    'qc_date' => '',
+                    'reno_date' => '',
+                    'cleaning_date' => '',
+                    'defect_permit_date' => ''
+                ]
+            ]);
+
+            // Count only ResourceItems with item_name starting with "Progress" for this resource_id
+            $number = ResourceItem::where('resource_id', 1)
+                ->where('item_name', 'like', 'Progress%')
+                ->count() + 1;
+
+            // Create ResourceItem with the next number
+            ResourceItem::create([
+                'resource_id' => 1,
+                'item_reference_id' => $newRenoProgress->id,
+                'item_reference_type' => 'App\Models\RenoProgress',
+                'item_name' => "Progress{$number}",
+            ]);
+
+            // Retrieve total bedroom and bathroom count
+            $defaultBedrooms = ['R1', 'R2', 'R3', 'R4', 'PR', 'Studio'];
+            $defaultBathrooms = ['B1', 'B2', 'B3'];
+
+            // Create RPMJobs and RPMTasks
+            // VP
+            $vpJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'vp',
+                'name' => 'VP Status',
+            ]);
+
+            $t1 = ['Key Management', 'TNB', 'Water Supply'];
+            $vpTasks = [];
+
+            foreach ($t1 as $t) {
+                $vpTasks[] = [
+                    'job_id' => $vpJob->id,
+                    'room_name' => null,
+                    'item_name' => $t,
+                    'is_visible' => true,
+                ];
+            }
+
+
+            RPMTask::insert($vpTasks);
+
+
+            // Defect
+            $defectJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'defect',
+                'name' => 'Defect',
+            ]);
+
+
+            $t2 = ['Defect Inspection', 'Defect Submission', 'Defect Rectification'];
+            $defectTasks = [];
+
+            foreach ($t2 as $t) {
+                $defectTasks[] = [
+                    'job_id' => $defectJob->id,
+                    'room_name' => null,
+                    'item_name' => $t,
+                    'is_visible' => true,
+                ];
+            }
+
+            RPMTask::insert($defectTasks);
+
+            // Permit
+            $permitJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'permit',
+                'name' => 'Permit',
+            ]);
+
+            $t3 = ['Permit Application & Submission', 'Permit Deposit paid by Owner', 'Reno Permit Approval & Issued by MO'];
+            $permitTasks = [];
+
+            foreach ($t3 as $t) {
+                $permitTasks[] = [
+                    'job_id' => $permitJob->id,
+                    'room_name' => null,
+                    'item_name' => $t,
+                    'is_visible' => true,
+                ];
+            }
+
+            RPMTask::insert($permitTasks);
+
+
+            // Post-Reno
+            $postRenoJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'post_reno',
+                'name' => 'Post-Reno',
+            ]);
+
+            $items = ['QC', 'Lock Transfer', 'Meter Commissioning and Testing', 'WiFi Pairing', 'Account and Password', 'Deposit Refund Monitoring', 'RPM Handover'];
+
+            $postRenoTasks = [];
+
+            foreach ($items as $item) {
+                $postRenoTasks[] = [
+                    'job_id' => $postRenoJob->id,
+                    'room_name' => null,
+                    'item_name' => $item,
+                    'is_visible' => true,
+                ];
+            }
+
+            RPMTask::insert($postRenoTasks);
+
+
+            // Room Items/Furnitures
+            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting & Featured Wall', 'Bedframe', 'Wardrobe', 'Table', 'Chair', 'Curtain', 'Wall Mirror', 'Mattress', 'Matterss Protector', 'Portrait', 'Door Stopper', 'SMART METER', 'SMART LOCK (Room)', 'Mini Fridge', 'Partition Wall', 'Air Cond'];
+
+            $furnitureJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'room_furnitures',
+                'name' => 'Room & Furnitures',
+            ]);
+
+            $furnitureTaskQcs = [];
+
+            foreach ($items as $item) {
+                foreach ($defaultBedrooms as $bedroom) {
+                    // Create a single task
+                    $task = RPMTask::create([
+                        'job_id' => $furnitureJob->id,
+                        'room_name' => $bedroom,
+                        'item_name' => $item,
+                        'is_visible' => true,
+                    ]);
+
+                    // Store the task ID in furnitureTaskQcs
+                    $furnitureTaskQcs[] = [
+                        'task_id' => $task->id, // Assign the newly created task's ID
+                        'is_visible' => true,
+                    ];
+                }
+            }
+
+            // Insert the QC records
+            RPMTaskQC::insert($furnitureTaskQcs);
+
+
+            // Bathroom
+            $bathroomJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'bathroom',
+                'name' => 'Bathroom',
+            ]);
+
+            $items = ['Wiring', 'Lighting', 'Cloth Hanger', 'Bidet', 'Wall Mirror', 'Water Heater'];
+
+            $bathroomTaskQcs = [];
+
+            foreach ($items as $item) {
+                foreach ($defaultBathrooms as $batroom) {
+                    // Create a single task
+                    $task = RPMTask::create([
+                        'job_id' => $bathroomJob->id,
+                        'room_name' => $batroom,
+                        'item_name' => $item,
+                        'is_visible' => true,
+                    ]);
+
+                    // Store the task ID in bathroomTaskQcs
+                    $bathroomTaskQcs[] = [
+                        'task_id' => $task->id, // Assign the newly created task's ID
+                        'is_visible' => true,
+                    ];
+                }
+            }
+
+            // Insert the QC records
+            RPMTaskQc::insert($bathroomTaskQcs);
+
+
+            // Dining, Yard, Foyer
+            $dyfJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'dining_yard_foyer',
+                'name' => 'Dining, Yard, Foyer',
+            ]);
+
+            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting & Featured Wall', 'Dining Table', 'Dining Chair', 'Shoe Cabinet', 'Portrait', 'CCTV & Shelve', 'Smart Main Door Lock', 'G2 Gateway Hub', 'Cloth Drying Rack', 'Doorbell', 'Fire Extinguisher', 'Cleaning Tools Set', 'Door Stopper'];
+
+            $dyfTaskQcs = [];
+
+            foreach ($items as $item) {
+                // Create a single task
+                $task = RPMTask::create([
+                    'job_id' => $dyfJob->id,
+                    'room_name' => null,
+                    'item_name' => $item,
+                    'is_visible' => true,
+                ]);
+
+                // Store the task ID in dyfTaskQcs
+                $dyfTaskQcs[] = [
+                    'task_id' => $task->id, // Assign the newly created task's ID
+                    'is_visible' => true,
+                ];
+            }
+
+            // Insert the QC records
+            RPMTaskQc::insert($dyfTaskQcs);
+
+            // Kitchen
+            $kitchenJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'kitchen',
+                'name' => 'Kitchen',
+            ]);
+
+            $items = ['Wiring', 'Painting', 'Kitchen Cabinet Base Unit', 'Kitchen Top', 'Wall Unit', 'Kitchen Sink', 'Hood'];
+
+            $kitchenTaskQcs = [];
+
+            foreach ($items as $item) {
+                // Create a single task
+                $task = RPMTask::create([
+                    'job_id' => $kitchenJob->id,
+                    'room_name' => null,
+                    'item_name' => $item,
+                    'is_visible' => true,
+                ]);
+
+                // Store the task ID in kitchenTaskQcs
+                $kitchenTaskQcs[] = [
+                    'task_id' => $task->id, // Assign the newly created task's ID
+                    'is_visible' => true,
+                ];
+            }
+
+            // Insert the QC records
+            RPMTaskQc::insert($kitchenTaskQcs);
+
+
+            // Electrical
+            $electricalJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'electrical',
+                'name' => 'Electrical',
+            ]);
+
+            $items = ['Water Dispenser', 'Microwave', 'Induction Cooker', 'Washer', 'Dryer'];
+
+            $electricalTaskQcs = [];
+
+            foreach ($items as $item) {
+                // Create a single task
+                $task = RPMTask::create([
+                    'job_id' => $electricalJob->id,
+                    'room_name' => null,
+                    'item_name' => $item,
+                    'is_visible' => true,
+                ]);
+
+                // Store the task ID in electricalTaskQcs
+                $electricalTaskQcs[] = [
+                    'task_id' => $task->id, // Assign the newly created task's ID
+                    'is_visible' => true,
+                ];
+            }
+
+            // Insert the QC records
+            RPMTaskQc::insert($electricalTaskQcs);
+
+
+            // Living
+            $livingJob = RPMJob::create([
+                'reno_progress_id' => $newRenoProgress->id,
+                'job_category' => 'living',
+                'name' => 'Living',
+            ]);
+
+            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting', 'Curtain', 'Sofa', 'TV Console', 'Coffee Table', 'Portrait'];
+
+            $livingTaskQcs = [];
+
+            foreach ($items as $item) {
+                // Create a single task
+                $task = RPMTask::create([
+                    'job_id' => $livingJob->id,
+                    'room_name' => null,
+                    'item_name' => $item,
+                    'is_visible' => true,
+                ]);
+
+                // Store the task ID in livingTaskQcs
+                $livingTaskQcs[] = [
+                    'task_id' => $task->id, // Assign the newly created task's ID
+                    'is_visible' => true,
+                ];
+            }
+
+            // Insert the QC records
+            RPMTaskQc::insert($livingTaskQcs);
+
+            // Change KeyManagement and DIForm reno_progress_id to the v3 RenoProgress id
+            $renoProgress->keyManagement->reno_progress_id = $newRenoProgress->id;
+            $renoProgress->defectInspectionForm->reno_progress_id = $newRenoProgress->id;
+            $renoProgress->save();
+
+            // Soft delete the old RenoProgress record
+            $renoProgress->delete();
+
+            return $this->sendResponse(new RenoProgressResource($newRenoProgress), 'Reno progress created successfully.');
+        } catch (\Exception $e) {
+            Log::error('Error triggering conversion toRenoProgress creation for reno progress ID ' . $renoProgress->id . ': ' . $e->getMessage());
+            // Optionally rethrow or handle the exception as needed
+            return $this->sendError('Error triggering conversion toRenoProgress creation for reno progress ID ' . $renoProgress->id, null, 500);
+            throw $e;
+        }
     }
 
     protected function changeContractDate(Request $request, $id, $dateType)
