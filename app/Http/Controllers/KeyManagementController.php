@@ -173,7 +173,7 @@ class KeyManagementController extends BaseController
 
     public function updateKeyManagementInfo($renoProgressId, Request $request)
     {
-        $keyManagement = KeyManagement::find($renoProgressId);
+        $keyManagement = KeyManagement::where('reno_progress_id', $renoProgressId)->first();
         $renoProgress = RenoProgress::find($renoProgressId);
 
         $input = $request->input();
@@ -241,7 +241,7 @@ class KeyManagementController extends BaseController
 
     public function changeKeyManagementItemName($renoProgressId, $category, $itemIndex, Request $request)
     {
-        $keyManagement = KeyManagement::find($renoProgressId);
+        $keyManagement = KeyManagement::where('reno_progress_id', $renoProgressId)->first();
         $allCategory = [
             'ori_acc_card',
             'dup_acc_card',
@@ -285,7 +285,7 @@ class KeyManagementController extends BaseController
 
     public function changeKeyManagementItemRemark($renoProgressId, $category, $itemIndex, Request $request)
     {
-        $keyManagement = KeyManagement::find($renoProgressId);
+        $keyManagement = KeyManagement::where('reno_progress_id', $renoProgressId)->first();
         $allCategory = [
             'ori_acc_card',
             'dup_acc_card',
@@ -329,7 +329,7 @@ class KeyManagementController extends BaseController
 
     public function changeKeyManagementItemPhoto($renoProgressId, $category, $itemIndex, Request $request)
     {
-        $keyManagement = KeyManagement::find($renoProgressId);
+        $keyManagement = KeyManagement::where('reno_progress_id', $renoProgressId)->first();
         $allCategory = [
             'ori_acc_card',
             'dup_acc_card',
@@ -406,7 +406,7 @@ class KeyManagementController extends BaseController
 
     public function removeKeyManagementItem($renoProgressId, $category, $itemIndex)
     {
-        $keyManagement = KeyManagement::find($renoProgressId);
+        $keyManagement = KeyManagement::where('reno_progress_id', $renoProgressId)->first();
         $allCategory = [
             'ori_acc_card',
             'dup_acc_card',
