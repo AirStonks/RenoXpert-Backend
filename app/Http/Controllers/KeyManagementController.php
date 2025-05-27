@@ -29,7 +29,7 @@ class KeyManagementController extends BaseController
 
     public function uploadKeyManagementItemPhoto($renoProgressId, $category, $itemIndex, Request $request)
     {
-        $keyManagement = KeyManagement::find($renoProgressId);
+        $keyManagement = KeyManagement::where('reno_progress_id', $renoProgressId)->first();
         $allCategory = [
             'ori_acc_card',
             'dup_acc_card',
