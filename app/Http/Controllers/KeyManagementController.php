@@ -95,7 +95,7 @@ class KeyManagementController extends BaseController
 
     public function addCategoryItem($renoProgressId, $category)
     {
-        $keyManagement = KeyManagement::find($renoProgressId);
+        $keyManagement = KeyManagement::where('reno_progress_id', $renoProgressId)->first();
         $allCategory = [
             'ori_acc_card',
             'dup_acc_card',
