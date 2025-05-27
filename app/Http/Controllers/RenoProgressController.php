@@ -823,7 +823,8 @@ class RenoProgressController extends BaseController
             // Change KeyManagement and DIForm reno_progress_id to the v3 RenoProgress id
             $renoProgress->keyManagement->reno_progress_id = $newRenoProgress->id;
             $renoProgress->defectInspectionForm->reno_progress_id = $newRenoProgress->id;
-            $renoProgress->save();
+            $renoProgress->keyManagement->save();
+            $renoProgress->defectInspectionForm->save();
 
             // Soft delete the old RenoProgress record
             $renoProgress->delete();
