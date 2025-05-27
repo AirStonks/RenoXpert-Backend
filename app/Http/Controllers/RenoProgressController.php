@@ -367,7 +367,7 @@ class RenoProgressController extends BaseController
 
         $renoProgress = RenoProgress::find($id);
 
-        return $this->sendError($renoProgress->sale->user->id, null, 403);
+        return $this->sendError($renoProgress->sale, null, 403);
 
         // Check if the reno progress is retrieve by the current user
         if (is_null($renoProgress) || $renoProgress->sale->user->id != $user->id) {
