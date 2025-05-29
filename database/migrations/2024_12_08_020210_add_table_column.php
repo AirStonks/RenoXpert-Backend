@@ -31,8 +31,8 @@ return new class extends Migration
 
         
         // Staging: Done
-        Schema::table('reno_progress', function (Blueprint $table) {
-            $table->json('date_management')->nullable()->after('contractor_handover_date');
+        Schema::table('orders', function (Blueprint $table) {
+            $table->integer('studio_count')->nullable()->after('queen_bedroom_count');
         });
     }
 

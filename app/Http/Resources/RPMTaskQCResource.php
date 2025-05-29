@@ -18,7 +18,6 @@ class RPMTaskQCResource extends JsonResource
         return [
             'id' => $this->id,
             'task_id' => $this->task_id,
-            'task' => $this->task,
             'is_visible' => $this->is_visible ? true : false,
             'internal_comment' => $this->internal_comment,
             'owner_comment' => $this->owner_comment,

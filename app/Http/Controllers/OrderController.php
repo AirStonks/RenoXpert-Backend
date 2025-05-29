@@ -120,6 +120,7 @@ class OrderController extends BaseController
                 // 'bedroom_count' => 'nullable',
                 'single_bedroom_count' => 'nullable',
                 'queen_bedroom_count' => 'nullable',
+                'studio_count' => 'nullable',
                 'bathroom_count' => 'nullable',
                 'include_partition' => 'nullable|boolean',
                 'is_progressive_payment' => 'nullable|boolean',
@@ -137,7 +138,7 @@ class OrderController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            $input['bedroom_count'] = $input['single_bedroom_count'] + $input['queen_bedroom_count'];
+            $input['bedroom_count'] = $input['single_bedroom_count'] + $input['queen_bedroom_count'] + $input['studio_count'];
             $isDraftMode = $input['user_id'] == null;
 
             // Determine last order number based on draft or regular orders
@@ -342,6 +343,7 @@ class OrderController extends BaseController
                 // 'bedroom_count' => 'nullable|numeric|min:1',
                 'single_bedroom_count' => 'nullable|numeric|min:0',
                 'queen_bedroom_count' => 'nullable|numeric|min:0',
+                'studio_count' => 'nullable|numeric|min:0',
                 'bathroom_count' => 'nullable|numeric|min:1',
                 'description' => 'nullable|string|max:0',
                 'internal_remark' => 'nullable|string|min:0',
@@ -354,7 +356,7 @@ class OrderController extends BaseController
             }
 
             $validatedData = $validator->validated();
-            $validatedData['bedroom_count'] = $input['single_bedroom_count'] + $input['queen_bedroom_count'];
+            $validatedData['bedroom_count'] = $input['single_bedroom_count'] + $input['queen_bedroom_count'] + $input['studio_count'];
 
             // return $this->sendError($validatedData);
 
@@ -412,6 +414,7 @@ class OrderController extends BaseController
             $order->bedroom_count = $validatedData['bedroom_count'];
             $order->single_bedroom_count = $validatedData['single_bedroom_count'];
             $order->queen_bedroom_count = $validatedData['queen_bedroom_count'];
+            $order->studio_count = $validatedData['studio_count'];
             $order->bathroom_count = $validatedData['bathroom_count'];
             $order->include_partition = $input['include_partition'];
             $order->is_progressive_payment = $input['is_progressive_payment'];

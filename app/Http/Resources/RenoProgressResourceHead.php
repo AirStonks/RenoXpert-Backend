@@ -25,6 +25,12 @@ class RenoProgressResourceHead extends JsonResource
 
         $sale = new Sale();
         $sale->order = $order;
+        $sale->order->bathroom_count = $this->sale->order->bathroom_count;
+        $sale->order->single_bedroom_count = $this->sale->order->single_bedroom_count;
+        $sale->order->queen_bedroom_count = $this->sale->order->queen_bedroom_count;
+        $sale->order->studio_count = $this->sale->order->studio_count;
+        $sale->order->include_partition = $this->sale->order->include_partition;
+        // $sale->order->studio_count;
 
         $data = [
             'id' => $this->id,

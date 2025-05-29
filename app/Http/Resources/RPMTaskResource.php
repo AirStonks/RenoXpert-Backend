@@ -33,6 +33,7 @@ class RPMTaskResource extends JsonResource
             'owner_attachments' => $this->owner_attachments,
             'status' => $this->status,
             'completed_at' => $this->completed_at,
+            'qc_task' => new RPMTaskQCResource($this->taskQc),
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
             'created_at' => $this->created_at ? $this->created_at->format('d/m/Y') : null,
