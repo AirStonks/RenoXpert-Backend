@@ -54,6 +54,7 @@ class OrderResourceHead extends JsonResource
             'bedroom_count' => $this->bedroom_count,
             'single_bedroom_count' => $this->single_bedroom_count,
             'queen_bedroom_count' => $this->queen_bedroom_count,
+            'studio_count' => $this->studio_count,
             'bathroom_count' => $this->bathroom_count,
             'include_partition' => $this->include_partition ? true : false,
             'is_progressive_payment' => $this->is_progressive_payment ? true : false,

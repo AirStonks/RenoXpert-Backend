@@ -30,10 +30,12 @@ use App\Http\Controllers\JobTaskController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\RPMTaskController;
 use App\Http\Controllers\PhaseJobController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\RPMTaskQCController;
 use App\Http\Controllers\OTPRequestController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PMCategoryController;
@@ -46,7 +48,6 @@ use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\UserItemPermissionController;
 use App\Http\Controllers\DefectInspectionFormController;
-use App\Http\Controllers\RPMTaskController;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -160,6 +161,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/rpm-task/{id}/attachment/external/upload', [RPMTaskController::class, 'uploadExternalAttachment']);
     Route::get('/rpm-task/{id}/attachment/internal/{index}/remove', [RPMTaskController::class, 'removeInternalAttachment']);
     Route::get('/rpm-task/{id}/attachment/external/{index}/remove', [RPMTaskController::class, 'removeExternalAttachment']);
+    
+    Route::get('/rpm-task-qc/{id}/status/{status}', [RPMTaskQCController::class, 'updateStatus']);
+    Route::put('/rpm-task-qc/{id}/comment/internal', [RPMTaskQCController::class, 'updateComment']);
+    Route::post('/rpm-task-qc/{id}/attachment/internal/upload', [RPMTaskQCController::class, 'uploadAttachment']);
+    Route::get('/rpm-task-qc/{id}/attachment/internal/{index}/remove', [RPMTaskQCController::class, 'removeAttachment']);
 
 
     Route::get('/op/reno/progresses', [RenoProgressController::class, 'operationIndex']);

@@ -31,6 +31,7 @@ class Order extends Model
         'bedroom_count',
         'single_bedroom_count',
         'queen_bedroom_count',
+        'studio_count',
         'bathroom_count',
         'include_partition',
         'is_progressive_payment',

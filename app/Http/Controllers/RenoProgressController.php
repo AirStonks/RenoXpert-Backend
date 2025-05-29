@@ -70,11 +70,21 @@ class RenoProgressController extends BaseController
 
         // Retrieve the sort order and field from the request
         $sortOrder = $request->input('sortOrder', 'asc');
-        // $sortField = $request->input('sortField', 'name');
+        $sortField = $request->input('sortField', 'name');
 
         // Apply sorting if a sort field is provided
         if (!empty($sortField)) {
-            $query->orderBy($sortField, $sortOrder);
+            if ($sortField === 'oh_rundown') {
+                // Calculate the day difference between now and oh_date from date_management
+                $query->selectRaw('*, DATEDIFF(NOW(), COALESCE(JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.oh_date")), NOW())) as oh_rundown')
+                    ->orderBy('oh_rundown', $sortOrder);
+            } elseif ($sortField === 'ch_rundown') {
+                // Calculate the day difference between now and ch_date from date_management
+                $query->selectRaw('*, DATEDIFF(NOW(), COALESCE(JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.ch_date")), NOW())) as ch_rundown')
+                    ->orderBy('ch_rundown', $sortOrder);
+            } else {
+                $query->orderBy($sortField, $sortOrder);
+            }
         }
 
         // Paginate the results
