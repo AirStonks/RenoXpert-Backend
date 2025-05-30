@@ -375,7 +375,7 @@ class RenoProgressController extends BaseController
     {
         $user = Auth::user();
 
-        $renoProgress = RenoProgress::find($id);
+        $renoProgress = RenoProgress::where('permission_id', '!=', 1)->find($id);
 
         // Check if the reno progress is retrieve by the current user
         if (is_null($renoProgress) || $renoProgress->sale->user->id != $user->id) {
