@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use App\Events\SaleCreated;
 use App\Events\SaleStatusUpdated; // Updated event name
-use App\Listeners\TriggerCreateRenoProgress;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
 
 class Sale extends Model
 {
@@ -51,6 +48,7 @@ class Sale extends Model
 
             if ($model->isDirty('status')) {
                 // Check for either partial-paid OR issued changing to fully-paid
+
                 if (
                     ($model->getOriginal('status') === 'issued' && $model->status === 'partial-paid') ||
                     ($model->getOriginal('status') === 'issued' && $model->status === 'fully-paid')
