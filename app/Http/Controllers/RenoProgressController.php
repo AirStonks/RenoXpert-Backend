@@ -82,6 +82,22 @@ class RenoProgressController extends BaseController
                 // Calculate the day difference between now and ch_date from date_management
                 $query->selectRaw('*, DATEDIFF(NOW(), COALESCE(JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.ch_date")), NOW())) as ch_rundown')
                     ->orderBy('ch_rundown', $sortOrder);
+            } elseif ($sortField === 'date_management.sales_date') {
+                // Extract sales_date from date_management JSON field
+                $query->selectRaw('*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.sales_date")) as sales_date_extracted')
+                    ->orderBy('sales_date_extracted', $sortOrder);
+            } elseif ($sortField === 'date_management.reno_date') {
+                // Extract sales_date from date_management JSON field
+                $query->selectRaw('*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.reno_date")) as reno_date_extracted')
+                    ->orderBy('reno_date_extracted', $sortOrder);
+            } elseif ($sortField === 'date_management.ch_date') {
+                // Extract sales_date from date_management JSON field
+                $query->selectRaw('*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.ch_date")) as ch_date_extracted')
+                    ->orderBy('ch_date_extracted', $sortOrder);
+            } elseif ($sortField === 'date_management.oh_date') {
+                // Extract sales_date from date_management JSON field
+                $query->selectRaw('*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.oh_date")) as oh_date_extracted')
+                    ->orderBy('oh_date_extracted', $sortOrder);
             } else {
                 $query->orderBy($sortField, $sortOrder);
             }
