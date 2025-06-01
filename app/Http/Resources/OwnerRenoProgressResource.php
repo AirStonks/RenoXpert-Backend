@@ -59,7 +59,6 @@ class OwnerRenoProgressResource extends JsonResource
             'contractor_start_date' => $this->contractor_start_date ? Carbon::parse($this->contractor_start_date)->format('Y-m-d') : null,
             'contractor_end_date' => $this->contractor_end_date ? Carbon::parse($this->contractor_end_date)->format('Y-m-d') : null,
             'status' => $this->status,
-            'rpm_jobs' => $this->rpm_version === 3 ? RPMJobResource::collection($this->rpmJobs) : null,
             'date_management' => $this->date_management,
             'completed_at' => $this->completed_at?->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),
@@ -72,6 +71,7 @@ class OwnerRenoProgressResource extends JsonResource
             // Include phases if flag is set to true
             if ($this->includePhases) {
                 $data['phases'] = $this->filterPhasesWithVisibleTasks();
+                $data['rpm_jobs'] = $this->rpm_version === 3 ? RPMJobResource::collection($this->rpmJobs) : null;
             }
 
             $data = array_merge($data, [

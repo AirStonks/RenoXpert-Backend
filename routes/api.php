@@ -431,6 +431,20 @@ Route::get('/tmp/startSaleRenoProgress/saleId/{saleId}', function ($saleId) {
     return response()->json(['message' => 'Sale status updated successfully']);
 });
 
+Route::get('/tmp/changeSaleStatus/{saleId}', function ($saleId) {
+    // Get sale by saleId
+    $sale = Sale::find($saleId);
+
+    if (!$sale) {
+        return response()->json(['error' => 'Sale not found'], 404);
+    }
+
+    $sale->status = 'partial-paid';
+    $sale->save();
+
+    return response()->json(['message' => 'Sale status updated successfully']);
+});
+
 Route::get('/test/unauth/{renoId}/{saleId}', function ($renoId, $saleId) {
 
     $renoProgress = \App\Models\RenoProgress::find($renoId);

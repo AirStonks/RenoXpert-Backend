@@ -192,11 +192,7 @@ class RenoProgressController extends BaseController
         $userId = Auth::user()->id;
 
         // Filter RenoProgress records where permission_id is not 1
-        $query->where('permission_id', '!=', 1)
-            ->whereDoesntHave('itemPermissions.userPermissions', function ($q) use ($userId) {
-                $q->where('user_id', $userId)
-                    ->where('user_item_permission.permission_id', 1); // Exclude records where permission_id is 1
-            })->orWhereDoesntHave('itemPermissions'); // Include records with no item permissions
+        $query->where('permission_id', '!=', 1);
 
         $query->orderBy($sortField, $sortOrder);
         $renoProgress = $query->paginate($size);

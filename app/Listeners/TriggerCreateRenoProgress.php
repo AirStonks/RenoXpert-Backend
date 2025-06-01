@@ -543,6 +543,8 @@ class TriggerCreateRenoProgress
 
             // If no existing RenoProgress record is found, create a new one
             if (!$existingRenoProgress) {
+                $latestPayment = $sale->invoices->flatMap->payments->sortByDesc('created_at')->first();
+
                 $renoProgress = RenoProgress::create([
                     'sale_id' => $sale->id,
                     'resource_id' => 1,
@@ -550,7 +552,7 @@ class TriggerCreateRenoProgress
                     'rpm_version' => 3,
                     'status' => 'in_progress',
                     'date_management' => [
-                        'sales_date' => Carbon::now()->format('Y-m-d'),
+                        'sales_date' => $latestPayment ? Carbon::parse($latestPayment->payment_date)->format('Y-m-d') : null,
                         'oh_date' => '',
                         'ch_date' => '',
                         'qc_date' => '',
