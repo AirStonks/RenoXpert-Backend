@@ -1,920 +1,260 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Resources;
 
-use App\Http\Resources\OwnerRenoProgressResource;
-use App\Http\Resources\RenoProgressResource;
-use App\Http\Resources\Operation\RenoProgressResource as OperationRenoProgressResource;
-use App\Http\Resources\RenoProgressResourceAdTable;
-use App\Http\Resources\RenoProgressResourceHead;
 use App\Models\RenoProgress;
-use App\Models\ResourceItem;
-use App\Models\RPMJob;
-use App\Models\RPMTask;
-use App\Models\RPMTaskQC;
-use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 
-class RenoProgressController extends BaseController
+class OwnerRenoProgressResource extends JsonResource
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    protected $includePhases;
+    public function __construct($resource, $includePhases = false)
     {
-        // Retrieve the size parameter from the request with a default value of 5
-        $size = $request->input('size', 5);
+        parent::__construct($resource);
+        $this->includePhases = $includePhases;  // Store the user or other parameter
+    }
 
-        // Retrieve the search term from the request
-        $search = $request->input('search', '');
-
-
-        // Build the base query with joins
-        $query = RenoProgress::query()
-            ->select('reno_progress.*')
-            ->join('sales', function ($join) {
-                $join->on('reno_progress.sale_id', '=', 'sales.id')
-                    ->whereNull('sales.deleted_at');
-            })
-            ->join('orders', function ($join) {
-                $join->on('sales.order_id', '=', 'orders.id')
-                    ->whereNull('orders.deleted_at');
-            })
-            ->leftJoin('properties', function ($join) {
-                $join->on('orders.property_id', '=', 'properties.id')
-                    ->whereNull('properties.deleted_at');
-            })
-            ->leftJoin('users', function ($join) {
-                $join->on('orders.user_id', '=', 'users.id')
-                    ->whereNull('users.deleted_at');
-            })
-            // ->where('reno_progress.rpm_version', 3)
-            ->whereNull('reno_progress.deleted_at');
-
-        if ($request->input('rpm_version') == 3) {
-            $query->where('reno_progress.rpm_version', 3);
-        }
-
-        // Apply search filter if a подходящий search term is provided
-        if (!empty($search)) {
-            $normalizedSearch = str_replace(['-', ' '], '', $search);
-            $query->where(function ($q) use ($normalizedSearch) {
-                $q->where('properties.name', 'like', '%' . $normalizedSearch . '%')
-                    ->orWhereRaw("REPLACE(REPLACE(CONCAT(orders.block, orders.floor, orders.unit_no), '-', ''), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("REPLACE(REPLACE(sales.sales_no, '-', ''), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhere('users.name_first', 'like', '%' . $normalizedSearch . '%')
-                    ->orWhere('users.name_last', 'like', '%' . $normalizedSearch . '%')
-                    ->orWhereRaw("REPLACE(CONCAT(users.name_first, ' ', users.name_last), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%']);
+    /**
+     * Create a new resource collection.
+     *
+     * @param mixed $resource
+     * @param bool $includePhases
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public static function collection($resource, $includePhases = false)
+    {
+        return tap(new AnonymousResourceCollection($resource, static::class), function ($collection) use ($includePhases) {
+            $collection->each(function ($resource) use ($includePhases) {
+                $resource->includePhases = $includePhases;
             });
-        }
+        });
+    }
 
-        // Filter by status if available
-        if ($request->input('status')) {
-            $query->where('reno_progress.status', $request->input('status'));
-        }
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        $oldRenoProgress = RenoProgress::where('sale_id', $this->sale_id)->onlyTrashed()->first();
 
-        // Retrieve the sort order and field from the request
-        $sortOrder = $request->input('sortOrder', 'asc');
-        $sortField = $request->input('sortField', 'name');
-
-        // Apply sorting if a sort field is provided
-        if (!empty($sortField)) {
-            if ($sortField === 'oh_rundown') {
-                $query->selectRaw('reno_progress.*, DATEDIFF(NOW(), COALESCE(JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.oh_date")), NOW())) as oh_rundown')
-                    ->orderBy('oh_rundown', $sortOrder);
-            } elseif ($sortField === 'ch_rundown') {
-                $query->selectRaw('reno_progress.*, DATEDIFF(NOW(), COALESCE(JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.ch_date")), NOW())) as ch_rundown')
-                    ->orderBy('ch_rundown', $sortOrder);
-            } elseif ($sortField === 'date_management.sales_date') {
-                $query->selectRaw('reno_progress.*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.sales_date")) as sales_date_extracted')
-                    ->orderBy('sales_date_extracted', $sortOrder);
-            } elseif ($sortField === 'date_management.reno_date') {
-                $query->selectRaw('reno_progress.*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.reno_date")) as reno_date_extracted')
-                    ->orderBy('reno_date_extracted', $sortOrder);
-            } elseif ($sortField === 'date_management.ch_date') {
-                $query->selectRaw('reno_progress.*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.ch_date")) as ch_date_extracted')
-                    ->orderBy('ch_date_extracted', $sortOrder);
-            } elseif ($sortField === 'date_management.oh_date') {
-                $query->selectRaw('reno_progress.*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.oh_date")) as oh_date_extracted')
-                    ->orderBy('oh_date_extracted', $sortOrder);
-            } else {
-                $query->orderBy($sortField, $sortOrder);
-            }
-        }
-
-        // Paginate the results
-        $renoProgress = $query->paginate($size);
-
-        // Custom response to fit with Tailwind DataTable JSON format
-        $response = [
-            "page" => $renoProgress->currentPage(),
-            "pageCount" => $renoProgress->lastPage(),
-            "sortField" => $sortField,
-            "sortOrder" => $sortOrder,
-            "totalCount" => $renoProgress->total(),
-            "data" => $request->input('head') === 'true' ? RenoProgressResourceHead::collection($renoProgress) : RenoProgressResource::collection($renoProgress)
+        $data = [
+            'id' => $this->id,
+            'sale_id' => $this->sale->id,
+            'property' => [
+                'id' => $this->sale->order->property->id,
+                'name' => $this->sale->order->property->name,
+                'block' => $this->sale->order->block,
+                'floor' => $this->sale->order->floor,
+                'unit_no' => $this->sale->order->unit_no,
+            ],
+            'sale' => new SaleResource($this->sale),
+            'user' => $this->sale->user,
+            'contractual_start_date' => $this->contractual_start_date ? Carbon::parse($this->contractual_start_date)->format('Y-m-d') : null,
+            'contractual_end_date' => $this->contractual_end_date ? Carbon::parse($this->contractual_end_date)->format('Y-m-d') : null,
+            'contractor_start_date' => $this->contractor_start_date ? Carbon::parse($this->contractor_start_date)->format('Y-m-d') : null,
+            'contractor_end_date' => $this->contractor_end_date ? Carbon::parse($this->contractor_end_date)->format('Y-m-d') : null,
+            'status' => $this->status,
+            'date_management' => $this->date_management,
+            'completed_at' => $this->completed_at?->format('d/m/Y'),
+            'created_at' => $this->created_at->format('d/m/Y'),
+            'updated_at' => $this->updated_at->format('d/m/Y'),
         ];
 
-        return response()->json($response, 200);
-    }
+        // Include completion fields only if rpm_version is 1 or 2
+        if (in_array($this->rpm_version, [1, 2])) {
 
-    public function getAdvanceTable(Request $request)
-    {
-        // // Validate incoming request parameters
-        // $request->validate([
-        //     'groupBy' => 'nullable|string|in:id,sale_id,status,property_id,start_date,end_date', // Add valid columns
-        //     'groupOp' => 'nullable|string|in:equals,not_equals,greater,less', // Define supported operators
-        //     'groupValue' => 'nullable|string', // Value to filter by
-        // ]);
+            // Include phases if flag is set to true
+            if ($this->includePhases) {
+                $data['phases'] = $this->filterPhasesWithVisibleTasks();
+                $data['rpm_jobs'] = $this->rpm_version === 3 ? RPMJobResource::collection($this->rpmJobs) : null;
+            }
 
-        // Extract query parameters
-        $groupBy = $request->query('groubBy'); // Match frontend typo if needed, or correct to 'groupBy'
-        $groupOp = $request->query('groupOp');
-        $groupValue = $request->query('groupValue');
+            $data = array_merge($data, [
+                'pre_reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[0] ?? null),
+                'p1_completion' => $this->calculatePhaseCompletion($this->progressPhases[1] ?? null),
+                'p2a_completion' => $this->calculatePhaseCompletion($this->progressPhases[2] ?? null),
+                'p2b_completion' => $this->calculatePhaseCompletion($this->progressPhases[3] ?? null),
+                'iot_completion' => $this->calculatePhaseCompletion($this->progressPhases[4] ?? null),
+                'post_reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[5] ?? null),
+            ]);
+        }
 
-        // Start building the query
-        $query = RenoProgress::query()
-            ->with(['sale.order.property', 'sale.order.user']) // Eager load relationships used in the resource
-            ->select('reno_progress.*'); // Adjust table name as needed
+        if ($this->rpm_version === 3) {
+            $data = array_merge($data, [
+                'completion' => $this->calculateV3Completion(),
+            ]);
 
-        // Apply filtering based on groupBy, groupOp, and groupValue
-        if ($groupBy && $groupOp && $groupValue !== null) {
-            switch ($groupOp) {
-                case 'equals':
-                    $query->where($groupBy, '=', $groupValue);
-                    break;
-                case 'not_equals':
-                    $query->where($groupBy, '!=', $groupValue);
-                    break;
-                case 'greater':
-                    $query->where($groupBy, '>', $groupValue);
-                    break;
-                case 'less':
-                    $query->where($groupBy, '<', $groupValue);
-                    break;
-                default:
-                    // Invalid operator, ignore or return an error
-                    break;
+            if ($this->includePhases) {
+                $data = array_merge($data, [
+                    'rpm_jobs' => $this->rpm_version === 3 ? RPMJobResource::collection($this->rpmJobs) : null,
+                ]);
             }
         }
 
-        // Fetch total count first
-        $totalCount = $query->count();
+        if (!is_null($oldRenoProgress)) {
+            $data = array_merge($data, [
+                'is_converted' => true,
+            ]);
+        }
 
-        // Fetch the data
-        $renoProgressData = $query->get();
-
-        return response()->json([
-            "sortField" => null,
-            "sortOrder" => null,
-            "totalCount" => $totalCount,  // Use count() result here
-            'data' => RenoProgressResourceAdTable::collection($renoProgressData),
-            'success' => true,
-        ], 200);
+        return $data;
     }
 
-
-    public function ownerIndex(Request $request)
+    /**
+     * Calculate the completion percentage for a given phase.
+     *
+     * @param mixed $phase
+     * @return float
+     */
+    private function calculatePhaseCompletion($phase): float
     {
-        $user = Auth::user();
-        $sale = Sale::where('user_id', $user->id)->first();
-
-        // Default empty response if no sale or reno progress exists
-        if (!$sale || !$sale->renoProgress) {
-            return response()->json([
-                "page" => 1,
-                "pageCount" => 1,
-                "sortField" => null,
-                "sortOrder" => null,
-                "totalCount" => 0,
-                "data" => []
-            ], 200);
+        if (!$phase || !isset($phase['jobs'])) {
+            return 0.0;
         }
-
-        $size = $request->input('size', 5);
-        $search = $request->input('search', '');
-        $sortOrder = $request->input('sortOrder', 'asc');
-        $sortField = $request->input('sortField', 'id');
-
-        $query = RenoProgress::query();
-
-        if (!empty($search)) {
-            $query->where('name', 'like', '%' . $search . '%');
+        $totalJobs = count($phase['jobs']);
+        if ($totalJobs === 0) {
+            return 0.0;
         }
-
-        // Get the authenticated user's ID
-        $userId = Auth::user()->id;
-
-        // Filter RenoProgress records where permission_id is not 1
-        $query->where('permission_id', '!=', 1);
-
-        $query->orderBy($sortField, $sortOrder);
-        $renoProgress = $query->paginate($size);
-
-
-
-        return response()->json([
-            "page" => $renoProgress->currentPage(),
-            "pageCount" => $renoProgress->lastPage(),
-            "sortField" => $sortField,
-            "sortOrder" => $sortOrder,
-            "totalCount" => $renoProgress->total(),
-            "data" => OwnerRenoProgressResource::collection($renoProgress, false),
-        ], 200);
+        $totalJobCompletionPercentage = 0;
+        foreach ($phase['jobs'] as $job) {
+            $jobCompletionPercentage = 0;
+            $totalWeightage = 0;
+            $weightedCompletion = 0;
+            foreach ($job['tasks'] as $task) {
+                $weightage = $task['task_weightage'];
+                $statusWeightage = match ($task['status']) {
+                    'completed' => 1.0,
+                    'in_progress' => 0.75,
+                    'started' => 0.25,
+                    'not_started' => 0.0,
+                    default => 0.0,
+                };
+                $totalWeightage += $weightage;
+                $weightedCompletion += $weightage * $statusWeightage;
+            }
+            // Calculate job completion percentage
+            if ($totalWeightage > 0) {
+                $jobCompletionPercentage = $weightedCompletion / $totalWeightage;
+            }
+            $totalJobCompletionPercentage += $jobCompletionPercentage;
+        }
+        // Calculate the phase completion percentage (average of job completion percentages)
+        return $totalJobCompletionPercentage / $totalJobs;
     }
 
-    public function operationIndex(Request $request)
+    private function calculateJobProgress($job)
     {
-        // Retrieve the size parameter from the request with a default value of 5
-        $size = $request->input('size', 5);
+        // Define the status weightages
+        $statusWeights = [
+            'not_started' => 0,
+            'started' => 0.25,
+            'in_progress' => 0.75,
+            'completed' => 1,
+        ];
 
-        // Retrieve the search term from the request
-        $search = $request->input('search', '');
+        // Initialize the weighted sum and total weight
+        $weightedSum = 0;
+        $totalWeight = 0;
 
-        // Retrieve the sort order and field from the request
-        $sortOrder = $request->input('sortOrder', 'asc');
-        $sortField = $request->input('sortField', 'id');
+        // Loop through the tasks to calculate the weighted sum and total weight
+        foreach ($job->tasks as $task) {
+            $statusWeight = isset($statusWeights[$task->status]) ? $statusWeights[$task->status] : 0;
+            $taskWeight = isset($task->task_weightage) ? $task->task_weightage : 1; // Default to 1 if not provided
 
-        // Build the query
-        $query = RenoProgress::query();
+            // Add to the weighted sum
+            $weightedSum += $taskWeight * $statusWeight;
 
-        // Filter by status if available
-        if ($request->input('status')) {
-            $query->where('status', $request->input('status'));
+            // Add to the total weight
+            $totalWeight += $taskWeight;
         }
 
-        // Apply search filter if a search term is provided
-        if (!empty($search)) {
-            // Normalize the search term by removing '-' and spaces
-            $normalizedSearch = str_replace(['-', ' '], '', $search);
+        // Return the progress percentage (multiply by 100 to get percentage)
+        return $totalWeight > 0 ? ($weightedSum / $totalWeight) * 100 : 0;
+    }
 
-            $query->whereHas('sale.order.property', function ($q) use ($normalizedSearch) {
-                $q->where('name', 'like', '%' . $normalizedSearch . '%');
-            })
-                ->orWhereHas('sale.order', function ($q) use ($normalizedSearch) {
-                    $q->whereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
-                })
-                ->orWhereHas('sale', function ($q) use ($normalizedSearch) {
-                    $q->whereRaw("REPLACE(REPLACE(sales_no, '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+    /**
+     * Filter tasks where is_visible === true and return the phases.
+     *
+     * @return AnonymousResourceCollection
+     */
+    private function filterPhasesWithVisibleTasks()
+    {
+        return ProgressPhaseResource::collection(
+            $this->progressPhases->map(function ($phase) {
+                // Filter jobs and their tasks
+
+                $phase->jobs = $phase->jobs->map(function ($job) {
+
+                    $job->completion = $this->calculateJobProgress($job);
+                    $filteredTasks = collect($job->tasks)->where('is_visible', true)->map(function ($task) {
+                        // Remove 'internal_comment' from each task
+                        unset($task->internal_comment);
+                        return $task;
+                    });
+
+                    // Reassign filtered tasks to the job
+                    $job->tasks = $filteredTasks->values();
+
+
+                    return $job;
                 });
-        }
 
-        // Get the authenticated user's ID
-        $userId = Auth::user()->id;
+                return $phase;
+            })
+        );
+    }
 
-        // Filter RenoProgress records where permission_id is not 1
-        $query->where('permission_id', '!=', 1)
-            ->whereDoesntHave('itemPermissions.userPermissions', function ($q) use ($userId) {
-                $q->where('user_id', $userId)
-                    ->where('user_item_permission.permission_id', 1); // Exclude records where permission_id is 1
-            })->orWhereDoesntHave('itemPermissions'); // Include records with no item permissions
-
-        // Apply sorting if a sort field is provided
-        if (!empty($sortField)) {
-            $query->orderBy($sortField, $sortOrder);
-        }
-
-        // Paginate the results
-        $renoProgress = $query->paginate($size);
-
-        // Custom response to fit with Tailwind DataTable JSON format
-        $response = [
-            "page" => $renoProgress->currentPage(),  // Current page number
-            "pageCount" => $renoProgress->lastPage(), // Total number of pages
-            "sortField" => $sortField,               // Sorting field
-            "sortOrder" => $sortOrder,               // Sorting order
-            "totalCount" => $renoProgress->total(),  // Total number of items
-            "data" => $request->input('head') === 'true'
-                ? OperationRenoProgressResource::collection($renoProgress)
-                : OperationRenoProgressResource::collection($renoProgress) // Assuming you might want a head version
+    private function calculateV3Completion(): array
+    {
+        // Define status weightage mapping
+        $statusWeightage = [
+            'not-available' => 1.0,
+            'not-started' => 0.0,
+            'pending' => 0.25,
+            'in-progress' => 0.5,
+            'completed' => 1.0,
         ];
 
-        return response()->json($response, 200);
-    }
+        // Fetch all jobs with their tasks
+        $jobs = $this->rpmJobs;
+        $jobCompletions = [];
+        $totalJobs = $jobs->count();
+        $sumJobCompletions = 0;
 
+        foreach ($jobs as $job) {
+            $tasks = $job->rpmTasks;
+            $totalTasks = $tasks->count();
+            $sumTaskCompletion = 0;
 
-    // public function retrieveRenoProgresses(Request $request)
-    // {
-    //     $user = Auth::user();
-
-    //     $forms = RenoProgress::where('sale_id', $user->phone_no)->get();
-
-    //     return $this->sendResponse(RegistrationFormResource::collection($forms), 'Registration Form retrieved successfully.');
-    // }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        try {
-            $input = $request->all();
-
-            $validator = Validator::make($input, [
-                'name' => 'required|string|max:255',
-                // 'address' => 'required|string|max:255',
-                // 'street' => 'required|string|max:255',
-                'postcode' => 'required|string|max:10',
-                'city' => 'required|string|max:100',
-                'state' => 'required|string|max:100',
-                'description' => 'nullable|string|max:500',
-            ]);
-
-            if ($validator->fails()) {
-                return $this->sendError('Validation Error.', $validator->errors(), 422);
+            // Calculate completion for each task
+            foreach ($tasks as $task) {
+                $status = $task->status;
+                $taskCompletion = $statusWeightage[$status] ?? 0.0; // Default to 0 if status is invalid
+                $sumTaskCompletion += $taskCompletion;
             }
 
-            // Create RenoProgress
-            $input['resource_id'] = 1;
+            // Calculate job completion (avoid division by zero)
+            $jobCompletion = $totalTasks > 0 ? ($sumTaskCompletion / $totalTasks) * 100 : 0.0;
+            $jobCompletions[] = [
+                'job_id' => $job->id,
+                'job_name' => $job->name,
+                'completion_percentage' => $jobCompletion / 100,
+            ];
 
-            // Default permission_id set to restricted (1)
-            $input['permission_id'] = 1;
-
-            $renoProgress = RenoProgress::create($input);
-
-            // Count only ResourceItems with item_name starting with "Progress" for this resource_id
-            $number = ResourceItem::where('resource_id', 1)
-                ->where('item_name', 'like', 'Progress%')
-                ->count() + 1;
-
-            // Create ResourceItem with the next number
-            ResourceItem::create([
-                'resource_id' => 1,
-                'item_reference_id' => $renoProgress->id,
-                'item_reference_type' => 'App\Models\RenoProgress',
-                'item_name' => "Progress{$number}",
-            ]);
-
-            return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress added successfully.');
-        } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th);
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-        $renoProgress = RenoProgress::find($id);
-
-        if (is_null($renoProgress)) {
-            return $this->sendError('Reno Progress not found.');
+            $sumJobCompletions += $jobCompletion;
         }
 
-        return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function showOldVersion($id)
-    {
-        $renoProgress = RenoProgress::find($id);
-
-        $oldRenoProgress = RenoProgress::where('sale_id', $renoProgress->sale_id)->onlyTrashed()->first();
-
-        if (is_null($oldRenoProgress)) {
-            return $this->sendError('Old Reno Progress not found.');
-        }
-
-        return $this->sendResponse(new RenoProgressResource($oldRenoProgress), 'Reno Progress retrieved successfully.');
-    }
-
-    public function showOwnerRenoProgress($id)
-    {
-        $user = Auth::user();
-
-        $renoProgress = RenoProgress::where('permission_id', '!=', 1)->find($id);
-
-        // Check if the reno progress is retrieve by the current user
-        if (is_null($renoProgress) || $renoProgress->sale->user->id != $user->id) {
-            return $this->sendError('Invalid Credential.', null, 403);
-        }
-
-        return $this->sendResponse(new OwnerRenoProgressResource($renoProgress, true), 'Reno Progress retrieved successfully.');
-    }
-
-    public function getProgressFormDetail($id)
-    {
-        $renoProgress = RenoProgress::find($id);
-
-        $sale = $renoProgress->sale;
-        $order = $sale->order;
-        $property = $order->property;
-
-        return $this->sendResponse([
-            'property' => $property,
-            'block' => $order->block,
-            'level' => $order->floor,
-            'unit' => $order->unit_no,
-            'bedroom_count' => $order->bedroom_count,
-            'bathroom_count' => $order->bathroom_count,
-            'owner' => $order->user,
-
-        ], 'Reno Progress Detail retrieved successfully.');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, RenoProgress $renoProgress)
-    {
-        //
-    }
-
-    public function changeContractualDate(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractual');
-    }
-
-    public function changeContractualP1Date(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractual_p1');
-    }
-
-    public function changeContractualP2Date(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractual_p2');
-    }
-
-    public function changeContractualQCDate(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractual_qc');
-    }
-
-    public function changeContractualPCDate(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractual_pc');
-    }
-
-    public function changeContractualHandoverDate(Request $request, $id)
-    {
-        try {
-            $renoProgress = RenoProgress::find($id);
-            if (!$renoProgress) {
-                return $this->sendError('Reno progress not found.');
-            }
-
-            $handoverDate = $request->input('start_date');
-            $renoProgress->contractual_handover_date = $handoverDate;
-            $renoProgress->save();
-
-            return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress updated successfully.');
-        } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th->getMessage());
-        }
-    }
-
-    public function changeContractorDate(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractor');
-    }
-
-    public function changeContractorP1Date(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractor_p1');
-    }
-
-    public function changeContractorP2Date(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractor_p2');
-    }
-
-    public function changeContractorQCDate(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractor_qc');
-    }
-
-    public function changeContractorPCDate(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractor_pc');
-    }
-
-    public function changeContractorHandoverDate(Request $request, $id)
-    {
-        return $this->changeContractDate($request, $id, 'contractor_handover');
-    }
-
-    public function changeGeneralPermission(Request $request, $id)
-    {
-        $renoProgress = RenoProgress::find($id);
-
-        if (!$renoProgress) {
-            return $this->sendError('Reno progress not found.');
-        }
-
-        $permissionId = $request->input('permission_id');
-
-        if (!$permissionId) {
-            return $this->sendError('Permission ID is required.');
-        }
-
-        $renoProgress->permission_id = $permissionId;
-
-        if ($renoProgress->save()) {
-            return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress updated successfully.');
-        }
-    }
-
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(RenoProgress $renoProgress)
-    {
-        //
-    }
-
-    public function convertV2toV3($id)
-    {
-        // Find the RenoProgress record by ID
-        $renoProgress = RenoProgress::find($id);
-
-        if (!$renoProgress) {
-            return $this->sendError('Reno progress not found.');
-        }
-
-        try {
-            // Create a new RenoProgress record with 'in_progress' status
-            $newRenoProgress = RenoProgress::create([
-                'sale_id' => $renoProgress->sale_id,
-                'resource_id' => 1,
-                'permission_id' => 1,
-                'rpm_version' => 3,
-                'status' => 'in_progress',
-                'date_management' => [
-                    'sales_date' => Carbon::now()->format('Y-m-d'),
-                    'oh_date' => '',
-                    'ch_date' => '',
-                    'qc_date' => '',
-                    'reno_date' => '',
-                    'cleaning_date' => '',
-                    'defect_permit_date' => ''
-                ]
-            ]);
-
-            // Count only ResourceItems with item_name starting with "Progress" for this resource_id
-            $number = ResourceItem::where('resource_id', 1)
-                ->where('item_name', 'like', 'Progress%')
-                ->count() + 1;
-
-            // Create ResourceItem with the next number
-            ResourceItem::create([
-                'resource_id' => 1,
-                'item_reference_id' => $newRenoProgress->id,
-                'item_reference_type' => 'App\Models\RenoProgress',
-                'item_name' => "Progress{$number}",
-            ]);
-
-            // Retrieve total bedroom and bathroom count
-            $defaultBedrooms = ['R1', 'R2', 'R3', 'R4', 'PR', 'Studio'];
-            $defaultBathrooms = ['B1', 'B2', 'B3'];
-
-            // Create RPMJobs and RPMTasks
-            // VP
-            $vpJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'vp',
-                'name' => 'VP Status',
-            ]);
-
-            $t1 = ['Key Management', 'TNB', 'Water Supply'];
-            $vpTasks = [];
-
-            foreach ($t1 as $t) {
-                $vpTasks[] = [
-                    'job_id' => $vpJob->id,
-                    'room_name' => null,
-                    'item_name' => $t,
-                    'is_visible' => true,
-                ];
-            }
-
-
-            RPMTask::insert($vpTasks);
-
-
-            // Defect
-            $defectJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'defect',
-                'name' => 'Defect',
-            ]);
-
-
-            $t2 = ['Defect Inspection', 'Defect Submission', 'Defect Rectification'];
-            $defectTasks = [];
-
-            foreach ($t2 as $t) {
-                $defectTasks[] = [
-                    'job_id' => $defectJob->id,
-                    'room_name' => null,
-                    'item_name' => $t,
-                    'is_visible' => true,
-                ];
-            }
-
-            RPMTask::insert($defectTasks);
-
-            // Permit
-            $permitJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'permit',
-                'name' => 'Permit',
-            ]);
-
-            $t3 = ['Permit Application & Submission', 'Permit Deposit paid by Owner', 'Reno Permit Approval & Issued by MO'];
-            $permitTasks = [];
-
-            foreach ($t3 as $t) {
-                $permitTasks[] = [
-                    'job_id' => $permitJob->id,
-                    'room_name' => null,
-                    'item_name' => $t,
-                    'is_visible' => true,
-                ];
-            }
-
-            RPMTask::insert($permitTasks);
-
-
-            // Post-Reno
-            $postRenoJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'post_reno',
-                'name' => 'Post-Reno',
-            ]);
-
-            $items = ['QC', 'Lock Transfer', 'Meter Commissioning and Testing', 'WiFi Pairing', 'Account and Password', 'Deposit Refund Monitoring', 'RPM Handover'];
-
-            $postRenoTasks = [];
-
-            foreach ($items as $item) {
-                $postRenoTasks[] = [
-                    'job_id' => $postRenoJob->id,
-                    'room_name' => null,
-                    'item_name' => $item,
-                    'is_visible' => true,
-                ];
-            }
-
-            RPMTask::insert($postRenoTasks);
-
-
-            // Room Items/Furnitures
-            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting & Featured Wall', 'Bedframe', 'Wardrobe', 'Table', 'Chair', 'Curtain', 'Wall Mirror', 'Mattress', 'Matterss Protector', 'Portrait', 'Door Stopper', 'SMART METER', 'SMART LOCK (Room)', 'Mini Fridge', 'Partition Wall', 'Air Cond'];
-
-            $furnitureJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'room_furnitures',
-                'name' => 'Room & Furnitures',
-            ]);
-
-            $furnitureTaskQcs = [];
-
-            foreach ($items as $item) {
-                foreach ($defaultBedrooms as $bedroom) {
-                    // Create a single task
-                    $task = RPMTask::create([
-                        'job_id' => $furnitureJob->id,
-                        'room_name' => $bedroom,
-                        'item_name' => $item,
-                        'is_visible' => true,
-                    ]);
-
-                    // Store the task ID in furnitureTaskQcs
-                    $furnitureTaskQcs[] = [
-                        'task_id' => $task->id, // Assign the newly created task's ID
-                        'is_visible' => true,
-                    ];
-                }
-            }
-
-            // Insert the QC records
-            RPMTaskQC::insert($furnitureTaskQcs);
-
-
-            // Bathroom
-            $bathroomJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'bathroom',
-                'name' => 'Bathroom',
-            ]);
-
-            $items = ['Wiring', 'Lighting', 'Cloth Hanger', 'Bidet', 'Wall Mirror', 'Water Heater'];
-
-            $bathroomTaskQcs = [];
-
-            foreach ($items as $item) {
-                foreach ($defaultBathrooms as $batroom) {
-                    // Create a single task
-                    $task = RPMTask::create([
-                        'job_id' => $bathroomJob->id,
-                        'room_name' => $batroom,
-                        'item_name' => $item,
-                        'is_visible' => true,
-                    ]);
-
-                    // Store the task ID in bathroomTaskQcs
-                    $bathroomTaskQcs[] = [
-                        'task_id' => $task->id, // Assign the newly created task's ID
-                        'is_visible' => true,
-                    ];
-                }
-            }
-
-            // Insert the QC records
-            RPMTaskQc::insert($bathroomTaskQcs);
-
-
-            // Dining, Yard, Foyer
-            $dyfJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'dining_yard_foyer',
-                'name' => 'Dining, Yard, Foyer',
-            ]);
-
-            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting & Featured Wall', 'Dining Table', 'Dining Chair', 'Shoe Cabinet', 'Portrait', 'CCTV & Shelve', 'Smart Main Door Lock', 'G2 Gateway Hub', 'Cloth Drying Rack', 'Doorbell', 'Fire Extinguisher', 'Cleaning Tools Set', 'Door Stopper'];
-
-            $dyfTaskQcs = [];
-
-            foreach ($items as $item) {
-                // Create a single task
-                $task = RPMTask::create([
-                    'job_id' => $dyfJob->id,
-                    'room_name' => null,
-                    'item_name' => $item,
-                    'is_visible' => true,
-                ]);
-
-                // Store the task ID in dyfTaskQcs
-                $dyfTaskQcs[] = [
-                    'task_id' => $task->id, // Assign the newly created task's ID
-                    'is_visible' => true,
-                ];
-            }
-
-            // Insert the QC records
-            RPMTaskQc::insert($dyfTaskQcs);
-
-            // Kitchen
-            $kitchenJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'kitchen',
-                'name' => 'Kitchen',
-            ]);
-
-            $items = ['Wiring', 'Painting', 'Kitchen Cabinet Base Unit', 'Kitchen Top', 'Wall Unit', 'Kitchen Sink', 'Hood'];
-
-            $kitchenTaskQcs = [];
-
-            foreach ($items as $item) {
-                // Create a single task
-                $task = RPMTask::create([
-                    'job_id' => $kitchenJob->id,
-                    'room_name' => null,
-                    'item_name' => $item,
-                    'is_visible' => true,
-                ]);
-
-                // Store the task ID in kitchenTaskQcs
-                $kitchenTaskQcs[] = [
-                    'task_id' => $task->id, // Assign the newly created task's ID
-                    'is_visible' => true,
-                ];
-            }
-
-            // Insert the QC records
-            RPMTaskQc::insert($kitchenTaskQcs);
-
-
-            // Electrical
-            $electricalJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'electrical',
-                'name' => 'Electrical',
-            ]);
-
-            $items = ['Water Dispenser', 'Microwave', 'Induction Cooker', 'Washer', 'Dryer'];
-
-            $electricalTaskQcs = [];
-
-            foreach ($items as $item) {
-                // Create a single task
-                $task = RPMTask::create([
-                    'job_id' => $electricalJob->id,
-                    'room_name' => null,
-                    'item_name' => $item,
-                    'is_visible' => true,
-                ]);
-
-                // Store the task ID in electricalTaskQcs
-                $electricalTaskQcs[] = [
-                    'task_id' => $task->id, // Assign the newly created task's ID
-                    'is_visible' => true,
-                ];
-            }
-
-            // Insert the QC records
-            RPMTaskQc::insert($electricalTaskQcs);
-
-
-            // Living
-            $livingJob = RPMJob::create([
-                'reno_progress_id' => $newRenoProgress->id,
-                'job_category' => 'living',
-                'name' => 'Living',
-            ]);
-
-            $items = ['Wiring', 'LED Track Lighting', 'Fan', 'Painting', 'Curtain', 'Sofa', 'TV Console', 'Coffee Table', 'Portrait'];
-
-            $livingTaskQcs = [];
-
-            foreach ($items as $item) {
-                // Create a single task
-                $task = RPMTask::create([
-                    'job_id' => $livingJob->id,
-                    'room_name' => null,
-                    'item_name' => $item,
-                    'is_visible' => true,
-                ]);
-
-                // Store the task ID in livingTaskQcs
-                $livingTaskQcs[] = [
-                    'task_id' => $task->id, // Assign the newly created task's ID
-                    'is_visible' => true,
-                ];
-            }
-
-            // Insert the QC records
-            RPMTaskQc::insert($livingTaskQcs);
-
-            // Change KeyManagement and DIForm reno_progress_id to the v3 RenoProgress id
-            $renoProgress->keyManagement->reno_progress_id = $newRenoProgress->id;
-            $renoProgress->defectInspectionForm->reno_progress_id = $newRenoProgress->id;
-            $renoProgress->keyManagement->save();
-            $renoProgress->defectInspectionForm->save();
-
-            // Soft delete the old RenoProgress record
-            $renoProgress->delete();
-
-            return $this->sendResponse(new RenoProgressResource($newRenoProgress), 'Reno progress created successfully.');
-        } catch (\Exception $e) {
-            Log::error('Error triggering conversion toRenoProgress creation for reno progress ID ' . $renoProgress->id . ': ' . $e->getMessage());
-            // Optionally rethrow or handle the exception as needed
-            return $this->sendError('Error triggering conversion toRenoProgress creation for reno progress ID ' . $renoProgress->id, null, 500);
-            throw $e;
-        }
-    }
-
-    protected function changeContractDate(Request $request, $id, $dateType)
-    {
-        try {
-            // Find the RenoProgress record by ID
-            $renoProgress = RenoProgress::find($id);
-            if (!$renoProgress) {
-                return $this->sendError('Reno progress not found.');
-            }
-
-            // Determine the start and end date field names dynamically based on the $dateType
-            $startDateField = "{$dateType}_start_date";
-            $endDateField = "{$dateType}_end_date";
-
-            // Check if start date is provided in the request
-            $startDate = $request->input('start_date');
-            if ($startDate) {
-                // If the end date exists, validate that start date doesn't exceed end date
-                if ($renoProgress->$endDateField && $startDate > $renoProgress->$endDateField->format('Y-m-d')) {
-                    return $this->sendError('Start date cannot exceed the end date.', null, 400);
-                }
-                // Update the start date field
-                $renoProgress->$startDateField = $startDate;
-            }
-
-            // Check if end date is provided in the request
-            $endDate = $request->input('end_date');
-            if ($endDate) {
-                // If the start date exists, validate that end date doesn't precede start date
-                if ($renoProgress->$startDateField && $endDate < $renoProgress->$startDateField->format('Y-m-d')) {
-                    return $this->sendError('End date cannot be earlier than the start date.', null, 400);
-                }
-                // Update the end date field
-                $renoProgress->$endDateField = $endDate;
-            }
-
-            // Save the updated RenoProgress record
-            $renoProgress->save();
-
-            // Return the response with the updated record
-            return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress updated successfully.');
-        } catch (\Throwable $th) {
-            return $this->sendError('Error.', $th->getMessage());
-        }
+        // Calculate overall completion (avoid division by zero)
+        $overallCompletion = $totalJobs > 0 ? ($sumJobCompletions / $totalJobs) : 0.0;
+
+        return [
+            'jobs' => $jobCompletions,
+            'overall_completion' => $overallCompletion / 100,
+        ];
     }
 }

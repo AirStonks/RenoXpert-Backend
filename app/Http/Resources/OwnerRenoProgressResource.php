@@ -88,6 +88,12 @@ class OwnerRenoProgressResource extends JsonResource
             $data = array_merge($data, [
                 'completion' => $this->calculateV3Completion(),
             ]);
+
+            if ($this->includePhases) {
+                $data = array_merge($data, [
+                    'rpm_jobs' => $this->rpm_version === 3 ? RPMJobResource::collection($this->rpmJobs) : null,
+                ]);
+            }
         }
 
         if (!is_null($oldRenoProgress)) {
