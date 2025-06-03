@@ -16,6 +16,7 @@ use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -33,40 +34,49 @@ class RenoProgressController extends BaseController
         $search = $request->input('search', '');
 
 
-        // Build the query to retrieve products
-        $query = RenoProgress::query();
+        // Build the base query with joins
+        $query = RenoProgress::query()
+            ->select('reno_progress.*')
+            ->join('sales', function ($join) {
+                $join->on('reno_progress.sale_id', '=', 'sales.id')
+                    ->whereNull('sales.deleted_at');
+            })
+            ->join('orders', function ($join) {
+                $join->on('sales.order_id', '=', 'orders.id')
+                    ->whereNull('orders.deleted_at');
+            })
+            ->leftJoin('properties', function ($join) {
+                $join->on('orders.property_id', '=', 'properties.id')
+                    ->whereNull('properties.deleted_at');
+            })
+            ->leftJoin('users', function ($join) {
+                $join->on('orders.user_id', '=', 'users.id')
+                    ->whereNull('users.deleted_at');
+            })
+            // ->where('reno_progress.rpm_version', 3)
+            ->whereNull('reno_progress.deleted_at');
 
-        // If version v3 selected, filter it
         if ($request->input('rpm_version') == 3) {
-            $query->where('rpm_version', 3);
+            $query->where('reno_progress.rpm_version', 3);
+        }
+
+        // Apply search filter if a подходящий search term is provided
+        if (!empty($search)) {
+            $normalizedSearch = str_replace(['-', ' '], '', $search);
+            $query->where(function ($q) use ($normalizedSearch) {
+                $q->where('properties.name', 'like', '%' . $normalizedSearch . '%')
+                    ->orWhereRaw("REPLACE(REPLACE(CONCAT(orders.block, orders.floor, orders.unit_no), '-', ''), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("REPLACE(REPLACE(sales.sales_no, '-', ''), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhere('users.name_first', 'like', '%' . $normalizedSearch . '%')
+                    ->orWhere('users.name_last', 'like', '%' . $normalizedSearch . '%')
+                    ->orWhereRaw("REPLACE(CONCAT(users.name_first, ' ', users.name_last), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%']);
+            });
         }
 
         // Filter by status if available
         if ($request->input('status')) {
-            $query->where('status', $request->input('status'));
+            $query->where('reno_progress.status', $request->input('status'));
         }
-
-        // Apply search filter if a search term is provided
-        if (!empty($search)) {
-            // Normalize the search term by removing '-' and spaces
-            $normalizedSearch = str_replace(['-', ' '], '', $search);
-
-            $query->whereHas('sale.order.property', function ($q) use ($normalizedSearch) {
-                $q->where('name', 'like', '%' . $normalizedSearch . '%');
-            })
-                ->orWhereHas('sale.order', function ($q) use ($normalizedSearch) {
-                    $q->whereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
-                })
-                ->orWhereHas('sale', function ($q) use ($normalizedSearch) {
-                    $q->whereRaw("REPLACE(REPLACE(sales_no, '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
-                })
-                ->orWhereHas('sale.order.user', function ($q) use ($normalizedSearch) {
-                    $q->where('name_first', 'like', '%' . $normalizedSearch . '%')
-                        ->orWhere('name_last', 'like', '%' . $normalizedSearch . '%')
-                        ->orWhereRaw("REPLACE(CONCAT(name_first, ' ', name_last), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%']);
-                });
-        }
-
 
         // Retrieve the sort order and field from the request
         $sortOrder = $request->input('sortOrder', 'asc');
@@ -75,28 +85,22 @@ class RenoProgressController extends BaseController
         // Apply sorting if a sort field is provided
         if (!empty($sortField)) {
             if ($sortField === 'oh_rundown') {
-                // Calculate the day difference between now and oh_date from date_management
-                $query->selectRaw('*, DATEDIFF(NOW(), COALESCE(JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.oh_date")), NOW())) as oh_rundown')
+                $query->selectRaw('reno_progress.*, DATEDIFF(NOW(), COALESCE(JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.oh_date")), NOW())) as oh_rundown')
                     ->orderBy('oh_rundown', $sortOrder);
             } elseif ($sortField === 'ch_rundown') {
-                // Calculate the day difference between now and ch_date from date_management
-                $query->selectRaw('*, DATEDIFF(NOW(), COALESCE(JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.ch_date")), NOW())) as ch_rundown')
+                $query->selectRaw('reno_progress.*, DATEDIFF(NOW(), COALESCE(JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.ch_date")), NOW())) as ch_rundown')
                     ->orderBy('ch_rundown', $sortOrder);
             } elseif ($sortField === 'date_management.sales_date') {
-                // Extract sales_date from date_management JSON field
-                $query->selectRaw('*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.sales_date")) as sales_date_extracted')
+                $query->selectRaw('reno_progress.*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.sales_date")) as sales_date_extracted')
                     ->orderBy('sales_date_extracted', $sortOrder);
             } elseif ($sortField === 'date_management.reno_date') {
-                // Extract sales_date from date_management JSON field
-                $query->selectRaw('*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.reno_date")) as reno_date_extracted')
+                $query->selectRaw('reno_progress.*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.reno_date")) as reno_date_extracted')
                     ->orderBy('reno_date_extracted', $sortOrder);
             } elseif ($sortField === 'date_management.ch_date') {
-                // Extract sales_date from date_management JSON field
-                $query->selectRaw('*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.ch_date")) as ch_date_extracted')
+                $query->selectRaw('reno_progress.*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.ch_date")) as ch_date_extracted')
                     ->orderBy('ch_date_extracted', $sortOrder);
             } elseif ($sortField === 'date_management.oh_date') {
-                // Extract sales_date from date_management JSON field
-                $query->selectRaw('*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.oh_date")) as oh_date_extracted')
+                $query->selectRaw('reno_progress.*, JSON_UNQUOTE(JSON_EXTRACT(date_management, "$.oh_date")) as oh_date_extracted')
                     ->orderBy('oh_date_extracted', $sortOrder);
             } else {
                 $query->orderBy($sortField, $sortOrder);
@@ -108,13 +112,12 @@ class RenoProgressController extends BaseController
 
         // Custom response to fit with Tailwind DataTable JSON format
         $response = [
-            "page" => $renoProgress->currentPage(),  // Current page number
-            "pageCount" => $renoProgress->lastPage(), // Total number of pages
-            "sortField" => null,                 // Sorting field, if applicable
-            "sortOrder" => null,                 // Sorting order, if applicable
-            "totalCount" => $renoProgress->total(),  // Total number of items
-            "data" => $request->input('head') === 'true' ? RenoProgressResourceHead::collection($renoProgress) : RenoProgressResource::collection($renoProgress) // Transformed product data
-
+            "page" => $renoProgress->currentPage(),
+            "pageCount" => $renoProgress->lastPage(),
+            "sortField" => $sortField,
+            "sortOrder" => $sortOrder,
+            "totalCount" => $renoProgress->total(),
+            "data" => $request->input('head') === 'true' ? RenoProgressResourceHead::collection($renoProgress) : RenoProgressResource::collection($renoProgress)
         ];
 
         return response()->json($response, 200);
