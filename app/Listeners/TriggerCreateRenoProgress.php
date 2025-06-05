@@ -654,7 +654,7 @@ class TriggerCreateRenoProgress
                     'name' => 'Post-Reno',
                 ]);
 
-                $items = ['QC', 'Lock Transfer', 'Meter Commissioning and Testing', 'WiFi Pairing', 'Account and Password', 'Deposit Refund Monitoring', 'RPM Handover'];
+                $items = ['Lock Transfer', 'Meter Commissioning and Testing', 'WiFi Pairing', 'Account and Password', 'Deposit Refund Monitoring', 'RPM Handover'];
 
                 $postRenoTasks = [];
 
