@@ -186,25 +186,58 @@ class RPMTaskController extends BaseController
             if ($isDefectJobCompleted && $isPermitJobCompleted && $defectJob && $permitJob) {
                 $dateManagement = $rpmTask->job->renoProgress->date_management;
 
-                Log::info($rpmTask->job->renoProgress->sale->order->completion_day);
-
                 $dateManagement['defect_permit_date'] = Carbon::now()->format('Y-m-d');
-                $dateManagement['reno_date'] = Carbon::parse($dateManagement['defect_permit_date'])
-                    ->addDays($rpmTask->job->renoProgress->sale->order->completion_day)
-                    ->format('Y-m-d');
-                $dateManagement['ch_date'] = Carbon::parse($dateManagement['defect_permit_date'])
-                    ->addDays($rpmTask->job->renoProgress->sale->order->completion_day)
-                    ->format('Y-m-d');
+                $dateManagement['p1_date'] = $this->addWorkingDays(
+                    Carbon::parse($dateManagement['defect_permit_date']),
+                    3
+                )->format('Y-m-d');
+                $dateManagement['p2a_date'] = $this->addWorkingDays(
+                    Carbon::parse($dateManagement['p1_date']),
+                    8
+                )->format('Y-m-d');
+                $dateManagement['p2b_date'] = $this->addWorkingDays(
+                    Carbon::parse($dateManagement['p2a_date']),
+                    8
+                )->format('Y-m-d');
+                $dateManagement['qc_date'] = $this->addWorkingDays(
+                    Carbon::parse($dateManagement['p2b_date']),
+                    3
+                )->format('Y-m-d');
+                $dateManagement['cleaning_date'] = $this->addWorkingDays(
+                    Carbon::parse($dateManagement['qc_date']),
+                    4
+                )->format('Y-m-d');
                 $dateManagement['oh_date'] = $this->addWorkingDays(
                     Carbon::parse($dateManagement['defect_permit_date']),
                     $rpmTask->job->renoProgress->sale->order->completion_day
                 )->format('Y-m-d');
-                $dateManagement['qc_date'] = Carbon::parse($dateManagement['ch_date'])
-                    ->subDays(7)
-                    ->format('Y-m-d');
-                $dateManagement['cleaning_date'] = Carbon::parse($dateManagement['ch_date'])
-                    ->subDays(3)
-                    ->format('Y-m-d');
+                if ($rpmTask->job->renoProgress->sale->order->completion_day > 29) {
+                    $dateManagement['ch_date'] = $this->addWorkingDays(
+                        Carbon::parse($dateManagement['cleaning_date']),
+                        3
+                    )->format('Y-m-d');
+                } else {
+                    $dateManagement['ch_date'] = $dateManagement['oh_date'];
+                }
+
+
+                // $dateManagement['defect_permit_date'] = Carbon::now()->format('Y-m-d');
+                // $dateManagement['reno_date'] = Carbon::parse($dateManagement['defect_permit_date'])
+                //     ->addDays($rpmTask->job->renoProgress->sale->order->completion_day)
+                //     ->format('Y-m-d');
+                // $dateManagement['ch_date'] = Carbon::parse($dateManagement['defect_permit_date'])
+                //     ->addDays($rpmTask->job->renoProgress->sale->order->completion_day)
+                //     ->format('Y-m-d');
+                // $dateManagement['oh_date'] = $this->addWorkingDays(
+                //     Carbon::parse($dateManagement['defect_permit_date']),
+                //     $rpmTask->job->renoProgress->sale->order->completion_day
+                // )->format('Y-m-d');
+                // $dateManagement['qc_date'] = Carbon::parse($dateManagement['ch_date'])
+                //     ->subDays(7)
+                //     ->format('Y-m-d');
+                // $dateManagement['cleaning_date'] = Carbon::parse($dateManagement['ch_date'])
+                //     ->subDays(3)
+                //     ->format('Y-m-d');
 
                 $rpmTask->job->renoProgress->date_management = $dateManagement;
                 $rpmTask->job->renoProgress->save();

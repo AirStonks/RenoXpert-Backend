@@ -4,9 +4,12 @@
 
 use PgSql\Lob;
 use App\Models\Sale;
+use App\Models\RPMJob;
 use App\Models\Package;
-use Illuminate\Support\Str;
 
+use App\Models\RPMTask;
+use Illuminate\Support\Str;
+use App\Models\RenoProgress;
 use Illuminate\Http\Request;
 use App\Events\SaleStatusUpdated;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +23,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DiskController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\POItemController;
@@ -161,7 +165,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/rpm-task/{id}/attachment/external/upload', [RPMTaskController::class, 'uploadExternalAttachment']);
     Route::get('/rpm-task/{id}/attachment/internal/{index}/remove', [RPMTaskController::class, 'removeInternalAttachment']);
     Route::get('/rpm-task/{id}/attachment/external/{index}/remove', [RPMTaskController::class, 'removeExternalAttachment']);
-    
+
     Route::get('/rpm-task-qc/{id}/status/{status}', [RPMTaskQCController::class, 'updateStatus']);
     Route::put('/rpm-task-qc/{id}/comment/internal', [RPMTaskQCController::class, 'updateComment']);
     Route::post('/rpm-task-qc/{id}/attachment/internal/upload', [RPMTaskQCController::class, 'uploadAttachment']);
@@ -211,7 +215,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/general-permission', [RenoProgressController::class, 'changeGeneralPermission']);
 
     Route::get('/reno-progress/{id}/task/{taskId}/visibility/toggle', [JobTaskController::class, 'toggleTaskVisibility']);
-    
+
     Route::get('/reno-progress/{id}/convert/v3', [RenoProgressController::class, 'convertV2toV3']);
     Route::get('/reno-progress/{id}/old-ver', [RenoProgressController::class, 'showOldVersion']);
 
@@ -258,161 +262,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // TEST
     Route::get('/data', [MyController::class, 'getData']);
-    Route::get('/test', function () {
-
-        $body = [
-            "msg_type" => "interactive",
-            "card" => [
-                "elements" => [
-                    [
-                        "tag" => "div",
-                        "text" => [
-                            "content" => "An owner has submitted a Reno Registration Form to RenoXpert",
-                            "tag" => "plain_text"
-                        ]
-                    ],
-                    [
-                        "tag" => "column_set",
-                        "flex_mode" => "none",
-                        "background_style" => "default",
-                        "columns" => [
-                            [
-                                "tag" => "column",
-                                "width" => "weighted",
-                                "weight" => 1,
-                                "vertical_align" => "top",
-                                "elements" => [
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "**Form No :**",
-                                            "tag" => "lark_md"
-                                        ]
-                                    ],
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "[form_no]",
-                                            "tag" => "plain_text"
-                                        ]
-                                    ]
-                                ]
-                            ],
-                            [
-                                "tag" => "column",
-                                "width" => "weighted",
-                                "weight" => 1,
-                                "vertical_align" => "top",
-                                "elements" => [
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "**Owner Name :**",
-                                            "tag" => "lark_md"
-                                        ]
-                                    ],
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "[owner_name]",
-                                            "tag" => "plain_text"
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ],
-                        "action" => [],
-                        "horizontal_spacing" => "default"
-                    ],
-                    [
-                        "tag" => "column_set",
-                        "flex_mode" => "none",
-                        "background_style" => "default",
-                        "columns" => [
-                            [
-                                "tag" => "column",
-                                "width" => "weighted",
-                                "weight" => 1,
-                                "vertical_align" => "top",
-                                "elements" => [
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "**Property :**",
-                                            "tag" => "lark_md"
-                                        ]
-                                    ],
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "[property_name]",
-                                            "tag" => "plain_text"
-                                        ]
-                                    ]
-                                ]
-                            ],
-                            [
-                                "tag" => "column",
-                                "width" => "weighted",
-                                "weight" => 1,
-                                "vertical_align" => "top",
-                                "elements" => [
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "**Phone No :**",
-                                            "tag" => "lark_md"
-                                        ]
-                                    ],
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "[phone_no]",
-                                            "tag" => "plain_text"
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ],
-                    [
-                        "tag" => "hr"
-                    ],
-                    [
-                        "tag" => "action",
-                        "actions" => [
-                            [
-                                "tag" => "button",
-                                "text" => [
-                                    "tag" => "plain_text",
-                                    "content" => "View Detail"
-                                ],
-                                "type" => "primary",
-                                "multi_url" => [
-                                    "url" => "https://renoxpert.my/registration-forms/[form_id]",
-                                    "pc_url" => "",
-                                    "android_url" => "",
-                                    "ios_url" => ""
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-                "header" => [
-                    "template" => "blue",
-                    "title" => [
-                        "content" => "New Reno Registration Form",
-                        "tag" => "plain_text"
-                    ]
-                ]
-            ]
-        ];
-
-        $bodyJson = json_encode($body, JSON_PRETTY_PRINT);
-
-        Log::info($bodyJson);
-    });
 });
+
+Route::get('/test/{id}', [TestController::class, 'test']);
 
 
 Route::get('/disk', [DiskController::class, 'index']);
@@ -443,6 +295,59 @@ Route::get('/tmp/changeSaleStatus/{saleId}', function ($saleId) {
     $sale->save();
 
     return response()->json(['message' => 'Sale status updated successfully']);
+});
+
+Route::get('/tmp/update-reno-progress-structure/{renoProgressId}', function ($renoProgressId) {
+    try {
+        $renoProgress = RenoProgress::find($renoProgressId);
+
+        // Post-Reno
+        $postRenoJob = RPMJob::create([
+            'reno_progress_id' => $renoProgress->id,
+            'job_category' => 'post_reno',
+            'name' => 'Post-Reno',
+        ]);
+
+        $items = ['Cleaning', 'Lock Transfer', 'Meter Commissioning and Testing', 'WiFi Pairing', 'Account and Password', 'Deposit Refund Monitoring'];
+
+        $postRenoTasks = [];
+
+        foreach ($items as $item) {
+            $postRenoTasks[] = [
+                'job_id' => $renoProgress->rpmJobs->where('name', 'Post-Reno')->first()->id,
+                'room_name' => null,
+                'item_name' => $item,
+                'is_visible' => true,
+            ];
+        }
+
+        RPMTask::insert($postRenoTasks);
+
+        $handoverJob = RPMJob::create([
+            'reno_progress_id' => $renoProgress->id,
+            'job_category' => 'handover',
+            'name' => 'Handover',
+        ]);
+
+        $items = ['Contractor Handover', 'Owner Handover', 'RPM Handover'];
+
+        $handoverTasks = [];
+
+        foreach ($items as $item) {
+            $handoverTasks[] = [
+                'job_id' => $handoverJob->id,
+                'room_name' => null,
+                'item_name' => $item,
+                'is_visible' => true,
+            ];
+        }
+
+        RPMTask::insert($handoverTasks);
+
+        return response()->json(['message' => 'Reno progress structure updated successfully']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
 });
 
 Route::get('/test/unauth/{renoId}/{saleId}', function ($renoId, $saleId) {

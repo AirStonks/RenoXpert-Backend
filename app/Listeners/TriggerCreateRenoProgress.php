@@ -555,8 +555,10 @@ class TriggerCreateRenoProgress
                         'sales_date' => $latestPayment ? Carbon::parse($latestPayment->payment_date)->format('Y-m-d') : null,
                         'oh_date' => '',
                         'ch_date' => '',
+                        'p1_date' => '',
+                        'p2a_date' => '',
+                        'p2b_date' => '',
                         'qc_date' => '',
-                        'reno_date' => '',
                         'cleaning_date' => '',
                         'defect_permit_date' => ''
                     ]
@@ -654,7 +656,7 @@ class TriggerCreateRenoProgress
                     'name' => 'Post-Reno',
                 ]);
 
-                $items = ['Lock Transfer', 'Meter Commissioning and Testing', 'WiFi Pairing', 'Account and Password', 'Deposit Refund Monitoring', 'RPM Handover'];
+                $items = ['Cleaning', 'Lock Transfer', 'Meter Commissioning and Testing', 'WiFi Pairing', 'Account and Password', 'Deposit Refund Monitoring'];
 
                 $postRenoTasks = [];
 
@@ -668,6 +670,27 @@ class TriggerCreateRenoProgress
                 }
 
                 RPMTask::insert($postRenoTasks);
+
+                $handoverJob = RPMJob::create([
+                    'reno_progress_id' => $renoProgress->id,
+                    'job_category' => 'handover',
+                    'name' => 'Handover',
+                ]);
+
+                $items = ['Contractor Handover', 'Owner Handover', 'RPM Handover'];
+
+                $handoverTasks = [];
+
+                foreach ($items as $item) {
+                    $handoverTasks[] = [
+                        'job_id' => $handoverJob->id,
+                        'room_name' => null,
+                        'item_name' => $item,
+                        'is_visible' => true,
+                    ];
+                }
+
+                RPMTask::insert($handoverTasks);
 
 
                 // Room Items/Furnitures
