@@ -244,7 +244,16 @@ class RPMTaskController extends BaseController
 
                 return $this->sendResponse(new RenoProgressResource($rpmTask->job->renoProgress), 'Status updated successfully.');
             }
+        } else if ($rpmTask->item_name == 'Owner Handover') {
+            // If status changed to completed, update its renoProgress status to handed-over
+            if ($status == 'completed') {
+                $renoProgress = $rpmTask->job->renoProgress;
+                $renoProgress->status = 'handed-over';
+                $renoProgress->save();
+            }
         }
+
+
 
         return $this->sendResponse(new RPMTaskResource($rpmTask), 'Status updated successfully.');
     }
