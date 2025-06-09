@@ -20,6 +20,7 @@ class RPMJobResource extends JsonResource
             'job_category' => $this->job_category,
             'name' => $this->name,
             'rpm_tasks' => RPMTaskResource::collection($this->rpmTasks),
+            'status' => $this->status,
             'created_by' => User::find($this->created_by),
             'updated_by' => User::find($this->updated_by),
             'created_at' => $this->created_at->format('d/m/Y'),

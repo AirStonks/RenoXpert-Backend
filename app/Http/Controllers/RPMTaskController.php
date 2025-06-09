@@ -157,6 +157,18 @@ class RPMTaskController extends BaseController
         $rpmTask->status = $status;
         $rpmTask->save();
 
+        // if every rpmTask->job->rpmTasks is completed or not-applicable, set rpmTask->job->status to completed
+        if ($rpmTask->job->rpmTasks->every(function ($task) {
+            return $task->status === 'completed' || $task->status === 'not-applicable';
+        })) {
+            $rpmTask->job->status = 'completed';
+            $rpmTask->job->save();
+        } else {
+            $rpmTask->job->status = 'pending';
+            $rpmTask->job->save();
+        }
+
+
         if ($rpmTask->job->name == 'Defect' || $rpmTask->job->name == 'Permit') {
             $defectJob = RPMJob::where('reno_progress_id', $rpmTask->job->reno_progress_id)
                 ->where('name', 'Defect')
