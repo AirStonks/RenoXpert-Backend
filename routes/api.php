@@ -218,6 +218,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/reno-progress/{id}/convert/v3', [RenoProgressController::class, 'convertV2toV3']);
     Route::get('/reno-progress/{id}/old-ver', [RenoProgressController::class, 'showOldVersion']);
+    Route::post('/reno-progress/{id}/date-management/change', [RenoProgressController::class, 'changeDateManagement']);
 
     Route::get('/purchase-orders/table/advance', [PurchaseOrderController::class, 'getAdvanceTable']);
     Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);
