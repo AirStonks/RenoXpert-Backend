@@ -182,49 +182,45 @@ class RenoProgressController extends BaseController
     public function ownerIndex(Request $request)
     {
         $user = Auth::user();
-        $sale = Sale::where('user_id', $user->id)->first();
 
-        // Default empty response if no sale or reno progress exists
-        if (!$sale || !$sale->renoProgress) {
-            return response()->json([
-                "page" => 1,
-                "pageCount" => 1,
-                "sortField" => null,
-                "sortOrder" => null,
-                "totalCount" => 0,
-                "data" => []
-            ], 200);
-        }
-
+        // Define allowed sortable fields to prevent invalid column errors
+        $allowedSortFields = ['id', 'name', 'created_at', 'updated_at'];
+        $sortField = $request->input('sortField', 'id');
+        $sortOrder = $request->input('sortOrder', 'asc');
         $size = $request->input('size', 5);
         $search = $request->input('search', '');
-        $sortOrder = $request->input('sortOrder', 'asc');
-        $sortField = $request->input('sortField', 'id');
 
-        $query = RenoProgress::query();
+        // Validate sort field and order
+        $sortField = in_array($sortField, $allowedSortFields) ? $sortField : 'id';
+        $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? $sortOrder : 'asc';
 
+        // Query RenoProgress records for all sales belonging to the user
+        $query = RenoProgress::whereHas('sale', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        });
+
+        // Apply search filter
         if (!empty($search)) {
             $query->where('name', 'like', '%' . $search . '%');
         }
 
-        // Get the authenticated user's ID
-        $userId = Auth::user()->id;
-
-        // Filter RenoProgress records where permission_id is not 1
+        // Apply permission filter
         $query->where('permission_id', '!=', 1);
 
+        // Apply sorting
         $query->orderBy($sortField, $sortOrder);
+
+        // Paginate results
         $renoProgress = $query->paginate($size);
 
-
-
+        // Return paginated response
         return response()->json([
-            "page" => $renoProgress->currentPage(),
-            "pageCount" => $renoProgress->lastPage(),
-            "sortField" => $sortField,
-            "sortOrder" => $sortOrder,
-            "totalCount" => $renoProgress->total(),
-            "data" => OwnerRenoProgressResource::collection($renoProgress, false),
+            'page' => $renoProgress->currentPage(),
+            'pageCount' => $renoProgress->lastPage(),
+            'sortField' => $sortField,
+            'sortOrder' => $sortOrder,
+            'totalCount' => $renoProgress->total(),
+            'data' => OwnerRenoProgressResource::collection($renoProgress),
         ], 200);
     }
 
