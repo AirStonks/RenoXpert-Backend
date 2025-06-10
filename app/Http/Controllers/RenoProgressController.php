@@ -428,6 +428,73 @@ class RenoProgressController extends BaseController
         //
     }
 
+    public function changeDateManagement(Request $request, $id)
+    {
+        $input = $request->all();
+
+        if ($input['sales_date'] ?? false) {
+            $renoProgress = RenoProgress::find($id);
+
+            if (!$renoProgress) {
+                return $this->sendError('Reno Progress not found.');
+            }
+
+            $dateManagement = $renoProgress->date_management;
+
+            $dateManagement['sales_date'] = $input['sales_date'];
+
+            $renoProgress->date_management = $dateManagement;
+            $renoProgress->save();
+        } else if ($input['defect_permit_date'] ?? false) {
+            $renoProgress = RenoProgress::find($id);
+
+            if (!$renoProgress) {
+                return $this->sendError('Reno Progress not found.');
+            }
+
+            $dateManagement = $renoProgress->date_management;
+
+            $dateManagement['defect_permit_date'] = $input['defect_permit_date'];
+            $dateManagement['p1_date'] = $this->addWorkingDays(
+                Carbon::parse($dateManagement['defect_permit_date']),
+                3
+            )->format('Y-m-d');
+            $dateManagement['p2a_date'] = $this->addWorkingDays(
+                Carbon::parse($dateManagement['p1_date']),
+                8
+            )->format('Y-m-d');
+            $dateManagement['p2b_date'] = $this->addWorkingDays(
+                Carbon::parse($dateManagement['p2a_date']),
+                8
+            )->format('Y-m-d');
+            $dateManagement['qc_date'] = $this->addWorkingDays(
+                Carbon::parse($dateManagement['p2b_date']),
+                3
+            )->format('Y-m-d');
+            $dateManagement['cleaning_date'] = $this->addWorkingDays(
+                Carbon::parse($dateManagement['qc_date']),
+                4
+            )->format('Y-m-d');
+            $dateManagement['oh_date'] = $this->addWorkingDays(
+                Carbon::parse($dateManagement['defect_permit_date']),
+                $renoProgress->sale->order->completion_day
+            )->format('Y-m-d');
+            if ($renoProgress->sale->order->completion_day > 29) {
+                $dateManagement['ch_date'] = $this->addWorkingDays(
+                    Carbon::parse($dateManagement['cleaning_date']),
+                    3
+                )->format('Y-m-d');
+            } else {
+                $dateManagement['ch_date'] = $dateManagement['oh_date'];
+            }
+
+            $renoProgress->date_management = $dateManagement;
+            $renoProgress->save();
+        }
+
+        return $this->sendResponse(new RenoProgressResource($renoProgress), 'Date Management updated successfully.');
+    }
+
     public function changeContractualDate(Request $request, $id)
     {
         return $this->changeContractDate($request, $id, 'contractual');
@@ -916,5 +983,21 @@ class RenoProgressController extends BaseController
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th->getMessage());
         }
+    }
+
+    private function addWorkingDays(Carbon $date, int $days, array $holidays = []): Carbon
+    {
+        $date = $date->copy();
+        $daysToAdd = $days;
+
+        while ($daysToAdd > 0) {
+            $date->addDay();
+            // Skip weekends and holidays
+            if ($date->isWeekday() && !in_array($date->format('Y-m-d'), $holidays)) {
+                $daysToAdd--;
+            }
+        }
+
+        return $date;
     }
 }
