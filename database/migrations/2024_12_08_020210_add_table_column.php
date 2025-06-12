@@ -72,7 +72,7 @@ return new class extends Migration
                     'features' => [],
                     'gallery' => []
                 ], // Default JSON content
-                'view_enabled' => true,
+                'view_enabled' => false,
                 'created_by' => null, // Set to a default user ID or null
                 'updated_by' => null, // Set to a default user ID or null
             ]);
