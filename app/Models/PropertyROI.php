@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Property extends Model
+class PropertyROI extends Model
 {
     use SoftDeletes;
     use HasFactory;
+
+    protected $table = 'property_rois';
 
     /**
      * The attributes that are mass assignable.
@@ -18,16 +19,18 @@ class Property extends Model
      * @var array
      */
     protected $fillable = [
-        'name',
-        'address',
-        'street',
-        'postcode',
-        'city',
-        'state',
-        'description',
+        'property_id',
+        'thumbnail_title',
+        'thumbnail_desc',
+        'content',
+        'view_enabled',
         'created_by',
         'updated_by',
         'deleted_at',
+    ];
+
+    protected $casts = [
+        'content' => 'array',
     ];
 
     protected static function boot()
@@ -43,8 +46,8 @@ class Property extends Model
         });
     }
 
-    public function propertyRoi()
+    public function property()
     {
-        return $this->hasOne(PropertyROI::class, 'property_id', 'id');
+        return $this->belongsTo(Property::class);
     }
 }

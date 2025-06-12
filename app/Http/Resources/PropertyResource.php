@@ -14,7 +14,7 @@ class PropertyResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        $property = [
             'id' => $this->id,
             'name' => $this->name,
             'address' => $this->address,
@@ -23,8 +23,16 @@ class PropertyResource extends JsonResource
             'city' => $this->city,
             'state' => $this->state,
             'description' => $this->description,
+            'thumbnail_url' => $this->thumbnail_url,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+
+        // If request has propertyRoi, include it
+        if ($this->propertyRoi) {
+            $property['propertyRoi'] = new PropertyROIResource($this->propertyRoi);
+        }
+
+        return $property;
     }
 }
