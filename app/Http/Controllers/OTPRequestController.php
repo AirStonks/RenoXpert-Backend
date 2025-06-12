@@ -188,6 +188,8 @@ class OTPRequestController extends BaseController
 
     public function verifyLoginOtp(Request $request)
     {
+        Log::info('IsBypass: ' . env('APP_BYPASS'));
+
         if (env('APP_BYPASS') === true) {
             Log::info('verifyLoginOtp: Bypassing OTP verification for development');
             return $this->devVerifyLoginOtp($request);
