@@ -38,45 +38,9 @@ return new class extends Migration
         // });
 
 
-        // Staging: Done
-        Schema::create('property_rois', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('property_id')->nullable();
-            $table->string('thumbnail_title')->nullable();
-            $table->string('thumbnail_desc')->nullable();
-            $table->json('content')->nullable();
-            $table->boolean('view_enabled')->default(false);
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-
-            $table->foreign('property_id')->references('id')->on('properties')->onDelete('cascade');
+        Schema::table('reno_progress', function (Blueprint $table) {
+            $table->timestamp('sent_to_lark_date')->nullable()->after('rpm_version');
         });
-
-        // Staging: Done
-        Schema::table('properties', function (Blueprint $table) {
-            $table->string('thumbnail_url')->nullable()->after('description');
-        });
-
-
-        // Staging: Done
-        // Automatically create property_rois records for existing properties
-        $properties = Property::all();
-        foreach ($properties as $property) {
-            PropertyROI::create([
-                'property_id' => $property->id,
-                'thumbnail_title' => '', // Customize as needed
-                'thumbnail_desc' => '', // Customize as needed
-                'content' => [
-                    'features' => [],
-                    'gallery' => []
-                ], // Default JSON content
-                'view_enabled' => false,
-                'created_by' => null, // Set to a default user ID or null
-                'updated_by' => null, // Set to a default user ID or null
-            ]);
-        }
     }
 
     public function down()

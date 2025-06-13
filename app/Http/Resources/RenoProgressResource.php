@@ -73,6 +73,7 @@ class RenoProgressResource extends JsonResource
             'permission_id' => $this->permission_id,
             'permissions' => $this->itemPermissions->userPermissions,
             'rpm_version' => $this->rpm_version,
+            'sent_to_lark_date' => $this->sent_to_lark_date ? Carbon::parse($this->sent_to_lark_date)->format('d/m/Y') : null,
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),

@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\OwnerRenoProgressResource;
-use App\Http\Resources\RenoProgressResource;
-use App\Http\Resources\Operation\RenoProgressResource as OperationRenoProgressResource;
-use App\Http\Resources\RenoProgressResourceAdTable;
-use App\Http\Resources\RenoProgressResourceHead;
-use App\Models\RenoProgress;
-use App\Models\ResourceItem;
+use App\Models\Sale;
 use App\Models\RPMJob;
+use GuzzleHttp\Client;
 use App\Models\RPMTask;
 use App\Models\RPMTaskQC;
-use App\Models\Sale;
+use App\Models\RenoProgress;
+use App\Models\ResourceItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\RenoProgressResource;
+use App\Http\Resources\RenoProgressResourceHead;
+use App\Http\Resources\OwnerRenoProgressResource;
+use App\Http\Resources\RenoProgressResourceAdTable;
+use App\Http\Resources\Operation\RenoProgressResource as OperationRenoProgressResource;
 
 class RenoProgressController extends BaseController
 {
@@ -933,6 +934,59 @@ class RenoProgressController extends BaseController
             // Optionally rethrow or handle the exception as needed
             return $this->sendError('Error triggering conversion toRenoProgress creation for reno progress ID ' . $renoProgress->id, null, 500);
             throw $e;
+        }
+    }
+
+    public function sendRenoToLark($id)
+    {
+        $renoProgress = RenoProgress::find($id);
+
+        $bonusValue = $renoProgress->sale->order->orderQuotations->last()->bonus
+            ? (int) json_decode($renoProgress->sale->order->orderQuotations->last()->bonus)->value
+            : 0;
+
+        $client = new Client();
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . env('LARK_WEBHOOK_TOKEN')
+        ];
+        $data = [
+            [
+                "development" => $renoProgress->sale->order->property->name,
+                "unit_no" => $renoProgress->sale->order->block . '-' . $renoProgress->sale->order->floor . '-' . $renoProgress->sale->order->unit_no,
+                "type" => $renoProgress->sale->order->unit_type,
+                "total_bedroom" => $renoProgress->sale->order->bedroom_count,
+                "total_bathroom" => $renoProgress->sale->order->bathroom_count,
+                "partition" => $renoProgress->sale->order->include_partition ? 'Yes' : 'No',
+                "discount" => $bonusValue,
+                "remark" => $renoProgress->sale->order->internal_remark,
+                "oh_date" => $renoProgress->date_management['oh_date'],
+                "owner_name" => $renoProgress->sale->user->name,
+                "phone_no" => '+' . $renoProgress->sale->user->country_code . $renoProgress->sale->user->phone_no,
+                "email" => $renoProgress->sale->user->email,
+            ]
+        ];
+
+        $body = json_encode($data);
+
+        try {
+            $req = $client->request('POST', env('LARK_WEBHOOK_URL'), [
+                'headers' => $headers,
+                'body' => $body,
+            ]);
+
+            $res = json_decode($req->getBody(), true);
+
+            // Check for a successful response
+            if ($req->getStatusCode() === 200) {
+                $renoProgress->sent_to_lark_date = Carbon::now()->format('Y-m-d');
+
+                return $this->sendResponse([$res, 'sent_to_lark_date' => Carbon::now()->format('d/m/Y')], 'Reno progress sent to Lark successfully.');
+            } else {
+                return $req->getBody();
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
         }
     }
 
