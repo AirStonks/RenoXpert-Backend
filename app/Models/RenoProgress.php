@@ -40,6 +40,7 @@ class RenoProgress extends Model
         'resource_id',
         'completed_at',
         'rpm_version',
+        'sent_to_lark_date',
         'created_by',
         'updated_by',
         'deleted_at',
@@ -70,6 +71,7 @@ class RenoProgress extends Model
         'contractor_pc_start_date' => 'datetime',
         'contractor_pc_end_date' => 'datetime',
         'contractor_handover_date' => 'datetime',
+        'sent_to_lark_date' => 'datetime',
         'date_management' => 'array',
     ];
 

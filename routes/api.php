@@ -215,6 +215,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/contractor/pc/date', [RenoProgressController::class, 'changeContractorPCDate']);
     Route::post('/reno-progress/{id}/contractor/handover/date', [RenoProgressController::class, 'changeContractorHandoverDate']);
     Route::post('/reno-progress/{id}/general-permission', [RenoProgressController::class, 'changeGeneralPermission']);
+    Route::get('/reno-progress/{id}/send-reno-to-lark', [RenoProgressController::class, 'sendRenoToLark']);
 
     Route::get('/reno-progress/{id}/task/{taskId}/visibility/toggle', [JobTaskController::class, 'toggleTaskVisibility']);
 
