@@ -980,6 +980,7 @@ class RenoProgressController extends BaseController
             // Check for a successful response
             if ($req->getStatusCode() === 200) {
                 $renoProgress->sent_to_lark_date = Carbon::now()->format('Y-m-d');
+                $renoProgress->save();
 
                 return $this->sendResponse([$res, 'sent_to_lark_date' => Carbon::now()->format('d/m/Y')], 'Reno progress sent to Lark successfully.');
             } else {
