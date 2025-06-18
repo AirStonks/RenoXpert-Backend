@@ -55,7 +55,7 @@ class OwnerOrderResource extends JsonResource
                 'state' => $this->property->state,
                 'description' => $this->property->description,
             ],
-            'sale' => new OwnerSaleResource($this->sale),
+            'sale' => new OwnerSaleResource($this->mainSale),
             'latest_quotation' => $latestQuotation ? $latestQuotation : null,
             'unit_type' => $this->unit_type,
             'block' => $this->block,

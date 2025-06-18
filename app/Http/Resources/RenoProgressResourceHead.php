@@ -7,6 +7,7 @@ use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class RenoProgressResourceHead extends JsonResource
 {
@@ -17,7 +18,7 @@ class RenoProgressResourceHead extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $orderWithOnlyUser = $this->sale->order->user;
+        $orderWithOnlyUser = $this->mainSale->order->user;
 
         // Declare a blank Order Modal
         $order = new Order();
@@ -25,32 +26,34 @@ class RenoProgressResourceHead extends JsonResource
 
         $sale = new Sale();
         $sale->order = $order;
-        $sale->order->bathroom_count = $this->sale->order->bathroom_count;
-        $sale->order->single_bedroom_count = $this->sale->order->single_bedroom_count;
-        $sale->order->queen_bedroom_count = $this->sale->order->queen_bedroom_count;
-        $sale->order->studio_count = $this->sale->order->studio_count;
-        $sale->order->include_partition = $this->sale->order->include_partition;
+        $sale->order->bathroom_count = $this->mainSale->order->bathroom_count;
+        $sale->order->single_bedroom_count = $this->mainSale->order->single_bedroom_count;
+        $sale->order->queen_bedroom_count = $this->mainSale->order->queen_bedroom_count;
+        $sale->order->studio_count = $this->mainSale->order->studio_count;
+        $sale->order->include_partition = $this->mainSale->order->include_partition;
         // $sale->order->studio_count;
 
         $data = [
             'id' => $this->id,
-            'sale_id' => $this->sale->id,
+            'sale_id' => $this->mainSale->id,
             'property' => [
-                'id' => $this->sale->order->property->id,
-                'name' => $this->sale->order->property->name,
-                'block' => $this->sale->order->block,
-                'floor' => $this->sale->order->floor,
-                'unit_no' => $this->sale->order->unit_no,
+                'id' => $this->mainSale->order->property->id,
+                'name' => $this->mainSale->order->property->name,
+                'block' => $this->mainSale->order->block,
+                'floor' => $this->mainSale->order->floor,
+                'unit_no' => $this->mainSale->order->unit_no,
             ],
+            'sales' => $this->sales,
             'sale' => $sale,
-            'sale_id' => $this->sale->id,
-            'sales_no' => $this->sale->sales_no,
+            'sale_id' => $this->mainSale->id,
+            'sales_no' => $this->mainSale->sales_no,
             'status' => $this->status,
-            'remaining_percentage' => $this->sale->remaining_percentage,
-            'paid_percentage' => $this->sale->invoices->where('status', 'paid')->sum('percentage'),
+            'remaining_percentage' => 1 - $this->sales->flatMap->invoices->where('status', 'paid')->sum('amount') / $this->sales->sum('total_amount'),
+            'paid_percentage' =>  $this->sales->flatMap->invoices->where('status', 'paid')->sum('amount') / $this->sales->sum('total_amount'),
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
             'rpm_version' => $this->rpm_version,
             'sent_to_lark_date' => $this->sent_to_lark_date ? Carbon::parse($this->sent_to_lark_date)->format('d/m/Y') : null,
+            "rpm_acknowledge_status" => $this->rpm_acknowledge_status,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];

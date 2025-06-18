@@ -221,9 +221,9 @@ class RPMTaskController extends BaseController
                 )->format('Y-m-d');
                 $dateManagement['oh_date'] = $this->addWorkingDays(
                     Carbon::parse($dateManagement['defect_permit_date']),
-                    $rpmTask->job->renoProgress->sale->order->completion_day
+                    $rpmTask->job->renoProgress->sales->first()->order->completion_day
                 )->format('Y-m-d');
-                if ($rpmTask->job->renoProgress->sale->order->completion_day > 29) {
+                if ($rpmTask->job->renoProgress->sales->first()->order->completion_day > 29) {
                     $dateManagement['ch_date'] = $this->addWorkingDays(
                         Carbon::parse($dateManagement['cleaning_date']),
                         3

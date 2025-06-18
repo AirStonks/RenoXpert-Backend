@@ -49,6 +49,7 @@ use App\Http\Controllers\ResourceItemController;
 use App\Http\Controllers\KeyManagementController;
 use App\Http\Controllers\ProgressPhaseController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\InvestorInterestController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\UserItemPermissionController;
 use App\Http\Controllers\DefectInspectionFormController;
@@ -78,6 +79,10 @@ Route::get('/orders/{id}/release', [OrderController::class, 'releaseOrder'])->na
 
 
 Route::get('defect-inspection-forms/public/{hashedString}', [DefectInspectionFormController::class, 'publicShow']);
+
+Route::post("/investor-interest-form", [InvestorInterestController::class, 'store']);
+
+Route::get("/reno-progress/{id}/rpm/acknowledge", [RenoProgressController::class, 'acknowledgedByRPM']);
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
@@ -128,6 +133,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/invoices', InvoiceController::class);
     Route::apiResource('/users', UserController::class);
     Route::apiResource('/owner/reno-registration-form', RegistrationFormController::class);
+    Route::apiResource("/investor-interest-forms", InvestorInterestController::class);
     Route::apiResource('/reno-progress', RenoProgressController::class);
     Route::apiResource('/otp-requests', OTPRequestController::class);
     Route::apiResource('/purchase-orders', PurchaseOrderController::class);
@@ -301,52 +307,18 @@ Route::get('/tmp/changeSaleStatus/{saleId}', function ($saleId) {
     return response()->json(['message' => 'Sale status updated successfully']);
 });
 
-Route::get('/tmp/update-reno-progress-structure/{renoProgressId}', function ($renoProgressId) {
+Route::get('/tmp/update-reno-progress-structure-and-sales', function () {
     try {
-        $renoProgress = RenoProgress::find($renoProgressId);
+        // get all reno progress with rpm_version is 3
+        $renoProgress = RenoProgress::where('rpm_version', 3)->get();
 
-        // Post-Reno
-        $postRenoJob = RPMJob::create([
-            'reno_progress_id' => $renoProgress->id,
-            'job_category' => 'post_reno',
-            'name' => 'Post-Reno',
-        ]);
-
-        $items = ['Cleaning', 'Lock Transfer', 'Meter Commissioning and Testing', 'WiFi Pairing', 'Account and Password', 'Deposit Refund Monitoring'];
-
-        $postRenoTasks = [];
-
-        foreach ($items as $item) {
-            $postRenoTasks[] = [
-                'job_id' => $renoProgress->rpmJobs->where('name', 'Post-Reno')->first()->id,
-                'room_name' => null,
-                'item_name' => $item,
-                'is_visible' => true,
-            ];
+        foreach ($renoProgress as $reno) {
+            $reno->sales()->attach(
+                $reno->sale_id,
+                ['is_main' => true]
+            );
         }
 
-        RPMTask::insert($postRenoTasks);
-
-        $handoverJob = RPMJob::create([
-            'reno_progress_id' => $renoProgress->id,
-            'job_category' => 'handover',
-            'name' => 'Handover',
-        ]);
-
-        $items = ['Contractor Handover', 'Owner Handover', 'RPM Handover'];
-
-        $handoverTasks = [];
-
-        foreach ($items as $item) {
-            $handoverTasks[] = [
-                'job_id' => $handoverJob->id,
-                'room_name' => null,
-                'item_name' => $item,
-                'is_visible' => true,
-            ];
-        }
-
-        RPMTask::insert($handoverTasks);
 
         return response()->json(['message' => 'Reno progress structure updated successfully']);
     } catch (\Exception $e) {
