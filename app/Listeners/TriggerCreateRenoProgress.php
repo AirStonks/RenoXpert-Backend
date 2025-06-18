@@ -581,6 +581,14 @@ class TriggerCreateRenoProgress
                     ]
                 ]);
 
+                DB::table('reno_sales')->insert([
+                    'reno_progress_id' => $renoProgress->id,
+                    'sale_id' => $sale->id,
+                    'is_main' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
                 // Count only ResourceItems with item_name starting with "Progress" for this resource_id
                 $number = ResourceItem::where('resource_id', 1)
                     ->where('item_name', 'like', 'Progress%')

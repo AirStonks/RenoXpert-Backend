@@ -8,16 +8,17 @@ use App\Models\Quotation;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\OrderQuotation;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use App\Http\Resources\OrderResource;
-use App\Http\Resources\OrderResourceHead;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
+use App\Http\Resources\OrderResourceHead;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\OwnerOrderResource;
-use Illuminate\Support\Facades\DB;
 
 class OrderController extends BaseController
 {
@@ -644,6 +645,8 @@ class OrderController extends BaseController
                     ->where('floor', $order->floor)
                     ->where('unit_no', $order->unit_no)
                     ->first();
+
+                Log::info($foundedOrder->sale);
 
                 if ($foundedOrder) {
                     $foundedRenoSale = DB::table('reno_sales')
