@@ -97,7 +97,7 @@ class RPMTaskController extends BaseController
                 $rpmTask->internal_attachments = $newAttachments;
                 $rpmTask->save();
 
-                return $this->sendResponse($rpmTask, 'Documents uploaded successfully.');
+                return $this->sendResponse(new RPMTaskResource($rpmTask), 'Documents uploaded successfully.');
             }
         } catch (\Exception $e) {
             return $this->sendError($e->getMessage());
@@ -139,7 +139,7 @@ class RPMTaskController extends BaseController
                 $rpmTask->owner_attachments = $newAttachments;
                 $rpmTask->save();
 
-                return $this->sendResponse($rpmTask, 'Documents uploaded successfully.');
+                return $this->sendResponse(new RPMTaskResource($rpmTask), 'Documents uploaded successfully.');
             }
         } catch (\Exception $e) {
             return $this->sendError($e->getMessage());
@@ -221,9 +221,9 @@ class RPMTaskController extends BaseController
                 )->format('Y-m-d');
                 $dateManagement['oh_date'] = $this->addWorkingDays(
                     Carbon::parse($dateManagement['defect_permit_date']),
-                    $rpmTask->job->renoProgress->sale->order->completion_day
+                    $rpmTask->job->renoProgress->sales->first()->order->completion_day
                 )->format('Y-m-d');
-                if ($rpmTask->job->renoProgress->sale->order->completion_day > 29) {
+                if ($rpmTask->job->renoProgress->sales->first()->order->completion_day > 29) {
                     $dateManagement['ch_date'] = $this->addWorkingDays(
                         Carbon::parse($dateManagement['cleaning_date']),
                         3
@@ -304,7 +304,7 @@ class RPMTaskController extends BaseController
             $rpmTask->internal_attachments = $newTaskAttachments;
             $rpmTask->save();
 
-            return $this->sendResponse($rpmTask, 'Attachment deleted successfully.');
+            return $this->sendResponse(new RPMTaskResource($rpmTask), 'Attachment deleted successfully.');
         } catch (\Exception $th) {
             return $this->sendError($th->getMessage());
         }
@@ -339,7 +339,7 @@ class RPMTaskController extends BaseController
             $rpmTask->owner_attachments = $newTaskAttachments;
             $rpmTask->save();
 
-            return $this->sendResponse($rpmTask, 'Attachment deleted successfully.');
+            return $this->sendResponse(new RPMTaskResource($rpmTask), 'Attachment deleted successfully.');
         } catch (\Exception $th) {
             return $this->sendError($th->getMessage());
         }
