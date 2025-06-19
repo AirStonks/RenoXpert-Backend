@@ -179,6 +179,7 @@ class PropertyController extends BaseController
                 'property_data' => 'required|string',
                 'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
                 'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
+                'design_rendering.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
             ]);
 
             $propertyData = json_decode($request->input('property_data'), true);
@@ -240,7 +241,7 @@ class PropertyController extends BaseController
             $existingGallery = $property->propertyRoi->content['gallery'] ?? [];
             $existingGalleryMap = collect($existingGallery)->keyBy('url');
 
-            // Step 1: Delete removed images
+            // Step 1: Delete removed gallery images
             foreach ($removedGalleryUrls as $urlToRemove) {
                 if (isset($existingGalleryMap[$urlToRemove])) {
                     $imagePath = str_replace(config('filesystems.disks.s3.url') . '/', '', $urlToRemove);
@@ -284,6 +285,91 @@ class PropertyController extends BaseController
                 }
             }
 
+            // === Handle design rendering image updates ===
+            $designRenderingInput = $propertyData['propertyRoi']['content']['design_rendering'] ?? [];
+            $removedDesignRenderingUrls = $propertyData['removed_design_rendering_urls'] ?? [];
+
+            $existingDesignRenderings = $property->propertyRoi->content['design_rendering'] ?? [];
+            $existingDesignRenderingsMap = collect($existingDesignRenderings)->keyBy('url');
+
+            // Step 1: Delete removed design rendering images
+            foreach ($removedDesignRenderingUrls as $urlToRemove) {
+                if (isset($existingDesignRenderingsMap[$urlToRemove])) {
+                    $imagePath = str_replace(config('filesystems.disks.s3.url') . '/', '', $urlToRemove);
+                    Storage::disk('s3')->delete($imagePath);
+                }
+            }
+
+            // Step 2: Upload new design rendering images (map blob URL → new S3 URL)
+            $uploadedDesignRenderingsMap = [];
+            if ($request->hasFile('design_rendering')) {
+                $designRenderingFiles = $request->file('design_rendering');
+                $designRenderingInputBlobUrls = collect($designRenderingInput)->pluck('url')->filter(fn($url) => str_starts_with($url, 'blob:'))->values();
+                $designRenderingDirectory = 'properties/' . $property->id . '/roi-resource/design-renderings';
+
+                Log::info('Processing design rendering images', [
+                    'file_count' => count($designRenderingFiles),
+                    'blob_urls' => $designRenderingInputBlobUrls->toArray(),
+                ]);
+
+                foreach ($designRenderingFiles as $index => $designRenderingFile) {
+                    if ($designRenderingFile && $designRenderingFile->isValid() && isset($designRenderingInputBlobUrls[$index])) {
+                        $blobUrl = $designRenderingInputBlobUrls[$index];
+                        $filename = 'design_rendering_' . time() . '_' . $index . '_' . uniqid() . '.' . $designRenderingFile->getClientOriginalExtension();
+
+                        try {
+                            $path = Storage::disk('s3')->putFileAs(
+                                $designRenderingDirectory,
+                                $designRenderingFile,
+                                $filename,
+                                'public'
+                            );
+
+                            $s3Url = Storage::disk('s3')->url($path);
+                            $uploadedDesignRenderingsMap[$blobUrl] = ['url' => $s3Url];
+
+                            Log::info('Design rendering image uploaded', [
+                                'blob_url' => $blobUrl,
+                                's3_url' => $s3Url,
+                                'path' => $path,
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to upload design rendering image', [
+                                'index' => $index,
+                                'blob_url' => $blobUrl,
+                                'error' => $e->getMessage(),
+                            ]);
+                            throw $e;
+                        }
+                    } else {
+                        Log::warning('Invalid or missing design rendering file', [
+                            'index' => $index,
+                            'has_file' => $designRenderingFile ? true : false,
+                            'is_valid' => $designRenderingFile ? $designRenderingFile->isValid() : false,
+                            'blob_url_exists' => isset($designRenderingInputBlobUrls[$index]),
+                        ]);
+                    }
+                }
+            } else {
+                Log::info('No design rendering images provided in request');
+            }
+
+            // Step 3: Reconstruct the design renderings in correct order
+            $finalDesignRenderings = [];
+            foreach ($designRenderingInput as $item) {
+                $url = $item['url'];
+                if (str_starts_with($url, 'blob:') && isset($uploadedDesignRenderingsMap[$url])) {
+                    $finalDesignRenderings[] = $uploadedDesignRenderingsMap[$url];
+                } elseif (isset($existingDesignRenderingsMap[$url]) && !in_array($url, $removedDesignRenderingUrls)) {
+                    $finalDesignRenderings[] = ['url' => $url];
+                }
+            }
+
+            Log::info('Final design renderings', [
+                'count' => count($finalDesignRenderings),
+                'urls' => collect($finalDesignRenderings)->pluck('url')->toArray(),
+            ]);
+
             // === Handle ROI data update ===
             $propertyRoi = $property->propertyRoi ?? new \stdClass();
 
@@ -304,6 +390,7 @@ class PropertyController extends BaseController
             }
 
             $roiContent['gallery'] = $finalGallery;
+            $roiContent['design_rendering'] = $finalDesignRenderings;
             $propertyRoi->content = $roiContent;
 
             if ($property->propertyRoi) {
@@ -336,7 +423,7 @@ class PropertyController extends BaseController
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
 
             Log::error('Property update failed', [
@@ -345,9 +432,10 @@ class PropertyController extends BaseController
                 'error_line' => $e->getLine(),
                 'error_file' => $e->getFile(),
                 'request_data' => [
-                    'input' => collect($request->except(['thumbnail', 'gallery_images']))->toArray(),
+                    'input' => collect($request->except(['thumbnail', 'gallery_images', 'design_rendering']))->toArray(),
                     'has_thumbnail' => $request->hasFile('thumbnail'),
                     'gallery_image_count' => $request->hasFile('gallery_images') ? count($request->file('gallery_images')) : 0,
+                    'design_rendering_image_count' => $request->hasFile('design_rendering') ? count($request->file('design_rendering')) : 0,
                 ],
                 'property_data' => $propertyData,
                 'trace' => $e->getTraceAsString(),

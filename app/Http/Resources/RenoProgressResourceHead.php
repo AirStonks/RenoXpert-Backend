@@ -51,6 +51,16 @@ class RenoProgressResourceHead extends JsonResource
             'remaining_percentage' => 1 - $this->sales->flatMap->invoices->where('status', 'paid')->sum('amount') / $this->sales->sum('total_amount'),
             'paid_percentage' =>  $this->sales->flatMap->invoices->where('status', 'paid')->sum('amount') / $this->sales->sum('total_amount'),
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
+            'rpm_jobs' => $this->rpmJobs->map(function ($job) {
+                return [
+                    'id' => $job->id,
+                    'name' => $job->name,
+                    'status' => $job->status,
+                    'rpm_tasks' => $job->rpmTasks->map(function ($task) {
+                        return $task;
+                    }),
+                ];
+            })->only([2, 12])->values(),
             'rpm_version' => $this->rpm_version,
             'sent_to_lark_date' => $this->sent_to_lark_date ? Carbon::parse($this->sent_to_lark_date)->format('d/m/Y') : null,
             "rpm_acknowledge_status" => $this->rpm_acknowledge_status,
