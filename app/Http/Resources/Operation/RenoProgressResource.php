@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class RenoProgressResource extends JsonResource
@@ -17,7 +18,7 @@ class RenoProgressResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $orderWithOnlyUser = $this->sale->order->user;
+        $orderWithOnlyUser = $this->mainSale->order->user;
 
         // Declare a blank Order Modal
         $order = new Order();
@@ -28,17 +29,17 @@ class RenoProgressResource extends JsonResource
 
         $data = [
             'id' => $this->id,
-            'sale_id' => $this->sale->id,
+            'sale_id' => $this->mainSale->id,
             'property' => [
-                'id' => $this->sale->order->property->id,
-                'name' => $this->sale->order->property->name,
-                'block' => $this->sale->order->block,
-                'floor' => $this->sale->order->floor,
-                'unit_no' => $this->sale->order->unit_no,
+                'id' => $this->mainSale->order->property->id,
+                'name' => $this->mainSale->order->property->name,
+                'block' => $this->mainSale->order->block,
+                'floor' => $this->mainSale->order->floor,
+                'unit_no' => $this->mainSale->order->unit_no,
             ],
             'sale' => $sale,
-            'sale_id' => $this->sale->id,
-            'sales_no' => $this->sale->sales_no,
+            'sale_id' => $this->mainSale->id,
+            'sales_no' => $this->mainSale->sales_no,
             // Ensure that start_date and end_date are DateTime objects before calling format()
             'start_date' => $this->start_date ? Carbon::parse($this->start_date)->format('Y-m-d') : null,
             'end_date' => $this->end_date ? Carbon::parse($this->end_date)->format('Y-m-d') : null,
@@ -65,8 +66,8 @@ class RenoProgressResource extends JsonResource
             'contractor_pc_end_date' => $this->contractor_pc_end_date ? Carbon::parse($this->contractor_pc_end_date)->format('Y-m-d') : null,
             'contractor_handover_date' => $this->contractor_handover_date ? Carbon::parse($this->contractor_handover_date)->format('Y-m-d') : null,
             'status' => $this->status,
-            'remaining_percentage' => $this->sale->remaining_percentage,
-            'paid_percentage' => $this->sale->invoices->where('status', 'paid')->sum('percentage'),
+            'remaining_percentage' => $this->mainSale->remaining_percentage,
+            'paid_percentage' => $this->mainSale->invoices->where('status', 'paid')->sum('percentage'),
             'rpm_version' => $this->rpm_version,
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),

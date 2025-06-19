@@ -8,13 +8,15 @@ use App\Models\Quotation;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\OrderQuotation;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use App\Http\Resources\OrderResource;
-use App\Http\Resources\OrderResourceHead;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
+use App\Http\Resources\OrderResourceHead;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\OwnerOrderResource;
 
@@ -627,7 +629,7 @@ class OrderController extends BaseController
                 $totalAmount -= $bonusValue;
 
                 // CREATE NEW SALE
-                Sale::create([
+                $sale = Sale::create([
                     'sales_no' => $input['sales_no'],
                     'order_id' => $order->id,
                     'user_id' => $order->user_id,
@@ -636,6 +638,31 @@ class OrderController extends BaseController
                     'remaining_amount' => $totalAmount,
                     'remaining_percentage' => 1,
                 ]);
+
+                // Ckeck for same property
+                $foundedOrder = Order::where('property_id', $order->property_id)
+                    ->where('block', $order->block)
+                    ->where('floor', $order->floor)
+                    ->where('unit_no', $order->unit_no)
+                    ->first();
+
+                Log::info($foundedOrder->sale);
+
+                if ($foundedOrder) {
+                    $foundedRenoSale = DB::table('reno_sales')
+                        ->where('sale_id', $foundedOrder->sale->id)
+                        ->first();
+
+                    if ($foundedRenoSale) {
+                        DB::table('reno_sales')->insert([
+                            'reno_progress_id' => $foundedRenoSale->reno_progress_id,
+                            'sale_id' => $sale->id,
+                            'is_main' => false,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
 
                 // TODO: Create/Update Inventory
 

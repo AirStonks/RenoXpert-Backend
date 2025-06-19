@@ -196,7 +196,7 @@ class RenoProgressController extends BaseController
         $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? $sortOrder : 'asc';
 
         // Query RenoProgress records for all sales belonging to the user
-        $query = RenoProgress::whereHas('sale', function ($query) use ($user) {
+        $query = RenoProgress::whereHas('sales', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         });
 
@@ -227,72 +227,61 @@ class RenoProgressController extends BaseController
 
     public function operationIndex(Request $request)
     {
-        // Retrieve the size parameter from the request with a default value of 5
         $size = $request->input('size', 5);
-
-        // Retrieve the search term from the request
         $search = $request->input('search', '');
-
-        // Retrieve the sort order and field from the request
         $sortOrder = $request->input('sortOrder', 'asc');
         $sortField = $request->input('sortField', 'id');
 
-        // Build the query
         $query = RenoProgress::query();
 
-        // Filter by status if available
         if ($request->input('status')) {
             $query->where('status', $request->input('status'));
         }
 
-        // Apply search filter if a search term is provided
         if (!empty($search)) {
-            // Normalize the search term by removing '-' and spaces
             $normalizedSearch = str_replace(['-', ' '], '', $search);
 
-            $query->whereHas('sale.order.property', function ($q) use ($normalizedSearch) {
-                $q->where('name', 'like', '%' . $normalizedSearch . '%');
-            })
-                ->orWhereHas('sale.order', function ($q) use ($normalizedSearch) {
-                    $q->whereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+            $query->where(function ($subQuery) use ($normalizedSearch) {
+                $subQuery->whereHas('sale.order.property', function ($q) use ($normalizedSearch) {
+                    $q->where('name', 'like', '%' . $normalizedSearch . '%');
                 })
-                ->orWhereHas('sale', function ($q) use ($normalizedSearch) {
-                    $q->whereRaw("REPLACE(REPLACE(sales_no, '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
-                });
+                    ->orWhereHas('sale.order', function ($q) use ($normalizedSearch) {
+                        $q->whereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+                    })
+                    ->orWhereHas('sale', function ($q) use ($normalizedSearch) {
+                        $q->whereRaw("REPLACE(REPLACE(sales_no, '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
+                    });
+            });
         }
 
-        // Get the authenticated user's ID
         $userId = Auth::user()->id;
 
-        // Filter RenoProgress records where permission_id is not 1
-        $query->where('permission_id', '!=', 1)
+        $query->whereHas('itemPermissions.userPermissions') // Only include those with userPermissions
             ->whereDoesntHave('itemPermissions.userPermissions', function ($q) use ($userId) {
                 $q->where('user_id', $userId)
-                    ->where('user_item_permission.permission_id', 1); // Exclude records where permission_id is 1
-            })->orWhereDoesntHave('itemPermissions'); // Include records with no item permissions
+                    ->where('user_item_permission.permission_id', 1);
+            });
 
-        // Apply sorting if a sort field is provided
         if (!empty($sortField)) {
             $query->orderBy($sortField, $sortOrder);
         }
 
-        // Paginate the results
         $renoProgress = $query->paginate($size);
 
-        // Custom response to fit with Tailwind DataTable JSON format
         $response = [
-            "page" => $renoProgress->currentPage(),  // Current page number
-            "pageCount" => $renoProgress->lastPage(), // Total number of pages
-            "sortField" => $sortField,               // Sorting field
-            "sortOrder" => $sortOrder,               // Sorting order
-            "totalCount" => $renoProgress->total(),  // Total number of items
-            "data" => $request->input('head') === 'true'
-                ? OperationRenoProgressResource::collection($renoProgress)
-                : OperationRenoProgressResource::collection($renoProgress) // Assuming you might want a head version
+            "page" => $renoProgress->currentPage(),
+            "pageCount" => $renoProgress->lastPage(),
+            "sortField" => $sortField,
+            "sortOrder" => $sortOrder,
+            "totalCount" => $renoProgress->total(),
+            "data" => OperationRenoProgressResource::collection($renoProgress)
+            // "data" => $renoProgress->items()
         ];
 
         return response()->json($response, 200);
     }
+
+
 
 
     // public function retrieveRenoProgresses(Request $request)
@@ -390,7 +379,7 @@ class RenoProgressController extends BaseController
         $renoProgress = RenoProgress::where('permission_id', '!=', 1)->find($id);
 
         // Check if the reno progress is retrieve by the current user
-        if (is_null($renoProgress) || $renoProgress->sale->user->id != $user->id) {
+        if (is_null($renoProgress) || $renoProgress->mainSale->user->id != $user->id) {
             return $this->sendError('Invalid Credential.', null, 403);
         }
 
@@ -401,7 +390,7 @@ class RenoProgressController extends BaseController
     {
         $renoProgress = RenoProgress::find($id);
 
-        $sale = $renoProgress->sale;
+        $sale = $renoProgress->mainSale;
         $order = $sale->order;
         $property = $order->property;
 
@@ -474,9 +463,9 @@ class RenoProgressController extends BaseController
             )->format('Y-m-d');
             $dateManagement['oh_date'] = $this->addWorkingDays(
                 Carbon::parse($dateManagement['defect_permit_date']),
-                $renoProgress->sale->order->completion_day
+                $renoProgress->mainSale->order->completion_day
             )->format('Y-m-d');
-            if ($renoProgress->sale->order->completion_day > 29) {
+            if ($renoProgress->mainSale->order->completion_day > 29) {
                 $dateManagement['ch_date'] = $this->addWorkingDays(
                     Carbon::parse($dateManagement['cleaning_date']),
                     3
@@ -941,8 +930,8 @@ class RenoProgressController extends BaseController
     {
         $renoProgress = RenoProgress::find($id);
 
-        $bonusValue = $renoProgress->sale->order->orderQuotations->last()->bonus
-            ? (int) json_decode($renoProgress->sale->order->orderQuotations->last()->bonus)->value
+        $bonusValue = $renoProgress->mainSale->order->orderQuotations->last()->bonus
+            ? (int) json_decode($renoProgress->mainSale->order->orderQuotations->last()->bonus)->value
             : 0;
 
         $client = new Client();
@@ -952,18 +941,19 @@ class RenoProgressController extends BaseController
         ];
         $data = [
             [
-                "development" => $renoProgress->sale->order->property->name,
-                "unit_no" => $renoProgress->sale->order->block . '-' . $renoProgress->sale->order->floor . '-' . $renoProgress->sale->order->unit_no,
-                "type" => $renoProgress->sale->order->unit_type,
-                "total_bedroom" => $renoProgress->sale->order->bedroom_count,
-                "total_bathroom" => $renoProgress->sale->order->bathroom_count,
-                "partition" => $renoProgress->sale->order->include_partition ? 'Yes' : 'No',
+                "id" => $renoProgress->id,
+                "development" => $renoProgress->mainSale->order->property->name,
+                "unit_no" => $renoProgress->mainSale->order->block . '-' . $renoProgress->mainSale->order->floor . '-' . $renoProgress->mainSale->order->unit_no,
+                "type" => $renoProgress->mainSale->order->unit_type,
+                "total_bedroom" => $renoProgress->mainSale->order->bedroom_count,
+                "total_bathroom" => $renoProgress->mainSale->order->bathroom_count,
+                "partition" => $renoProgress->mainSale->order->include_partition ? 'Yes' : 'No',
                 "discount" => $bonusValue,
-                "remark" => $renoProgress->sale->order->internal_remark,
+                "remark" => $renoProgress->mainSale->order->internal_remark,
                 "oh_date" => $renoProgress->date_management['oh_date'],
-                "owner_name" => $renoProgress->sale->user->name,
-                "phone_no" => '+' . $renoProgress->sale->user->country_code . $renoProgress->sale->user->phone_no,
-                "email" => $renoProgress->sale->user->email,
+                "owner_name" => $renoProgress->mainSale->user->name,
+                "phone_no" => '+' . $renoProgress->mainSale->user->country_code . $renoProgress->mainSale->user->phone_no,
+                "email" => $renoProgress->mainSale->user->email,
             ]
         ];
 
@@ -980,6 +970,7 @@ class RenoProgressController extends BaseController
             // Check for a successful response
             if ($req->getStatusCode() === 200) {
                 $renoProgress->sent_to_lark_date = Carbon::now()->format('Y-m-d');
+                $renoProgress->rpm_acknowledge_status = "informed";
                 $renoProgress->save();
 
                 return $this->sendResponse([$res, 'sent_to_lark_date' => Carbon::now()->format('d/m/Y')], 'Reno progress sent to Lark successfully.');
@@ -989,6 +980,20 @@ class RenoProgressController extends BaseController
         } catch (\Exception $e) {
             return $e->getMessage();
         }
+    }
+
+    public function acknowledgedByRPM($id)
+    {
+        $renoProgress = RenoProgress::find($id);
+
+        if (!$renoProgress) {
+            return $this->sendError('Reno Progress not found.');
+        }
+
+        $renoProgress->rpm_acknowledge_status = "acknowledged";
+        $renoProgress->save();
+
+        return $this->sendResponse("success", 'acknowledged');
     }
 
     protected function changeContractDate(Request $request, $id, $dateType)

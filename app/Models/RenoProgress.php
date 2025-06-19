@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class RenoProgress extends Model
 {
@@ -41,6 +42,7 @@ class RenoProgress extends Model
         'completed_at',
         'rpm_version',
         'sent_to_lark_date',
+        'rpm_acknowledge_status',
         'created_by',
         'updated_by',
         'deleted_at',
@@ -89,9 +91,23 @@ class RenoProgress extends Model
         });
     }
 
-    public function sale()
+    public function sales()
     {
-        return $this->belongsTo(Sale::class, 'sale_id', 'id');
+        return $this->belongsToMany(Sale::class, 'reno_sales', 'reno_progress_id', 'sale_id')
+            ->withPivot('is_main')
+            ->withTimestamps();
+    }
+
+    public function mainSale()
+    {
+        return $this->hasOne(Sale::class, 'id', 'sale_id')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('reno_sales')
+                    ->whereColumn('reno_sales.sale_id', 'sales.id')
+                    ->where('reno_sales.reno_progress_id', $this->id)
+                    ->where('reno_sales.is_main', true);
+            });
     }
 
     public function progressPhases()

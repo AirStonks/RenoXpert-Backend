@@ -3,22 +3,24 @@
 namespace App\Listeners;
 
 use stdClass;
+use Carbon\Carbon;
+use App\Models\Order;
+use App\Models\RPMJob;
 use App\Models\JobTask;
+use App\Models\RPMTask;
 use App\Models\PhaseJob;
 use App\Models\Inventory;
+use App\Models\RPMTaskQC;
 use Illuminate\Support\Str;
 use App\Models\RenoProgress;
 use App\Models\ResourceItem;
 use App\Models\KeyManagement;
 use App\Models\ProgressPhase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\DefectInspectionForm;
 use App\Http\Resources\OrderResource;
 use App\Events\SaleStatusUpdated; // Updated event name
-use App\Models\RPMJob;
-use App\Models\RPMTask;
-use App\Models\RPMTaskQC;
-use Carbon\Carbon;
 
 class TriggerCreateRenoProgress
 {
@@ -533,16 +535,31 @@ class TriggerCreateRenoProgress
     {
         try {
             // Check if a RenoProgress record already exists for the sale's order with the same property_id, block, floor, and unit_no
-            $existingRenoProgress = RenoProgress::whereHas('sale.order', function ($query) use ($sale) {
-                $query->where('property_id', $sale->order->property_id)
-                    ->where('block', $sale->order->block)
-                    ->where('floor', $sale->order->floor)
-                    ->where('unit_no', $sale->order->unit_no);
-            })
+            // $existingRenoProgress = RenoProgress::whereHas('mainSale.order', function ($query) use ($sale) {
+            //     $query->where('property_id', $sale->order->property_id)
+            //         ->where('block', $sale->order->block)
+            //         ->where('floor', $sale->order->floor)
+            //         ->where('unit_no', $sale->order->unit_no);
+            // })
+            //     ->exists();
+
+            // Ckeck for same property
+            $foundedOrder = Order::where('property_id', $sale->order->property_id)
+                ->where('block', $sale->order->block)
+                ->where('floor', $sale->order->floor)
+                ->where('unit_no', $sale->order->unit_no)
+                ->first();
+
+            if (!$foundedOrder) {
+                return;
+            }
+
+            $foundedRenoSale = DB::table('reno_sales')
+                ->where('sale_id', $foundedOrder->sale->id)
                 ->exists();
 
             // If no existing RenoProgress record is found, create a new one
-            if (!$existingRenoProgress) {
+            if (!$foundedRenoSale) {
                 $latestPayment = $sale->invoices->flatMap->payments->sortByDesc('created_at')->first();
 
                 $renoProgress = RenoProgress::create([
@@ -562,6 +579,14 @@ class TriggerCreateRenoProgress
                         'cleaning_date' => '',
                         'defect_permit_date' => ''
                     ]
+                ]);
+
+                DB::table('reno_sales')->insert([
+                    'reno_progress_id' => $renoProgress->id,
+                    'sale_id' => $sale->id,
+                    'is_main' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
 
                 // Count only ResourceItems with item_name starting with "Progress" for this resource_id
