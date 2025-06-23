@@ -666,7 +666,7 @@ class OrderController extends BaseController
 
                 // TODO: Create/Update Inventory
 
-                return $this->sendResponse([], 'Order Confirmed');
+                return $this->sendResponse(['order_id' => $order->id, 'quotation_no' => $order->order_no], 'Order Confirmed');
             } else {
                 return $this->sendError('Order Not Found.');
             }

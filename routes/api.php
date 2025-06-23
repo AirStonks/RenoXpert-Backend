@@ -71,7 +71,7 @@ Route::get('/owner/check/list/user/{country_code}/{phone}', [UserController::cla
 
 // PUBLIC PROPERTIES
 Route::get('/public/properties', [PropertyController::class, 'getPublicProperties']);
-Route::post('/owner/reno-registration-form/overview/submit', [RegistrationFormController::class, 'submitForm']);
+Route::post('/owner/quotation-request-form/overview/submit', [RegistrationFormController::class, 'submitForm']);
 
 // Confirm Order
 Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
@@ -132,7 +132,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/discountFees', DiscountFeeController::class);
     Route::apiResource('/invoices', InvoiceController::class);
     Route::apiResource('/users', UserController::class);
-    Route::apiResource('/owner/reno-registration-form', RegistrationFormController::class);
+    Route::apiResource('/owner/quotation-request-form', RegistrationFormController::class);
     Route::apiResource("/investor-interest-forms", InvestorInterestController::class);
     Route::apiResource('/reno-progress', RenoProgressController::class);
     Route::apiResource('/otp-requests', OTPRequestController::class);
@@ -145,8 +145,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('users/{id}/deactivate', [UserController::class, 'deactivateUser']);
 
     Route::get('/users/type/{type}', [UserController::class, 'getUsersWithType']);
-    Route::get('/owner/reno-registration-form/{id}/status/approve', [RegistrationFormController::class, 'approveForm']);
-    Route::get('/owner/reno-registration-form/{id}/status/reject', [RegistrationFormController::class, 'rejectForm']);
+    Route::get('/owner/quotation-request-form/{id}/status/approve', [RegistrationFormController::class, 'approveForm']);
+    Route::get('/owner/quotation-request-form/{id}/status/reject', [RegistrationFormController::class, 'rejectForm']);
 
     Route::post('/properties/{id}/update', [PropertyController::class, 'updatePropertyWithFiles']);
 
@@ -207,6 +207,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/{id}/re-release', [OrderController::class, 'reReleaseOrder']);
     Route::get('/orders/{id}/void', [OrderController::class, 'voidOrder']);
 
+    Route::get('/sales/without-reno/{property_id}', [SaleController::class, 'getSaleWithoutReno']);
+
     Route::post('/reno-progress/{id}/contractual/overall/date', [RenoProgressController::class, 'changeContractualDate']);
     Route::post('/reno-progress/{id}/contractual/p1/date', [RenoProgressController::class, 'changeContractualP1Date']);
     Route::post('/reno-progress/{id}/contractual/p2/date', [RenoProgressController::class, 'changeContractualP2Date']);
@@ -228,6 +230,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reno-progress/{id}/convert/v3', [RenoProgressController::class, 'convertV2toV3']);
     Route::get('/reno-progress/{id}/old-ver', [RenoProgressController::class, 'showOldVersion']);
     Route::post('/reno-progress/{id}/date-management/change', [RenoProgressController::class, 'changeDateManagement']);
+    Route::post('/reno-progress/generate', [RenoProgressController::class, 'createRenoProgress']);
 
     Route::get('/purchase-orders/table/advance', [PurchaseOrderController::class, 'getAdvanceTable']);
     Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);
@@ -307,24 +310,7 @@ Route::get('/tmp/changeSaleStatus/{saleId}', function ($saleId) {
     return response()->json(['message' => 'Sale status updated successfully']);
 });
 
-Route::get('/tmp/update-reno-progress-structure-and-sales', function () {
-    try {
-        // get all reno progress with rpm_version is 3
-        $renoProgress = RenoProgress::where('rpm_version', 3)->get();
-
-        foreach ($renoProgress as $reno) {
-            $reno->sales()->attach(
-                $reno->sale_id,
-                ['is_main' => true]
-            );
-        }
-
-
-        return response()->json(['message' => 'Reno progress structure updated successfully']);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-});
+Route::get('/tmp/get-sales-with-no-reno/{property_id}', [SaleController::class, 'getSaleWithoutReno']);
 
 Route::get('/test/unauth/{renoId}/{saleId}', function ($renoId, $saleId) {
 
