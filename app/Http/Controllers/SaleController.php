@@ -6,6 +6,7 @@ use App\Http\Resources\SaleResource;
 use App\Http\Resources\SaleResourceHead;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SaleController extends BaseController
 {
@@ -76,6 +77,27 @@ class SaleController extends BaseController
         ];
 
         return response()->json($response, 200);
+    }
+
+    public function getSaleWithoutReno($property_id)
+    {
+        $sales = Sale::whereHas('order', function ($query) use ($property_id) {
+            $query->where('property_id', $property_id);
+        })
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('reno_sales')
+                    ->whereColumn('reno_sales.sale_id', 'sales.id');
+            })
+            ->get();
+
+        return $this->sendResponse(
+            $sales->load(['order.user', 'invoices'])->map(function ($sale) {
+                $sale->paid_percentage = $sale->invoices->where('status', 'paid')->sum('percentage');
+                return $sale;
+            }),
+            'Sales retrieved successfully.'
+        );
     }
 
     /**
