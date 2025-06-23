@@ -71,7 +71,7 @@ Route::get('/owner/check/list/user/{country_code}/{phone}', [UserController::cla
 
 // PUBLIC PROPERTIES
 Route::get('/public/properties', [PropertyController::class, 'getPublicProperties']);
-Route::post('/owner/reno-registration-form/overview/submit', [RegistrationFormController::class, 'submitForm']);
+Route::post('/owner/quotation-request-form/overview/submit', [RegistrationFormController::class, 'submitForm']);
 
 // Confirm Order
 Route::get('/orders/{id}/confirm', [OrderController::class, 'confirmOrder'])->name('orders.confirmOrder');
@@ -145,8 +145,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('users/{id}/deactivate', [UserController::class, 'deactivateUser']);
 
     Route::get('/users/type/{type}', [UserController::class, 'getUsersWithType']);
-    Route::get('/owner/reno-registration-form/{id}/status/approve', [RegistrationFormController::class, 'approveForm']);
-    Route::get('/owner/reno-registration-form/{id}/status/reject', [RegistrationFormController::class, 'rejectForm']);
+    Route::get('/owner/quotation-request-form/{id}/status/approve', [RegistrationFormController::class, 'approveForm']);
+    Route::get('/owner/quotation-request-form/{id}/status/reject', [RegistrationFormController::class, 'rejectForm']);
 
     Route::post('/properties/{id}/update', [PropertyController::class, 'updatePropertyWithFiles']);
 
