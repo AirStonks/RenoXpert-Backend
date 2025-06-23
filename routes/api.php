@@ -132,7 +132,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/discountFees', DiscountFeeController::class);
     Route::apiResource('/invoices', InvoiceController::class);
     Route::apiResource('/users', UserController::class);
-    Route::apiResource('/owner/reno-registration-form', RegistrationFormController::class);
+    Route::apiResource('/owner/quotation-request-form', RegistrationFormController::class);
     Route::apiResource("/investor-interest-forms", InvestorInterestController::class);
     Route::apiResource('/reno-progress', RenoProgressController::class);
     Route::apiResource('/otp-requests', OTPRequestController::class);
