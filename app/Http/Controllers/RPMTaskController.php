@@ -261,6 +261,7 @@ class RPMTaskController extends BaseController
             if ($status == 'completed') {
                 $renoProgress = $rpmTask->job->renoProgress;
                 $renoProgress->status = 'handed-over';
+                $renoProgress->completed_at = now();
                 $renoProgress->save();
             }
         }

@@ -63,6 +63,7 @@ class RenoProgressResourceHead extends JsonResource
             })->only([2, 12])->values(),
             'rpm_version' => $this->rpm_version,
             'sent_to_lark_date' => $this->sent_to_lark_date ? Carbon::parse($this->sent_to_lark_date)->format('d/m/Y') : null,
+            'completed_at' => $this->completed_at?->format('d/m/Y'),
             "rpm_acknowledge_status" => $this->rpm_acknowledge_status,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
