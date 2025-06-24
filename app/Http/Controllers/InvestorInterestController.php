@@ -62,7 +62,7 @@ class InvestorInterestController extends BaseController
             'rentalStrategy' => 'required|array|min:1',
             'rentalStrategy.*' => 'string|in:whole-unit,airbnb,waiting,not-sure,curious-coliving,interested-coliving',
             'supportNeeded' => 'required|array|min:1',
-            'supportNeeded.*' => 'string|in:quotation,feasibility,consultant,webinar,info',
+            'supportNeeded.*' => 'string|in:be_powererd,quotation,feasibility,consultant,webinar,info',
             'preferredContact' => 'required|string|in:whatsapp,call,email',
             'preferredTime' => 'nullable|string|in:weekday-morning,weekday-afternoon,evening,weekend',
         ];
