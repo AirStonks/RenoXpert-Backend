@@ -78,10 +78,7 @@ class RenoProgressController extends BaseController
             });
         }
 
-        // Filter by status if available
-        if ($request->input('status')) {
-            $query->where('reno_progress.status', $request->input('status'));
-        }
+
 
         // Retrieve the sort order and field from the request
         $sortOrder = $request->input('sortOrder', 'asc');
@@ -109,6 +106,29 @@ class RenoProgressController extends BaseController
                     ->orderBy('oh_date_extracted', $sortOrder);
             } else {
                 $query->orderBy($sortField, $sortOrder);
+            }
+        }
+
+        // Apply filters if provided in the request
+        $filters = $request->input('filters');
+
+        if ($filters && !empty($filters)) {
+            foreach ($filters as $filter) {
+                if ($filter['field'] === 'status') {
+                    if ($filter['value'] === 'On Track') {
+                        $query->where('reno_progress.status', 'in_progress');
+                    } elseif ($filter['value'] === 'Completed') {
+                        $query->where('reno_progress.status', 'completed');
+                    } elseif ($filter['value'] === 'Handed Over') {
+                        $query->where('reno_progress.status', 'handed-over');
+                    }
+                }
+                if ($filter['field'] === 'property_id') {
+                    Log::info('Filters received: ', $filters);
+                    if ($filter['value']) {
+                        $query->where('properties.id', $filter['value']);
+                    }
+                }
             }
         }
 
@@ -1026,9 +1046,12 @@ class RenoProgressController extends BaseController
         }
 
         $renoProgress->rpm_acknowledge_status = "acknowledged";
+        $renoProgress->sent_to_lark_date = Carbon::now()->format('Y-m-d');
         $renoProgress->save();
 
-        return $this->sendResponse("success", 'acknowledged');
+        Log::info('Reno Progress ' . $renoProgress->sent_to_lark_date);
+
+        return $this->sendResponse($renoProgress->sent_to_lark_date, 'acknowledged');
     }
 
     protected function changeContractDate(Request $request, $id, $dateType)

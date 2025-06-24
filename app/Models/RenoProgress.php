@@ -74,6 +74,7 @@ class RenoProgress extends Model
         'contractor_pc_end_date' => 'datetime',
         'contractor_handover_date' => 'datetime',
         'sent_to_lark_date' => 'datetime',
+        'completed_at' => 'datetime',
         'date_management' => 'array',
     ];
 
