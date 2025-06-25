@@ -48,8 +48,22 @@ class RenoProgressResourceHead extends JsonResource
             'sale_id' => $this->mainSale->id,
             'sales_no' => $this->mainSale->sales_no,
             'status' => $this->status,
-            'remaining_percentage' => 1 - $this->sales->flatMap->invoices->where('status', 'paid')->sum('amount') / $this->sales->sum('total_amount'),
-            'paid_percentage' =>  $this->sales->flatMap->invoices->where('status', 'paid')->sum('amount') / $this->sales->sum('total_amount'),
+            'total_amount' => $this->sales->sum('total_amount'),
+            'paid_amount' => $this->sales->flatMap(function ($sale) {
+                return $sale->invoices->where('status', 'paid')->map(function ($invoice) use ($sale) {
+                    return $sale->total_amount * $invoice->percentage;
+                });
+            })->sum(),
+            'remaining_percentage' => (1 - $this->sales->flatMap(function ($sale) {
+                return $sale->invoices->where('status', 'paid')->map(function ($invoice) use ($sale) {
+                    return $sale->total_amount * ($invoice->percentage / 100);
+                });
+            })->sum() / $this->sales->sum('total_amount')) * 100,
+            'paid_percentage' => ($this->sales->flatMap(function ($sale) {
+                return $sale->invoices->where('status', 'paid')->map(function ($invoice) use ($sale) {
+                    return $sale->total_amount * ($invoice->percentage / 100);
+                });
+            })->sum() / $this->sales->sum('total_amount')) * 100,
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
             'rpm_jobs' => $this->rpmJobs->map(function ($job) {
                 return [
@@ -60,10 +74,12 @@ class RenoProgressResourceHead extends JsonResource
                         return $task;
                     }),
                 ];
-            })->only([2, 12])->values(),
+            })->only([1, 2])->values(),
             'rpm_version' => $this->rpm_version,
             'sent_to_lark_date' => $this->sent_to_lark_date ? Carbon::parse($this->sent_to_lark_date)->format('d/m/Y') : null,
             'completed_at' => $this->completed_at?->format('d/m/Y'),
+            'defect_updated_at' => $this->defect_updated_at?->format('d/m/Y'),
+            'permit_updated_at' => $this->permit_updated_at?->format('d/m/Y'),
             "rpm_acknowledge_status" => $this->rpm_acknowledge_status,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),

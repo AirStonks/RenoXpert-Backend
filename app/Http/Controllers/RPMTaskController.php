@@ -180,6 +180,20 @@ class RPMTaskController extends BaseController
             $isDefectJobCompleted = false;
             $isPermitJobCompleted = false;
 
+            if ($rpmTask->job->name == 'Defect') {
+                if ($status === 'completed') {
+                    $rpmTask->job->renoProgress->defect_updated_at = Carbon::now();
+                    $rpmTask->job->renoProgress->save();
+                }
+            }
+
+            if ($rpmTask->job->name == 'Permit') {
+                if ($status === 'completed') {
+                    $rpmTask->job->renoProgress->permit_updated_at = Carbon::now();
+                    $rpmTask->job->renoProgress->save();
+                }
+            }
+
             // Check Defect job tasks
             if ($defectJob && $defectJob->rpmTasks->isNotEmpty()) {
                 $isDefectJobCompleted = $defectJob->rpmTasks->every(function ($task) {

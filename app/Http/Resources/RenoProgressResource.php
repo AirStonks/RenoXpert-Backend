@@ -40,8 +40,22 @@ class RenoProgressResource extends JsonResource
             'date_management' => $this->date_management,
             'status' => $this->status,
             'rpm_jobs' => $this->rpm_version === 3 ? RPMJobResource::collection($this->rpmJobs) : null,
-            'remaining_percentage' => 1 - $this->sales->flatMap->invoices->where('status', 'paid')->sum('amount') / $this->sales->sum('total_amount'),
-            'paid_percentage' =>  $this->sales->flatMap->invoices->where('status', 'paid')->sum('amount') / $this->sales->sum('total_amount'),
+            'total_amount' => $this->sales->sum('total_amount'),
+            'paid_amount' => $this->sales->flatMap(function ($sale) {
+                return $sale->invoices->where('status', 'paid')->map(function ($invoice) use ($sale) {
+                    return $sale->total_amount * $invoice->percentage;
+                });
+            })->sum(),
+            'remaining_percentage' => (1 - $this->sales->flatMap(function ($sale) {
+                return $sale->invoices->where('status', 'paid')->map(function ($invoice) use ($sale) {
+                    return $sale->total_amount * ($invoice->percentage / 100);
+                });
+            })->sum() / $this->sales->sum('total_amount')) * 100,
+            'paid_percentage' => ($this->sales->flatMap(function ($sale) {
+                return $sale->invoices->where('status', 'paid')->map(function ($invoice) use ($sale) {
+                    return $sale->total_amount * ($invoice->percentage / 100);
+                });
+            })->sum() / $this->sales->sum('total_amount')) * 100,
             'resource_id' => $this->resource_id,
             'resource_item_id' => $this->resourceItem->id,
             'permission_id' => $this->permission_id,
@@ -50,6 +64,8 @@ class RenoProgressResource extends JsonResource
             'sent_to_lark_date' => $this->sent_to_lark_date ? Carbon::parse($this->sent_to_lark_date)->format('d/m/Y') : null,
             "rpm_acknowledge_status" => $this->rpm_acknowledge_status,
             'completed_at' => $this->completed_at?->format('d/m/Y'),
+            'defect_updated_at' => $this->defect_updated_at?->format('d/m/Y'),
+            'permit_updated_at' => $this->permit_updated_at?->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];

@@ -30,6 +30,13 @@ return new class extends Migration
         // Schema::table('quo_pkg_prods', function (Blueprint $table) {
         //     $table->softDeletes();
         // });
+
+
+        // Staging: Done
+        Schema::table('reno_progress', function (Blueprint $table) {
+            $table->timestamp('permit_updated_at')->nullable()->after('completed_at');
+            $table->timestamp('defect_updated_at')->nullable()->after('completed_at');
+        });
     }
 
     public function down()
