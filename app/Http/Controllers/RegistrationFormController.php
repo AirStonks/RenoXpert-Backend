@@ -329,7 +329,6 @@ class RegistrationFormController extends BaseController
     private function sendLarkMessage(RegistrationForm $form)
     {
         $client = new Client();
-        $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
 
         $headers = [
             'Content-Type' => 'application/json',
@@ -341,6 +340,8 @@ class RegistrationFormController extends BaseController
         $phoneNo = $form->phone_no;
         $property = $form->other_property_name ? ("(Other) " . $form->other_property_name) : Property::find($form->property_name)->name;
 
+        $url = env('APP_BYPASS') === 'production' ? `https://app.renoxpert.my/registration-forms/{$formId}` : `https://sapp.renoxpert.my/registration-forms/{$formId}`;
+
         $bodyData = [
             "msg_type" => "interactive",
             "card" => [
@@ -348,7 +349,7 @@ class RegistrationFormController extends BaseController
                     [
                         "tag" => "div",
                         "text" => [
-                            "content" => "An owner has submitted a Reno Registration Form to RenoXpert",
+                            "content" => "An owner has submitted a Quotation Request Form to RenoXpert",
                             "tag" => "plain_text"
                         ]
                     ],
@@ -366,7 +367,7 @@ class RegistrationFormController extends BaseController
                                     [
                                         "tag" => "div",
                                         "text" => [
-                                            "content" => "**Form No :**",
+                                            "content" => "📃 **Form No :**",
                                             "tag" => "lark_md"
                                         ]
                                     ],
@@ -388,7 +389,7 @@ class RegistrationFormController extends BaseController
                                     [
                                         "tag" => "div",
                                         "text" => [
-                                            "content" => "**Owner Name :**",
+                                            "content" => "👤 **Owner Name :**",
                                             "tag" => "lark_md"
                                         ]
                                     ],
@@ -419,7 +420,7 @@ class RegistrationFormController extends BaseController
                                     [
                                         "tag" => "div",
                                         "text" => [
-                                            "content" => "**Property :**",
+                                            "content" => "🏢 **Property :**",
                                             "tag" => "lark_md"
                                         ]
                                     ],
@@ -441,7 +442,7 @@ class RegistrationFormController extends BaseController
                                     [
                                         "tag" => "div",
                                         "text" => [
-                                            "content" => "**Phone No :**",
+                                            "content" => "📞 **Phone No :**",
                                             "tag" => "lark_md"
                                         ]
                                     ],
@@ -470,7 +471,7 @@ class RegistrationFormController extends BaseController
                                 ],
                                 "type" => "primary",
                                 "multi_url" => [
-                                    "url" => "{$clientDomain}/registration-forms/{$formId}",
+                                    "url" => $url,
                                     "pc_url" => "",
                                     "android_url" => "",
                                     "ios_url" => ""
@@ -482,7 +483,7 @@ class RegistrationFormController extends BaseController
                 "header" => [
                     "template" => "blue",
                     "title" => [
-                        "content" => "New Reno Registration Form",
+                        "content" => "📢 New Quotation Request Form",
                         "tag" => "plain_text"
                     ]
                 ]
