@@ -382,13 +382,6 @@ class RenoProgressController extends BaseController
             return $this->sendError('Main sale not found.');
         }
 
-        // Check if addon sales exist
-        $addonSales = Sale::whereIn('id', $addonSaleIds)->get();
-
-        if ($addonSales->isEmpty()) {
-            return $this->sendError('Addon sales not found.');
-        }
-
         // If no issue, trigger createRenoProgressV3
         if ($this->createRenoProgressV3($mainSaleId, $addonSaleIds) === true) {
             return $this->sendResponse([], 'Reno Progress created successfully.');
