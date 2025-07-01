@@ -30,26 +30,24 @@ class OrderController extends BaseController
         // Retrieve the size parameter from the request with a default value of 10
         $size = $request->input('size', 10);
         $search = $request->input('search', '');
-        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortField = $request->input('sortField', 'id'); // Default to 'id'
         $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
-        $filter = $request->input('filter', '');
 
         // Build the query to retrieve orders
         $query = Order::query();
 
+        // Apply search filter if a search term is provided
         if (!empty($search)) {
             $query->where(function ($query) use ($search) {
                 // Search across individual fields in the orders table
                 $query->where('order_no', 'like', '%' . $search . '%')
                     ->orWhere('internal_remark', 'like', '%' . $search . '%')
-
                     // Search in the related user's fields
                     ->orWhereHas('user', function ($q) use ($search) {
                         $q->where('name_first', 'like', '%' . $search . '%')
                             ->orWhere('name_last', 'like', '%' . $search . '%')
                             ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%']);
                     })
-
                     // Search in the related property's fields
                     ->orWhereHas('property', function ($q) use ($search) {
                         $q->where('name', 'like', '%' . $search . '%');
@@ -57,17 +55,29 @@ class OrderController extends BaseController
             });
         }
 
-        // Apply status filter if provided
-        if (!empty($filter)) {
-            $query->where('status', $filter);
-            // If filter exists, always sort by order_no in ascending order
-            $query->orderBy('id', 'desc');
+        // Apply filters if provided in the request
+        $filters = $request->input('filters');
+
+        if ($filters && !empty($filters)) {
+            foreach ($filters as $filter) {
+                if ($filter['field'] === 'status') {
+                    if ($filter['value'] !== 'all') {
+                        $query->where('status', $filter['value']);
+                    }
+                }
+                if ($filter['field'] === 'property_id') {
+                    if ($filter['value']) {
+                        $query->where('property_id', $filter['value']);
+                    }
+                }
+            }
         }
 
-        // Ensure sortField is valid before applying orderBy
-        if (empty($sortField)) {
-            $sortField = 'id'; // Fallback to 'id' if sortField is empty
+        // Apply sorting
+        if (!empty($sortField)) {
             $query->orderBy($sortField, $sortOrder);
+        } else {
+            $query->orderBy('id', 'desc'); // Fallback to 'id' if sortField is empty
         }
 
         // Paginate results
@@ -77,8 +87,8 @@ class OrderController extends BaseController
         $response = [
             "page" => $orders->currentPage(),  // Current page number
             "pageCount" => $orders->lastPage(), // Total number of pages
-            "sortField" => !empty($filter) ? 'order_no' : $sortField, // Sorting field
-            "sortOrder" => !empty($filter) ? 'desc' : $sortOrder, // Sorting order
+            "sortField" => $sortField, // Sorting field
+            "sortOrder" => $sortOrder, // Sorting order
             "totalCount" => $orders->total(),   // Total number of items
             "data" => $request->input('head') === 'true' ? OrderResourceHead::collection($orders) : OrderResource::collection($orders) // Transformed order data
         ];

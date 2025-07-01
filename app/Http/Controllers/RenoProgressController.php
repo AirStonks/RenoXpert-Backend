@@ -65,7 +65,7 @@ class RenoProgressController extends BaseController
             $query->where('reno_progress.rpm_version', 3);
         }
 
-        // Apply search filter if a подходящий search term is provided
+        // Apply search filter if a search term is provided
         if (!empty($search)) {
             $normalizedSearch = str_replace(['-', ' '], '', $search);
             $query->where(function ($q) use ($normalizedSearch) {
@@ -304,9 +304,6 @@ class RenoProgressController extends BaseController
 
         return response()->json($response, 200);
     }
-
-
-
 
     // public function retrieveRenoProgresses(Request $request)
     // {
