@@ -212,7 +212,7 @@ class RPMTaskController extends BaseController
             if ($isDefectJobCompleted && $isPermitJobCompleted && $defectJob && $permitJob) {
                 $dateManagement = $rpmTask->job->renoProgress->date_management;
 
-                $dateManagement['defect_permit_date'] = Carbon::now()->format('Y-m-d');
+                $dateManagement['defect_permit_date'] = $dateManagement['defect_permit_date'] == "" ? Carbon::now()->format('Y-m-d') : $dateManagement['defect_permit_date'];
                 $dateManagement['p1_date'] = $this->addWorkingDays(
                     Carbon::parse($dateManagement['defect_permit_date']),
                     3
