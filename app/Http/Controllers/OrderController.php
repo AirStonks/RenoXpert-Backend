@@ -417,7 +417,7 @@ class OrderController extends BaseController
 
             $order->user_id = $validatedData['user_id'];
             $order->property_id = $validatedData['property_id'];
-            $order->total_amount = $input['total_amount'] - $bonusValue;
+            $order->total_amount = $input['total_amount'];
             $order->final_amount = $input['final_amount'];
             $order->unit_type = $validatedData['unit_type'];
             $order->block = $validatedData['block'];
