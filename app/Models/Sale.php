@@ -37,27 +37,10 @@ class Sale extends Model
 
         static::creating(function ($model) {
             $model->created_by = auth()->id(); // or your logic to get the user ID
-
-            if ($model->renoProgress === null) {
-                // event(new SaleCreated($model));
-            }
         });
 
         static::updating(function ($model) {
             $model->updated_by = auth()->id(); // or your logic to get the user ID
-
-            if ($model->isDirty('status')) {
-                // Check for either partial-paid OR issued changing to fully-paid
-
-                if (
-                    ($model->getOriginal('status') === 'issued' && $model->status === 'partial-paid') ||
-                    ($model->getOriginal('status') === 'issued' && $model->status === 'fully-paid')
-                ) {
-                    if ($model->renoProgress === null) {
-                        event(new SaleStatusUpdated($model));
-                    }
-                }
-            }
         });
     }
 
