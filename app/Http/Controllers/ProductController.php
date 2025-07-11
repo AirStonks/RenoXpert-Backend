@@ -44,7 +44,8 @@ class ProductController extends BaseController
         if (!empty($search)) {
             $query->where(function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('SKU', 'like', '%' . $search . '%');
+                    ->orWhere('SKU', 'like', '%' . $search . '%')
+                    ->orWhere('supplier_name', 'like', '%' . $search . '%');
             });
         }
         $sortField = $request->input('sortField', 'name');
