@@ -61,6 +61,7 @@ class OrderResource extends JsonResource
             'bathroom_count' => $this->bathroom_count,
             'include_partition' => $this->include_partition ? true : false,
             'is_progressive_payment' => $this->is_progressive_payment ? true : false,
+            'is_be_powered' => $this->is_be_powered ? true : false,
             'latest_quotation' => $latestQuotation ? new OrderQuotationResource($latestQuotation) : null,
             'order_quotations' => OrderQuotationResource::collection($orderQuotations), // This is now sorted in descending order
             // 'latest_quotation' => $latestQuotation ? $latestQuotation : null,
