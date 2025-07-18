@@ -56,11 +56,15 @@ class InvestorInterestController extends BaseController
             'email' => 'required|email|max:255',
             'propertyName' => 'required|string|max:255',
             'unitType' => 'required|string|in:Studio,2 Rooms,3 Rooms,4+ Rooms,Dual Key,Other',
+            'unitsOwned' => 'required|string|in:1,2,3,4-or-more', // New field
             'keysCollected' => 'required|string|in:yes,no,soon',
             'concerns' => 'required|array|min:1',
             'concerns.*' => 'string|in:keys-collected,renovation-guidance,compare-strategies,income-no-manage,maximize-roi,explore-coliving',
             'rentalStrategy' => 'required|array|min:1',
             'rentalStrategy.*' => 'string|in:whole-unit,airbnb,waiting,not-sure,curious-coliving,interested-coliving',
+            'expectedRentalReturn' => 'required|string|in:below-2000,2000-3500,3500-5000,others', // New field
+            'investmentGoals' => 'required|array|min:1', // New field
+            'investmentGoals.*' => 'string|in:high-monthly-return,hassle-free-management,fast-tenant-placement,long-term-appreciation',
             'supportNeeded' => 'required|array|min:1',
             'supportNeeded.*' => 'string|in:be_powererd,quotation,feasibility,consultant,webinar,info',
             'preferredContact' => 'required|string|in:whatsapp,call,email',
@@ -72,7 +76,10 @@ class InvestorInterestController extends BaseController
             'mobileNumber.regex' => 'Please enter a valid Malaysian mobile number.',
             'concerns.min' => 'Please select at least one concern.',
             'rentalStrategy.min' => 'Please select at least one rental strategy option.',
+            'investmentGoals.min' => 'Please select at least one investment goal.',
             'supportNeeded.min' => 'Please select at least one support option.',
+            'unitsOwned.required' => 'Please select how many units you own.',
+            'expectedRentalReturn.required' => 'Please select your expected rental return.',
         ]);
 
         if ($validator->fails()) {
@@ -87,9 +94,12 @@ class InvestorInterestController extends BaseController
                 'email' => $request->email,
                 'property_name' => $request->propertyName,
                 'unit_type' => $request->unitType,
+                'units_owned' => $request->unitsOwned, // New field
                 'keys_collected' => $request->keysCollected,
                 'concerns' => $request->concerns,
                 'rental_strategy' => $request->rentalStrategy,
+                'expected_rental_return' => $request->expectedRentalReturn, // New field
+                'investment_goals' => $request->investmentGoals, // New field
                 'support_needed' => $request->supportNeeded,
                 'preferred_contact' => $request->preferredContact,
                 'preferred_time' => $request->preferredTime,
