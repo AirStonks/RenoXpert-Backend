@@ -136,6 +136,7 @@ class OrderController extends BaseController
                 'bathroom_count' => 'nullable',
                 'include_partition' => 'nullable|boolean',
                 'is_progressive_payment' => 'nullable|boolean',
+                'is_be_powered' => 'nullable|boolean',
                 'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:0',
@@ -430,6 +431,7 @@ class OrderController extends BaseController
             $order->bathroom_count = $validatedData['bathroom_count'];
             $order->include_partition = $input['include_partition'];
             $order->is_progressive_payment = $input['is_progressive_payment'];
+            $order->is_be_powered = $input['is_be_powered'];
             $order->description = $validatedData['description'];
             $order->internal_remark = $validatedData['internal_remark'];
             $order->completion_day = $validatedData['completion_day'];
@@ -544,6 +546,20 @@ class OrderController extends BaseController
                 'code' => $th->getCode(),
             ]);
         }
+    }
+
+    public function toggleIsBePowered($id)
+    {
+        $order = Order::find($id);
+
+        if (is_null($order)) {
+            return $this->sendError('Order not found.');
+        }
+
+        $order->is_be_powered = !$order->is_be_powered;
+        $order->save();
+
+        return $this->sendResponse('success', 'Order updated successfully.');
     }
 
     /**

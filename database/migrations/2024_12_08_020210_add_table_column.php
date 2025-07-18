@@ -31,11 +31,11 @@ return new class extends Migration
         //     $table->softDeletes();
         // });
 
-
         // Staging: Done
-        Schema::table('reno_progress', function (Blueprint $table) {
-            $table->timestamp('permit_updated_at')->nullable()->after('completed_at');
-            $table->timestamp('defect_updated_at')->nullable()->after('completed_at');
+        Schema::table('investor_interests', function (Blueprint $table) {
+            $table->string('units_owned')->after('unit_type');
+            $table->json('investment_goals')->after('rental_strategy');
+            $table->string('expected_rental_return')->after('rental_strategy');
         });
     }
 

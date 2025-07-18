@@ -58,6 +58,7 @@ class OrderResourceHead extends JsonResource
             'bathroom_count' => $this->bathroom_count,
             'include_partition' => $this->include_partition ? true : false,
             'is_progressive_payment' => $this->is_progressive_payment ? true : false,
+            'is_be_powered' => $this->is_be_powered ? true : false,
             'latest_quotation' => $latestQuotation ? [
                 'id' => $latestQuotation->id,
                 'bonus' => json_decode($latestQuotation->bonus),

@@ -206,6 +206,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{id}/internal-remark/update', [OrderController::class, 'updateInternalRemark']);
     Route::get('/orders/{id}/re-release', [OrderController::class, 'reReleaseOrder']);
     Route::get('/orders/{id}/void', [OrderController::class, 'voidOrder']);
+    Route::get('/orders/{id}/toggle-is-be-powered', [OrderController::class, 'toggleIsBePowered']);
 
     Route::get('/sales/without-reno/{property_id}', [SaleController::class, 'getSaleWithoutReno']);
 

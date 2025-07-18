@@ -35,6 +35,7 @@ class Order extends Model
         'bathroom_count',
         'include_partition',
         'is_progressive_payment',
+        'is_be_powered',
         'total_amount',
         'final_amount',
         'description',
