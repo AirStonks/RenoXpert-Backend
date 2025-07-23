@@ -31,11 +31,16 @@ return new class extends Migration
         //     $table->softDeletes();
         // });
 
+        // // Staging: Done
+        // Schema::table('investor_interests', function (Blueprint $table) {
+        //     $table->string('units_owned')->after('unit_type');
+        //     $table->json('investment_goals')->after('rental_strategy');
+        //     $table->string('expected_rental_return')->after('rental_strategy');
+        // });
+
         // Staging: Done
-        Schema::table('investor_interests', function (Blueprint $table) {
-            $table->string('units_owned')->after('unit_type');
-            $table->json('investment_goals')->after('rental_strategy');
-            $table->string('expected_rental_return')->after('rental_strategy');
+        Schema::table('orders', function (Blueprint $table) {
+            $table->boolean('is_be_powered')->default(false)->after('is_progressive_payment');
         });
     }
 
