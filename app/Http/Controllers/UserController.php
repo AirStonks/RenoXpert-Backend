@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Models\User;
+use App\Models\Address;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use App\Http\Resources\UserResource;
 use App\Mail\UserCreatedEmail;
-use App\Models\Address;
-use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends BaseController
 {
@@ -196,9 +199,128 @@ class UserController extends BaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            // Find the user to update
+            $user = User::findOrFail($id);
+
+            // Get the authenticated user for authorization checks
+            $currentUser = auth()->user();
+
+            // Authorization check - ensure user can update this record
+            if (!$this->canUpdateUser($currentUser, $user)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized to update this user.',
+                    'data' => []
+                ], 403);
+            }
+
+            // Define validation rules based on user type
+            $rules = $this->getValidationRules($user->type, true); // true for update
+
+            // Validate the request
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'data' => $validator->errors()
+                ], 422);
+            }
+
+            // Get validated data
+            $validatedData = $validator->validated();
+
+            // Handle email uniqueness check (exclude current user)
+            if (isset($validatedData['email'])) {
+                $emailExists = User::where('email', $validatedData['email'])
+                    ->where('id', '!=', $id)
+                    ->exists();
+
+                if ($emailExists) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Email already exists.',
+                        'data' => ['email' => ['The email has already been taken.']]
+                    ], 422);
+                }
+            }
+
+            // Handle phone number uniqueness check (exclude current user)
+            if (isset($validatedData['phone_no'])) {
+                $phoneExists = User::where('phone_no', $validatedData['phone_no'])
+                    ->where('country_code', $validatedData['country_code'] ?? $user->country_code)
+                    ->where('id', '!=', $id)
+                    ->exists();
+
+                if ($phoneExists) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Phone number already exists.',
+                        'data' => ['phone_no' => ['The phone number has already been taken.']]
+                    ], 422);
+                }
+            }
+
+            // Prepare data for update
+            $updateData = $this->prepareUpdateData($validatedData, $user);
+
+            // Start database transaction
+            DB::beginTransaction();
+
+            try {
+                // Update user basic information
+                $user->update($updateData['user']);
+
+                // Handle address update for owner type users
+                if ($user->type === 'owner' && isset($updateData['address'])) {
+                    if ($user->address) {
+                        // Update existing address
+                        $user->address->update($updateData['address']);
+                    } else {
+                        // Create new address
+                        $user->address()->create($updateData['address']);
+                    }
+                }
+
+                // Refresh user data with relationships
+                $user->refresh();
+                $user->load(['address']);
+
+                // Log the update activity
+                // $this->logUserActivity($currentUser, 'updated', $user);
+
+                DB::commit();
+
+                return $this->sendResponse(new UserResource($user), 'User updated successfully.');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+                'data' => []
+            ], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('User update failed', [
+                'user_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update user. Please try again.',
+                'data' => []
+            ], 500);
+        }
     }
 
     public function resetPassword($id)
@@ -238,5 +360,103 @@ class UserController extends BaseController
         $user->save();
 
         return $this->sendResponse(null, 'User deactivated successfully.');
+    }
+
+    /**
+     * Check if current user can update the target user
+     */
+    private function canUpdateUser($currentUser, $targetUser)
+    {
+        // Super admin can update anyone except other super admins
+        if ($currentUser->type === 'super-admin') {
+            return $targetUser->type !== 'super-admin' || $currentUser->id === $targetUser->id;
+        }
+
+        // Admin can update staff and their own profile
+        if ($currentUser->type === 'admin') {
+            return $targetUser->type === 'staff' || $currentUser->id === $targetUser->id;
+        }
+
+        // Staff can only update their own profile
+        if ($currentUser->type === 'staff') {
+            return $currentUser->id === $targetUser->id;
+        }
+
+        // Users can update their own profile
+        return $currentUser->id === $targetUser->id;
+    }
+
+    /**
+     * Get validation rules based on user type
+     */
+    private function getValidationRules($userType, $isUpdate = false)
+    {
+        $baseRules = [
+            'name_first' => 'required|string|max:255',
+            'name_last' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'country_code' => 'required|string|max:5',
+            'phone_no' => 'required|string|max:20',
+        ];
+
+        // Add owner-specific validation rules
+        if ($userType === 'owner') {
+            $ownerRules = [
+                'salutations' => 'nullable|string|in:mr,ms,mrs,doctor,datuk,dato,datin,datuk_seri,dato_seri,datin_seri',
+                'name_preferred' => 'nullable|string|max:255',
+                'ic' => 'nullable|string|max:20',
+                'address.address_1' => 'nullable|string|max:255',
+                'address.address_2' => 'nullable|string|max:255',
+                'address.city' => 'nullable|string|max:100',
+                'address.state' => 'nullable|string|max:100',
+                'address.postcode' => 'nullable|string|max:10',
+            ];
+
+            $baseRules = array_merge($baseRules, $ownerRules);
+        }
+
+        return $baseRules;
+    }
+
+    /**
+     * Prepare data for update
+     */
+    private function prepareUpdateData($validatedData, $user)
+    {
+        $updateData = [
+            'user' => [],
+            'address' => []
+        ];
+
+        // Prepare user data
+        $userFields = ['name_first', 'name_last', 'email', 'country_code', 'phone_no'];
+
+        // Add owner-specific fields
+        if ($user->type === 'owner') {
+            $userFields = array_merge($userFields, ['salutations', 'name_preferred', 'ic']);
+        }
+
+        foreach ($userFields as $field) {
+            if (isset($validatedData[$field])) {
+                $updateData['user'][$field] = $validatedData[$field];
+            }
+        }
+
+        // Generate full name
+        if (isset($validatedData['name_first']) || isset($validatedData['name_last'])) {
+            $firstName = $validatedData['name_first'] ?? $user->name_first;
+            $lastName = $validatedData['name_last'] ?? $user->name_last;
+            $updateData['user']['name'] = trim($firstName . ' ' . $lastName);
+        }
+
+        // Prepare address data for owners
+        if ($user->type === 'owner' && isset($validatedData['address'])) {
+            $updateData['address'] = $validatedData['address'];
+        }
+
+        // Add updated timestamp
+        $updateData['user']['updated_at'] = now();
+
+        return $updateData;
     }
 }
