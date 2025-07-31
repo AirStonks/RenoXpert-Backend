@@ -31,12 +31,18 @@ return new class extends Migration
         //     $table->softDeletes();
         // });
 
-        // // Staging: Done
-        // Schema::table('investor_interests', function (Blueprint $table) {
-        //     $table->string('units_owned')->after('unit_type');
-        //     $table->json('investment_goals')->after('rental_strategy');
-        //     $table->string('expected_rental_return')->after('rental_strategy');
-        // });
+        // Staging: Done
+        Schema::table('packages', function (Blueprint $table) {
+            $table->double('monthly_amount')->default(0)->after('total_price');
+            $table->integer('tenure')->default(0)->after('total_price');
+            $table->double('markup_percentage')->default(0)->after('total_price');
+            $table->double('markup_amount')->default(0)->after('total_price');
+        });
+
+        // Staging: Done
+        Schema::table('orders', function (Blueprint $table) {
+            $table->integer('tenure')->default(0)->after('completion_day');
+        });
     }
 
     public function down()

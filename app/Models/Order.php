@@ -41,6 +41,7 @@ class Order extends Model
         'description',
         'internal_remark',
         'completion_day',
+        'tenure',
         'status',
         'released_at',
         'confirmed_at',

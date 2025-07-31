@@ -75,6 +75,7 @@ class OrderResource extends JsonResource
             'description' => $this->description,
             'internal_remark' => $this->internal_remark,
             'completion_day' => $this->completion_day,
+            'tenure' => $this->tenure,
             'status' => $this->status,
             'released_at' => $this->released_at ? $this->released_at->format('d/m/Y') : null,
             'confirmed_at' => $this->confirmed_at ? $this->confirmed_at->format('d/m/Y') : null,

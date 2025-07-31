@@ -142,6 +142,7 @@ class OrderController extends BaseController
                 'description' => 'nullable|string|max:0',
                 'internal_remark' => 'nullable|string|min:0',
                 'completion_day' => 'nullable|numeric|min:0',
+                'tenure' => 'nullable|numeric|min:0',
                 'metadata' => 'nullable', // Added validation for metadata
             ]);
 
@@ -361,6 +362,7 @@ class OrderController extends BaseController
                 'description' => 'nullable|string|max:0',
                 'internal_remark' => 'nullable|string|min:0',
                 'completion_day' => 'nullable|numeric|min:0',
+                'tenure' => 'nullable|numeric|min:0',
                 'metadata' => 'nullable', // Added validation for metadata
             ]);
 
@@ -435,6 +437,7 @@ class OrderController extends BaseController
             $order->description = $validatedData['description'];
             $order->internal_remark = $validatedData['internal_remark'];
             $order->completion_day = $validatedData['completion_day'];
+            $order->tenure = $validatedData['tenure'];
 
             // Ensure status is set properly
             if (!isset($validatedData['status'])) {

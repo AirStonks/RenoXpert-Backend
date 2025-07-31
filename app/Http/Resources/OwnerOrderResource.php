@@ -68,6 +68,7 @@ class OwnerOrderResource extends JsonResource
             'f_1' => $this->final_amount ? true : false,
             'description' => $this->description,
             'completion_day' => $this->completion_day,
+            'tenure' => $this->tenure,
             'status' => $this->status,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
