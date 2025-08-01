@@ -139,6 +139,7 @@ class OrderController extends BaseController
                 'is_be_powered' => 'nullable|boolean',
                 'installment_method' => 'nullable|string|max:255',
                 'installment_amount' => 'nullable|numeric|min:0',
+                'be_powered_base_price' => 'nullable|numeric|min:0',
                 'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:0',
@@ -438,6 +439,7 @@ class OrderController extends BaseController
             $order->is_be_powered = $input['is_be_powered'];
             $order->installment_method = $input['installment_method'] ?? 'dynamic';
             $order->installment_amount = $input['installment_amount'] ?? 0;
+            $order->be_powered_base_price = $input['be_powered_base_price'] ?? 0;
             $order->description = $validatedData['description'];
             $order->internal_remark = $validatedData['internal_remark'];
             $order->completion_day = $validatedData['completion_day'];

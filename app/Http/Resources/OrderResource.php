@@ -64,6 +64,7 @@ class OrderResource extends JsonResource
             'is_be_powered' => $this->is_be_powered ? true : false,
             'installment_method' => $this->installment_method,
             'installment_amount' => $this->installment_amount,
+            'be_powered_base_price' => $this->be_powered_base_price,
             'latest_quotation' => $latestQuotation ? new OrderQuotationResource($latestQuotation) : null,
             'order_quotations' => OrderQuotationResource::collection($orderQuotations), // This is now sorted in descending order
             // 'latest_quotation' => $latestQuotation ? $latestQuotation : null,

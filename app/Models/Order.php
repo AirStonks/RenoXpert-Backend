@@ -38,6 +38,7 @@ class Order extends Model
         'is_be_powered',
         'installment_method',
         'installment_amount',
+        'be_powered_base_price',
         'total_amount',
         'final_amount',
         'description',
