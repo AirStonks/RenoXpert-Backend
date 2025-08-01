@@ -42,6 +42,8 @@ return new class extends Migration
         // Staging: Done
         Schema::table('orders', function (Blueprint $table) {
             $table->integer('tenure')->default(0)->after('completion_day');
+            $table->double('installment_amount')->default(0)->after('is_be_powered');
+            $table->string('installment_method')->default('dynamic')->after('is_be_powered');
         });
     }
 

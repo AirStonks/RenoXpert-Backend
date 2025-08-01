@@ -137,6 +137,8 @@ class OrderController extends BaseController
                 'include_partition' => 'nullable|boolean',
                 'is_progressive_payment' => 'nullable|boolean',
                 'is_be_powered' => 'nullable|boolean',
+                'installment_method' => 'nullable|string|max:255',
+                'installment_amount' => 'nullable|numeric|min:0',
                 'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:0',
@@ -434,6 +436,8 @@ class OrderController extends BaseController
             $order->include_partition = $input['include_partition'];
             $order->is_progressive_payment = $input['is_progressive_payment'];
             $order->is_be_powered = $input['is_be_powered'];
+            $order->installment_method = $input['installment_method'] ?? 'dynamic';
+            $order->installment_amount = $input['installment_amount'] ?? 0;
             $order->description = $validatedData['description'];
             $order->internal_remark = $validatedData['internal_remark'];
             $order->completion_day = $validatedData['completion_day'];

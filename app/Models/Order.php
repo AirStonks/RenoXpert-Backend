@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Auth;
 
 class Order extends Model
 {
-    
+
     use SoftDeletes;
     use HasFactory;
-  
+
     /**
      * The attributes that are mass assignable.
      *
@@ -36,6 +36,8 @@ class Order extends Model
         'include_partition',
         'is_progressive_payment',
         'is_be_powered',
+        'installment_method',
+        'installment_amount',
         'total_amount',
         'final_amount',
         'description',
@@ -88,8 +90,8 @@ class Order extends Model
         return $this->hasMany(OrderQuotation::class, 'order_id', 'id');
     }
 
-    public function sale() {
+    public function sale()
+    {
         return $this->hasOne(Sale::class, 'order_id', 'id');
     }
 }
-
