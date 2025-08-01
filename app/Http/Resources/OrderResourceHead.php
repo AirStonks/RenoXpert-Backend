@@ -59,6 +59,9 @@ class OrderResourceHead extends JsonResource
             'include_partition' => $this->include_partition ? true : false,
             'is_progressive_payment' => $this->is_progressive_payment ? true : false,
             'is_be_powered' => $this->is_be_powered ? true : false,
+            'installment_method' => $this->installment_method,
+            'installment_amount' => $this->installment_amount,
+            'be_powered_base_price' => $this->be_powered_base_price,
             'latest_quotation' => $latestQuotation ? [
                 'id' => $latestQuotation->id,
                 'bonus' => json_decode($latestQuotation->bonus),
@@ -74,6 +77,7 @@ class OrderResourceHead extends JsonResource
             'description' => $this->description,
             'internal_remark' => $this->internal_remark,
             'completion_day' => $this->completion_day,
+            'tenure' => $this->tenure,
             'status' => $this->status,
             'released_at' => $this->released_at ? $this->released_at->format('d/m/Y') : null,
             'confirmed_at' => $this->confirmed_at ? $this->confirmed_at->format('d/m/Y') : null,

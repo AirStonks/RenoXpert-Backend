@@ -25,8 +25,8 @@ class PaymentController extends Controller
     {
         $this->host = env('APP_URL');
 
-        $this->username = 'designnow.adm@gmail.com';
-        $this->password = 'ruFMrLn5dxmoTjwJKRc2dAlip570gRSq';
+        $this->username = env('PAYEX_USERNAME');
+        $this->password = env('PAYEX_PASSWORD');
 
         $this->auth = base64_encode("$this->username:$this->password");
 

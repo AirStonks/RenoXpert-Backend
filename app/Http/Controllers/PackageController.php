@@ -179,9 +179,13 @@ class PackageController extends BaseController
             $input = $request->all();
 
             $validator = Validator::make($input, [
-                'packageName' => 'required|string|max:255',
+                'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'description_internal' => 'nullable|string',
+                'markup_amount' => 'nullable|numeric',
+                'markup_percentage' => 'nullable|numeric',
+                'monthly_amount' => 'nullable|numeric',
+                'tenure' => 'nullable|numeric',
                 'category' => 'required|string',
                 'is_addon' => 'nullable|boolean',
             ]);
@@ -192,9 +196,13 @@ class PackageController extends BaseController
 
             $validatedData = $validator->validated();
 
-            $package->name = $validatedData['packageName'];
+            $package->name = $validatedData['name'];
             $package->description = $validatedData['description'];
             $package->description_internal = $validatedData['description_internal'];
+            $package->markup_amount = $validatedData['markup_amount'];
+            $package->markup_percentage = $validatedData['markup_percentage'];
+            $package->monthly_amount = $validatedData['monthly_amount'];
+            $package->tenure = $validatedData['tenure'];
             $package->category = $validatedData['category'];
             $package->is_addon = $validatedData['is_addon'];
 
