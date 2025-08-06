@@ -73,6 +73,7 @@ class OwnerOrderResource extends JsonResource
             'completion_day' => $this->completion_day,
             'tenure' => $this->tenure,
             'status' => $this->status,
+            'released_at' => $this->released_at ? $this->released_at->format('d/m/Y') : null,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];
