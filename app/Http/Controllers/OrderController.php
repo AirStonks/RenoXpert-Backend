@@ -140,7 +140,6 @@ class OrderController extends BaseController
                 'installment_method' => 'nullable|string|max:255',
                 'installment_amount' => 'nullable|numeric|min:0',
                 'be_powered_base_price' => 'nullable|numeric|min:0',
-                'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
                 'description' => 'nullable|string|max:0',
                 'internal_remark' => 'nullable|string|min:0',
@@ -148,8 +147,6 @@ class OrderController extends BaseController
                 'tenure' => 'nullable|numeric|min:0',
                 'metadata' => 'nullable', // Added validation for metadata
             ]);
-
-            $input['metadata'] = json_decode($input['metadata']);
 
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
@@ -209,6 +206,43 @@ class OrderController extends BaseController
             if ($input['user_id'] == null) {
                 $input['status'] = 'draft';
             }
+
+            // Calculate total amount
+            $totalRetailPrice = $input['final_amount'] ?? 0;
+
+            if (!isset($input['final_amount']) && isset($input['metadata'])) {
+                $totalRetailPrice = 0;
+
+                foreach ($input['metadata'] as $pkg) {
+                    if ($pkg['is_addon'] === true && $pkg['is_addon_included'] === false) {
+                        continue;
+                    }
+
+                    $packageRetail = 0;
+                    foreach ($pkg['products'] as $product) {
+                        $supplyPrice = 0;
+                        if ($product['pivot']['includeSupply']) {
+                            $supplyPrice = ($product['provisioning']['supply']['retail_price'] * $product['pivot']['quantity']) ?? 0;
+                        } else {
+                            $supplyPrice = ($product['provisioning']['supply']['retail_price'] - $product['provisioning']['supply']['excluded_price']) ?? 0;
+                        }
+
+                        $installPrice = 0;
+                        if ($product['pivot']['includeInstall']) {
+                            $installPrice = ($product['provisioning']['install']['retail_price'] * $product['pivot']['quantity']) ?? 0;
+                        } else {
+                            $installPrice = ($product['provisioning']['install']['retail_price'] - $product['provisioning']['install']['excluded_price']) ?? 0;
+                        }
+
+                        $packageRetail += ($supplyPrice + $installPrice);
+                    }
+
+                    $totalRetailPrice += $packageRetail * ($pkg['quantity']  ?? 1);
+                }
+            }
+
+            // Override the input total_amount
+            $input['total_amount'] = $totalRetailPrice;
 
             // Create the Order
             $order = Order::create($input);
@@ -351,7 +385,6 @@ class OrderController extends BaseController
                 'user_id' => 'nullable|numeric|max:255',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
-                'total_amount' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
                 'unit_type' => 'nullable|string|max:255',
                 'block' => 'nullable|string|max:255',
@@ -421,9 +454,43 @@ class OrderController extends BaseController
                 $order->status = 'confirmed';
             }
 
+            // Calculate total amount
+            $totalRetailPrice = $input['final_amount'] ?? 0;
+
+            if (!isset($input['final_amount']) && isset($input['metadata'])) {
+                $totalRetailPrice = 0;
+
+                foreach ($input['metadata'] as $pkg) {
+                    if ($pkg['is_addon'] === true && $pkg['is_addon_included'] === false) {
+                        continue;
+                    }
+
+                    $packageRetail = 0;
+                    foreach ($pkg['products'] as $product) {
+                        $supplyPrice = 0;
+                        if ($product['pivot']['includeSupply']) {
+                            $supplyPrice = ($product['provisioning']['supply']['retail_price'] * $product['pivot']['quantity']) ?? 0;
+                        } else {
+                            $supplyPrice = ($product['provisioning']['supply']['retail_price'] - $product['provisioning']['supply']['excluded_price']) ?? 0;
+                        }
+
+                        $installPrice = 0;
+                        if ($product['pivot']['includeInstall']) {
+                            $installPrice = ($product['provisioning']['install']['retail_price'] * $product['pivot']['quantity']) ?? 0;
+                        } else {
+                            $installPrice = ($product['provisioning']['install']['retail_price'] - $product['provisioning']['install']['excluded_price']) ?? 0;
+                        }
+
+                        $packageRetail += ($supplyPrice + $installPrice);
+                    }
+
+                    $totalRetailPrice += $packageRetail * ($pkg['quantity'] ?? 1);
+                }
+            }
+
             $order->user_id = $validatedData['user_id'];
             $order->property_id = $validatedData['property_id'];
-            $order->total_amount = $input['total_amount'];
+            $order->total_amount = $totalRetailPrice;
             $order->final_amount = $input['final_amount'];
             $order->unit_type = $validatedData['unit_type'];
             $order->block = $validatedData['block'];
@@ -459,9 +526,9 @@ class OrderController extends BaseController
                 'quotation_id' => $validatedData['quotation_id'],
                 'quotation_name' => $latestQuotation->quotation_name,
                 'version' => $nextVersion,
-                'total_amount' => $order->total_amount + $bonusValue, // CHANGE IT LATER TO REAL DATA
+                'total_amount' => $order->total_amount,
                 'bonus' => $input['bonus'],
-                'metadata' => $validatedData['metadata'] ?? null,
+                'metadata' => json_encode($validatedData['metadata']) ?? null,
             ]);
 
             $order->save();
