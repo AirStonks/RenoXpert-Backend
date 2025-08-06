@@ -452,9 +452,9 @@ class DefectInspectionFormController extends BaseController
     //     "question": "q5",
     //     "fileIndex": 0
     // }
-    public function removeAttachment(Request $request, $renoProgressId)
+    public function removeAttachment(Request $request, $formId)
     {
-        $diForm = DefectInspectionForm::where('reno_progress_id', $renoProgressId)->first();
+        $diForm = DefectInspectionForm::find($formId);
 
         if (is_null($diForm)) {
             return $this->sendError('Form not found.');
