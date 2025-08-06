@@ -65,6 +65,7 @@ class OrderResourceHead extends JsonResource
             'latest_quotation' => $latestQuotation ? [
                 'id' => $latestQuotation->id,
                 'bonus' => json_decode($latestQuotation->bonus),
+                'packages' => json_decode($latestQuotation->metadata),
             ] : null,
             // 'latest_quotation' => $latestQuotation ? $latestQuotation : null,
             'unit_type' => $this->unit_type,
