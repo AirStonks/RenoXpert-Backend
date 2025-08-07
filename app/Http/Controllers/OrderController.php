@@ -157,30 +157,43 @@ class OrderController extends BaseController
 
             // Determine last order number based on draft or regular orders
             if ($isDraftMode) {
-                // Get the last draft order's number
-                $lastDraftOrder = Order::where('order_no', 'like', 'DRAFT-%')->orderBy('id', 'desc')->first();
+                // Get the last draft order's number - FIXED: Include ALL records (even soft deleted)
+                $lastDraftOrder = Order::withTrashed() // Include soft deleted records
+                    ->where('order_no', 'like', 'DRAFT-%')
+                    ->orderBy('id', 'desc')
+                    ->first();
                 $lastOrderNumber = $lastDraftOrder ? ((int)substr($lastDraftOrder->order_no, -5)) : 0;
 
-                // Generate new draft order number
-                $input['order_no'] = 'DRAFT-' . now()->format('y') . str_pad($lastOrderNumber + 1, 5, '0', STR_PAD_LEFT);
+                // Generate new draft order number with collision check
+                do {
+                    $lastOrderNumber++;
+                    $newOrderNumber = 'DRAFT-' . now()->format('y') . str_pad($lastOrderNumber, 5, '0', STR_PAD_LEFT);
+
+                    $exists = Order::withTrashed() // Include soft deleted records in collision check
+                        ->where('order_no', $newOrderNumber)
+                        ->exists();
+                } while ($exists);
+
+                $input['order_no'] = $newOrderNumber;
             } else {
-                // Get the highest existing order number with prefix 'QUO-'
-                $lastConfirmedOrder = Order::where('order_no', 'like', 'QUO-%')
-                    ->orderBy('order_no', 'desc') // Order by order_no to get the highest number
+                // Get the highest existing order number with prefix 'QUO-' - FIXED: Include ALL records
+                $lastConfirmedOrder = Order::withTrashed() // Include soft deleted records
+                    ->where('order_no', 'like', 'QUO-%')
+                    ->orderBy('order_no', 'desc')
                     ->first();
 
                 $lastOrderNumber = $lastConfirmedOrder ? ((int)substr($lastConfirmedOrder->order_no, -5)) : 0;
 
-                // Generate a unique order number
+                // Generate a unique order number with collision check
                 do {
-                    $lastOrderNumber++; // Increment the number
+                    $lastOrderNumber++;
                     $newOrderNumber = 'QUO-' . now()->format('y') . str_pad($lastOrderNumber, 5, '0', STR_PAD_LEFT);
 
-                    // Check if this order number already exists
-                    $exists = Order::where('order_no', $newOrderNumber)->exists();
-                } while ($exists); // Keep looping until a unique number is found
+                    $exists = Order::withTrashed() // Include soft deleted records in collision check
+                        ->where('order_no', $newOrderNumber)
+                        ->exists();
+                } while ($exists);
 
-                // Assign the unique order number
                 $input['order_no'] = $newOrderNumber;
             }
 
@@ -390,7 +403,6 @@ class OrderController extends BaseController
                 'block' => 'nullable|string|max:255',
                 'floor' => 'nullable|string|max:255',
                 'unit_no' => 'nullable|string|max:255',
-                // 'bedroom_count' => 'nullable|numeric|min:1',
                 'single_bedroom_count' => 'nullable|numeric|min:0',
                 'queen_bedroom_count' => 'nullable|numeric|min:0',
                 'studio_count' => 'nullable|numeric|min:0',
@@ -399,7 +411,7 @@ class OrderController extends BaseController
                 'internal_remark' => 'nullable|string|min:0',
                 'completion_day' => 'nullable|numeric|min:0',
                 'tenure' => 'nullable|numeric|min:0',
-                'metadata' => 'nullable', // Added validation for metadata
+                'metadata' => 'nullable',
             ]);
 
             if ($validator->fails()) {
@@ -409,36 +421,46 @@ class OrderController extends BaseController
             $validatedData = $validator->validated();
             $validatedData['bedroom_count'] = $input['single_bedroom_count'] + $input['queen_bedroom_count'] + $input['studio_count'];
 
-            // return $this->sendError($validatedData);
-
             $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && (float)$input['bonus']['value'] != 0
                 ? (float)$input['bonus']['value']
                 : 0;
 
-            // Check if bonus exists and is an array
+            // Handle bonus logic
             if (isset($input['bonus']) && is_array($input['bonus'])) {
-                // Check if 'value' in 'bonus' is '', null, or 0
                 if (empty($input['bonus']['value']) || $input['bonus']['value'] == 0) {
-                    // Set bonus as null if value is empty, null, or 0
                     $input['bonus'] = null;
                 } else {
-                    // Otherwise, encode the bonus as JSON
                     $input['bonus'] = json_encode($input['bonus']);
                 }
             } else {
-                // If no bonus exists or it's not an array, set it as null
                 $input['bonus'] = null;
             }
 
             $isDraftMode = empty($validatedData['user_id']);
 
-            // Handle Draft Numbering
+            // Handle Draft Numbering - FIXED: Include ALL records (even soft deleted)
             if ($isDraftMode) {
                 if (!Str::startsWith($order->order_no, 'DRAFT-')) {
-                    $lastDraftOrder = Order::where('order_no', 'like', 'DRAFT-%')->orderBy('id', 'desc')->first();
+                    // Use withTrashed() to include soft deleted records
+                    $lastDraftOrder = Order::withTrashed() // Include soft deleted records
+                        ->where('order_no', 'like', 'DRAFT-%')
+                        ->orderBy('id', 'desc')
+                        ->first();
+
                     $lastDraftNumber = $lastDraftOrder ? ((int)substr($lastDraftOrder->order_no, -5)) : 0;
 
-                    $order->order_no = 'DRAFT-' . now()->format('y') . str_pad($lastDraftNumber + 1, 5, '0', STR_PAD_LEFT);
+                    // Generate unique draft number with collision check
+                    do {
+                        $lastDraftNumber++;
+                        $newDraftNumber = 'DRAFT-' . now()->format('y') . str_pad($lastDraftNumber, 5, '0', STR_PAD_LEFT);
+
+                        $exists = Order::withTrashed() // Include soft deleted records in collision check
+                            ->where('order_no', $newDraftNumber)
+                            ->where('id', '!=', $order->id) // Exclude current order
+                            ->exists();
+                    } while ($exists);
+
+                    $order->order_no = $newDraftNumber;
                 }
             } elseif (!$isDraftMode && Str::startsWith($order->order_no, 'DRAFT-')) {
                 // Store original draft number
@@ -446,11 +468,25 @@ class OrderController extends BaseController
                     $order->draft_order_no = $order->order_no;
                 }
 
-                // Convert Draft to Confirmed Order
-                $lastConfirmedOrder = Order::where('order_no', 'like', 'QUO-%')->orderBy('id', 'desc')->first();
+                // Convert Draft to Confirmed Order - FIXED: Include ALL records
+                $lastConfirmedOrder = Order::withTrashed() // Include soft deleted records
+                    ->where('order_no', 'like', 'QUO-%')
+                    ->orderBy('order_no', 'desc')
+                    ->first();
+
                 $lastConfirmedNumber = $lastConfirmedOrder ? ((int)substr($lastConfirmedOrder->order_no, -5)) : 0;
 
-                $order->order_no = 'QUO-' . now()->format('y') . str_pad($lastConfirmedNumber + 1, 5, '0', STR_PAD_LEFT);
+                // Generate unique confirmed order number with collision check
+                do {
+                    $lastConfirmedNumber++;
+                    $newOrderNumber = 'QUO-' . now()->format('y') . str_pad($lastConfirmedNumber, 5, '0', STR_PAD_LEFT);
+
+                    $exists = Order::withTrashed() // Include soft deleted records in collision check
+                        ->where('order_no', $newOrderNumber)
+                        ->exists();
+                } while ($exists);
+
+                $order->order_no = $newOrderNumber;
                 $order->status = 'confirmed';
             }
 
@@ -488,6 +524,7 @@ class OrderController extends BaseController
                 }
             }
 
+            // Update order properties
             $order->user_id = $validatedData['user_id'];
             $order->property_id = $validatedData['property_id'];
             $order->total_amount = $totalRetailPrice;
