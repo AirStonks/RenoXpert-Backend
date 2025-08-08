@@ -53,6 +53,7 @@ use App\Http\Controllers\InvestorInterestController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\UserItemPermissionController;
 use App\Http\Controllers\DefectInspectionFormController;
+use App\Models\User;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -425,6 +426,18 @@ Route::get('/test/unauth/{renoId}/{saleId}', function ($renoId, $saleId) {
         'report_hash' => $base64UrlString
     ]);
 });
+
+Route::get('/test/users/adduuid', function () {
+    $users = User::get();
+
+    foreach ($users as $user) {
+        $user->uuid = Str::uuid();
+        $user->save();
+    }
+
+    return response()->json(['message' => 'UUID added successfully', 'count' => $users->count()]);
+});
+
 
 Route::get('/setDiFormHashed', function () {
     // Fetch all records where report_hash is null
