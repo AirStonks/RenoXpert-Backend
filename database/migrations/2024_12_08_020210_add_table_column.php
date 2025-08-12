@@ -30,6 +30,10 @@ return new class extends Migration
         // Schema::table('quo_pkg_prods', function (Blueprint $table) {
         //     $table->softDeletes();
         // });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->uuid('uuid')->after('id');
+        });
     }
 
     public function down()
