@@ -15,7 +15,8 @@ class InvestorInterestController extends BaseController
     public function index(Request $request)
     {
         // Retrieve the size parameter from the request with a default value of 5
-        $size = $request->input('size', 100);
+        // $size = $request->input('size', 100);
+        $size = 100;
 
         // Retrieve the search term from the request
         $search = $request->input('search', '');
