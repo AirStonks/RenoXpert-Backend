@@ -719,6 +719,18 @@ class OrderController extends BaseController
 
                 if ($order->final_amount) {
                     $totalAmount = $order->final_amount; // Use final_amount if available
+                } else if ($order->is_be_powered) {
+                    $packages = json_decode($latestQuotation->metadata, true);
+
+                    $totalAmount = array_reduce($packages, function ($carry, $package) {
+                        return $carry + (
+                            isset($package['is_be_powered']) && $package['is_be_powered'] &&
+                            $package['payment_method'] === 'one-off' &&
+                            (isset($package['is_addon']) ? $package['is_addon_included'] === true : true)
+                            ? (isset($package['markup_amount']) ? $package['markup_amount'] : $package['total_price']) * ($package['quantity'] ?? 1)
+                            : 0
+                        );
+                    }, $order->be_powered_base_price);
                 } else {
                     // Parse metadata from the latest quotation (assumed to be JSON)
                     $packages = json_decode($latestQuotation->metadata, true);
