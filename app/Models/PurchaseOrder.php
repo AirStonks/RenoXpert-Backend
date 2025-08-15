@@ -20,6 +20,7 @@ class PurchaseOrder extends Model
      */
     protected $fillable = [
         'po_no',
+        'reno_sale_id',
         'sale_id',
         'vendor_id',
         'total_amount',
@@ -54,6 +55,11 @@ class PurchaseOrder extends Model
     public function sale()
     {
         return $this->belongsTo(Sale::class, 'sale_id', 'id');
+    }
+
+    public function renoSale()
+    {
+        return $this->belongsTo(RenoXSale::class, 'reno_sale_id', 'id');
     }
 
     public function vendor()

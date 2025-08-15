@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\Order;
 use App\Models\Quotation;
+use App\Models\RenoXSale;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\OrderQuotation;
@@ -717,7 +718,54 @@ class OrderController extends BaseController
                 // Get the latest quotation
                 $latestQuotation = $order->orderQuotations()->latest()->first();
 
-                if ($order->final_amount) {
+                if ($order->is_be_powered) {
+                    $packages = json_decode($latestQuotation->metadata, true);
+                    $totalAmount = array_reduce($packages, function ($carry, $package) {
+                        // Skip if payment_method is not 'one-off'
+                        if (!isset($package['payment_method']) || $package['payment_method'] !== 'one-off') {
+                            return $carry;
+                        }
+
+                        // Skip if it's an add-on and not included
+                        if (
+                            isset($package['is_addon']) && $package['is_addon'] === true &&
+                            (!isset($package['is_addon_included']) || $package['is_addon_included'] === false)
+                        ) {
+                            return $carry;
+                        }
+
+                        // Calculate package total
+                        $packageTotal = array_reduce($package['products'], function ($sum, $product) {
+                            $quantity = $product['pivot']['quantity'] ?? 1;
+
+                            // Supply price
+                            $supplyPrice = 0;
+                            if ($product['pivot']['includeSupply']) {
+                                $supplyPrice = ($product['provisioning']['supply']['retail_price'] * $quantity) ?? 0;
+                            } else {
+                                $supplyPrice = ($product['provisioning']['supply']['retail_price'] -
+                                    $product['provisioning']['supply']['excluded_price']) ?? 0;
+                            }
+
+                            // Install price
+                            $installPrice = 0;
+                            if ($product['pivot']['includeInstall']) {
+                                $installPrice = ($product['provisioning']['install']['retail_price'] * $quantity) ?? 0;
+                            } else {
+                                $installPrice = ($product['provisioning']['install']['retail_price'] -
+                                    $product['provisioning']['install']['excluded_price']) ?? 0;
+                            }
+
+                            return $sum + $supplyPrice + $installPrice;
+                        }, 0);
+
+                        // Use markup_amount if available, otherwise use packageTotal
+                        $amount = isset($package['markup_amount']) ? $package['markup_amount'] : $packageTotal;
+                        $amount *= ($package['quantity'] ?? 1);
+
+                        return $carry + $amount;
+                    }, 25000);
+                } else if ($order->final_amount) {
                     $totalAmount = $order->final_amount; // Use final_amount if available
                 } else if ($order->is_be_powered) {
                     $packages = json_decode($latestQuotation->metadata, true);
@@ -790,6 +838,34 @@ class OrderController extends BaseController
                     'remaining_percentage' => 1,
                 ]);
 
+                // Check if any other Sale for same unit has a RenoXSale already
+                $existingSaleWithReno = Sale::whereHas('order', function ($query) use ($order) {
+                    $query->where('property_id', $order->property_id)
+                        ->where('block', $order->block)
+                        ->where('floor', $order->floor)
+                        ->where('unit_no', $order->unit_no);
+                })->whereNotNull('reno_sale_id')->first();
+
+                if ($existingSaleWithReno) {
+                    // Assign the same reno_sale_id to this sale
+                    $sale->reno_sale_id = $existingSaleWithReno->reno_sale_id;
+                    $sale->save();
+                } else {
+                    // Create a new RenoXSale with the correct formatted number
+                    $lastReno = RenoXSale::withTrashed()->latest('id')->first();
+                    $lastNumber = $lastReno ? (int)substr($lastReno->reno_sale_no, 4) : 2500000;
+                    $newNumber = $lastNumber + 1;
+                    $renoSaleNo = 'RXS-' . $newNumber;
+
+                    $newRenoSale = RenoXSale::create([
+                        'reno_sale_no' => $renoSaleNo,
+                    ]);
+
+                    // Assign new reno_sale_id to the current sale
+                    $sale->reno_sale_id = $newRenoSale->id;
+                    $sale->save();
+                }
+
                 // Ckeck for same property
                 $foundedOrder = Order::where('property_id', $order->property_id)
                     ->where('block', $order->block)
@@ -814,8 +890,6 @@ class OrderController extends BaseController
                         ]);
                     }
                 }
-
-                // TODO: Create/Update Inventory
 
                 return $this->sendResponse(['order_id' => $order->id, 'quotation_no' => $order->order_no], 'Order Confirmed');
             } else {

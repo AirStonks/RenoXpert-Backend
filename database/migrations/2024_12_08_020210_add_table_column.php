@@ -13,23 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        // Staging: Done
-        // PRD: Done
+        // SAMPLE
+        // STAGING: Done
         // Schema::table('users', function (Blueprint $table) {
         //     $table->string('country_code')->nullable()->after('status');
         // });
 
-        // // Staging: Done
-        // // POSTPONDED
-        // Schema::table('quotation_packages', function (Blueprint $table) {
-        //     $table->softDeletes();
-        // });
-
-        // // Staging: Done
-        // // POSTPONDED
-        // Schema::table('quo_pkg_prods', function (Blueprint $table) {
-        //     $table->softDeletes();
-        // });
+        // Staging: Done
+        Schema::table('po_items', function (Blueprint $table) {
+            $table->integer('supply_qty')->default(0)->after('supply_price');
+            $table->integer('install_qty')->default(0)->after('install_price');
+        });
     }
 
     public function down()

@@ -22,6 +22,7 @@ class POPackage extends Model
     protected $fillable = [
         'po_id',
         'package_id',
+        'sale_id',
         'name',
         'description',
         'description_internal',

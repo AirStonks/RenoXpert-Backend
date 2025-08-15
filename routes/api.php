@@ -8,10 +8,12 @@ use App\Models\RPMJob;
 use App\Models\Package;
 
 use App\Models\RPMTask;
+use App\Models\RenoXSale;
 use Illuminate\Support\Str;
 use App\Models\RenoProgress;
 use Illuminate\Http\Request;
 use App\Events\SaleStatusUpdated;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\UserResource;
 use App\Models\DefectInspectionForm;
@@ -39,6 +41,7 @@ use App\Http\Controllers\PhaseJobController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\RenoXSaleController;
 use App\Http\Controllers\RPMTaskQCController;
 use App\Http\Controllers\OTPRequestController;
 use App\Http\Controllers\PermissionController;
@@ -130,6 +133,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/properties', PropertyController::class);
     Route::apiResource('/orders', OrderController::class);
     Route::apiResource('/sales', SaleController::class);
+    Route::apiResource('/reno-sales', RenoXSaleController::class);
     Route::apiResource('/discountFees', DiscountFeeController::class);
     Route::apiResource('/invoices', InvoiceController::class);
     Route::apiResource('/users', UserController::class);
@@ -240,7 +244,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/purchase-orders/{id}/order/status/accepted', [PurchaseOrderController::class, 'acceptPO']);
     Route::get('/purchase-orders/{id}/order/status/rejected', [PurchaseOrderController::class, 'rejectPO']);
     Route::get('/purchase-orders/{id}/order/status/unreleased', [PurchaseOrderController::class, 'revertPO']);
-    Route::post('/purchase-orders/invoice/create', [InvoiceController::class, 'storePOInvoice']);
+    Route::get('/purchase-orders/sale/{saleId}', [PurchaseOrderController::class, 'getPurchaseOrderBySaleId']);
+    // Route::post('/purchase-orders/invoice/create', [InvoiceController::class, 'storePOInvoice']);
 
     Route::post('/products/{id}/attachments/thumbnail/change', [ProductController::class, 'changeThumbnail']);
     Route::get('/products/{id}/attachments/photos/{photoIndex}/remove', [ProductController::class, 'removeProductPhoto']);
@@ -285,176 +290,226 @@ Route::get('/test/{id}', [TestController::class, 'test']);
 Route::get('/disk', [DiskController::class, 'index']);
 
 // Emergency route
-Route::get('/tmp/startSaleRenoProgress/saleId/{saleId}', function ($saleId) {
-    // Get sale by saleId
-    $sale = Sale::find($saleId);
+// Route::get('/tmp/startSaleRenoProgress/saleId/{saleId}', function ($saleId) {
+//     // Get sale by saleId
+//     $sale = Sale::find($saleId);
 
-    if (!$sale) {
-        return response()->json(['error' => 'Sale not found'], 404);
+//     if (!$sale) {
+//         return response()->json(['error' => 'Sale not found'], 404);
+//     }
+
+//     event(new SaleStatusUpdated($sale));
+
+//     return response()->json(['message' => 'Sale status updated successfully']);
+// });
+
+// Route::get('/tmp/changeSaleStatus/{saleId}', function ($saleId) {
+//     // Get sale by saleId
+//     $sale = Sale::find($saleId);
+
+//     if (!$sale) {
+//         return response()->json(['error' => 'Sale not found'], 404);
+//     }
+
+//     $sale->status = 'partial-paid';
+//     $sale->save();
+
+//     return response()->json(['message' => 'Sale status updated successfully']);
+// });
+
+Route::get('/tmp/handle-auto-assign-reno-sales', function () {
+    $sales = Sale::with('order')->get();
+
+    // Group by property_id, block, floor, unit_no
+    $grouped = $sales->groupBy(function ($sale) {
+        $order = $sale->order;
+        return $order->property_id . '|' . $order->block . '|' . $order->floor . '|' . $order->unit_no;
+    });
+
+    DB::beginTransaction();
+
+    try {
+        foreach ($grouped as $groupKey => $groupSales) {
+            $firstSale = $groupSales->first();
+            $order = $firstSale->order;
+
+            // Check if reno_sale_id already exists
+            $existingRenoSaleId = $groupSales->pluck('reno_sale_id')->filter()->first();
+
+            if (!$existingRenoSaleId) {
+                // Generate next reno_sale_no
+                $lastReno = RenoXSale::withTrashed()->latest('id')->first();
+                $lastNumber = $lastReno ? (int)substr($lastReno->reno_sale_no, 4) : 2500000;
+                $newNumber = $lastNumber + 1;
+                $formattedNo = 'RXS-' . $newNumber;
+
+                $renoSale = RenoXSale::create([
+                    'reno_sale_no' => $formattedNo,
+                ]);
+
+                $renoSaleId = $renoSale->id;
+            } else {
+                $renoSaleId = $existingRenoSaleId;
+            }
+
+            // Assign to each Sale
+            foreach ($groupSales as $sale) {
+                $sale->reno_sale_id = $renoSaleId;
+                $sale->save();
+            }
+        }
+
+        DB::commit();
+        return "RenoXSales created and linked successfully.";
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['error' => $e->getMessage()], 500);
     }
-
-    event(new SaleStatusUpdated($sale));
-
-    return response()->json(['message' => 'Sale status updated successfully']);
 });
 
-Route::get('/tmp/changeSaleStatus/{saleId}', function ($saleId) {
-    // Get sale by saleId
-    $sale = Sale::find($saleId);
+// Route::get('/tmp/get-sales-with-no-reno/{property_id}', [SaleController::class, 'getSaleWithoutReno']);
 
-    if (!$sale) {
-        return response()->json(['error' => 'Sale not found'], 404);
-    }
+// Route::get('/test/unauth/{renoId}/{saleId}', function ($renoId, $saleId) {
 
-    $sale->status = 'partial-paid';
-    $sale->save();
+//     $renoProgress = \App\Models\RenoProgress::find($renoId);
+//     $sale = \App\Models\Sale::find($saleId);
 
-    return response()->json(['message' => 'Sale status updated successfully']);
-});
+//     $metadata = [
+//         'yard' => [
+//             'q1' => ['value' => '', 'remark' => null],
+//             'q2' => ['value' => '', 'remark' => null],
+//             'q3' => ['value' => '', 'remark' => null],
+//             'q4' => ['value' => '', 'remark' => null],
+//             'q5' => ['value' => '', 'remark' => null],
+//             'q6' => ['value' => '', 'remark' => null],
+//         ],
+//         'foyer' => [
+//             'q1' => ['value' => '', 'remark' => null],
+//             'q2' => ['value' => '', 'remark' => null],
+//             'q3' => ['value' => '', 'remark' => null],
+//             'q4' => ['value' => '', 'remark' => null],
+//         ],
+//         'living' => [
+//             'q1' => ['value' => '', 'remark' => null],
+//             'q2' => ['value' => '', 'remark' => null],
+//             'q3' => ['value' => '', 'remark' => null],
+//             'q4' => ['value' => '', 'remark' => null],
+//             'q5' => ['value' => '', 'remark' => null],
+//             'q6' => ['value' => '', 'remark' => null],
+//             'q7' => ['value' => '', 'remark' => null],
+//             'q8' => ['value' => '', 'remark' => null],
+//             'q9' => ['value' => '', 'remark' => null],
+//         ],
+//         'balcony' => [
+//             'q1' => ['value' => '', 'remark' => null],
+//             'q2' => ['value' => '', 'remark' => null],
+//             'q3' => ['value' => '', 'remark' => null],
+//             'q4' => ['value' => '', 'remark' => null],
+//         ],
+//         'hallway' => [
+//             'q1' => ['value' => '', 'remark' => null],
+//             'q2' => ['value' => '', 'remark' => null],
+//             'q3' => ['value' => '', 'remark' => null],
+//             'q4' => ['value' => '', 'remark' => null],
+//         ],
+//         'kitchen' => [
+//             'q1' => ['value' => '', 'remark' => null],
+//             'q2' => ['value' => '', 'remark' => null],
+//             'q3' => ['value' => '', 'remark' => null],
+//             'q4' => ['value' => '', 'remark' => null],
+//             'q5' => ['value' => '', 'remark' => null],
+//             'q6' => ['value' => '', 'remark' => null],
+//             'q7' => ['value' => '', 'remark' => null],
+//             'q8' => ['value' => '', 'remark' => null],
+//         ],
+//         'bedrooms' => [],
+//         'bathrooms' => [],
+//     ];
 
-Route::get('/tmp/get-sales-with-no-reno/{property_id}', [SaleController::class, 'getSaleWithoutReno']);
+//     // Generate bedroom entries dynamically
+//     $bedroomTemplate = [
+//         'q1' => ['value' => '', 'remark' => null],
+//         'q2' => ['value' => '', 'remark' => null],
+//         'q3' => ['value' => '', 'remark' => null],
+//         'q4' => ['value' => '', 'remark' => null],
+//         'q5' => ['value' => '', 'remark' => null],
+//         'q6' => ['value' => '', 'remark' => null],
+//         'q7' => ['value' => '', 'remark' => null],
+//         'q8' => ['value' => '', 'remark' => null],
+//         'q9' => ['value' => '', 'remark' => null],
+//     ];
 
-Route::get('/test/unauth/{renoId}/{saleId}', function ($renoId, $saleId) {
+//     for ($i = 1; $i <= $sale->order->bedroom_count; $i++) {
+//         $metadata['bedrooms']["bedroom{$i}"] = $bedroomTemplate;
+//     }
 
-    $renoProgress = \App\Models\RenoProgress::find($renoId);
-    $sale = \App\Models\Sale::find($saleId);
+//     // Generate bathroom entries dynamically
+//     $bathroomTemplate = [
+//         'q1' => ['value' => '', 'remark' => null],
+//         'q2' => ['value' => '', 'remark' => null],
+//         'q3' => ['value' => '', 'remark' => null],
+//         'q4' => ['value' => '', 'remark' => null],
+//         'q5' => ['value' => '', 'remark' => null],
+//         'q6' => ['value' => '', 'remark' => null],
+//         'q7' => ['value' => '', 'remark' => null],
+//         'q8' => ['value' => '', 'remark' => null],
+//         'q9' => ['value' => '', 'remark' => null],
+//     ];
 
-    $metadata = [
-        'yard' => [
-            'q1' => ['value' => '', 'remark' => null],
-            'q2' => ['value' => '', 'remark' => null],
-            'q3' => ['value' => '', 'remark' => null],
-            'q4' => ['value' => '', 'remark' => null],
-            'q5' => ['value' => '', 'remark' => null],
-            'q6' => ['value' => '', 'remark' => null],
-        ],
-        'foyer' => [
-            'q1' => ['value' => '', 'remark' => null],
-            'q2' => ['value' => '', 'remark' => null],
-            'q3' => ['value' => '', 'remark' => null],
-            'q4' => ['value' => '', 'remark' => null],
-        ],
-        'living' => [
-            'q1' => ['value' => '', 'remark' => null],
-            'q2' => ['value' => '', 'remark' => null],
-            'q3' => ['value' => '', 'remark' => null],
-            'q4' => ['value' => '', 'remark' => null],
-            'q5' => ['value' => '', 'remark' => null],
-            'q6' => ['value' => '', 'remark' => null],
-            'q7' => ['value' => '', 'remark' => null],
-            'q8' => ['value' => '', 'remark' => null],
-            'q9' => ['value' => '', 'remark' => null],
-        ],
-        'balcony' => [
-            'q1' => ['value' => '', 'remark' => null],
-            'q2' => ['value' => '', 'remark' => null],
-            'q3' => ['value' => '', 'remark' => null],
-            'q4' => ['value' => '', 'remark' => null],
-        ],
-        'hallway' => [
-            'q1' => ['value' => '', 'remark' => null],
-            'q2' => ['value' => '', 'remark' => null],
-            'q3' => ['value' => '', 'remark' => null],
-            'q4' => ['value' => '', 'remark' => null],
-        ],
-        'kitchen' => [
-            'q1' => ['value' => '', 'remark' => null],
-            'q2' => ['value' => '', 'remark' => null],
-            'q3' => ['value' => '', 'remark' => null],
-            'q4' => ['value' => '', 'remark' => null],
-            'q5' => ['value' => '', 'remark' => null],
-            'q6' => ['value' => '', 'remark' => null],
-            'q7' => ['value' => '', 'remark' => null],
-            'q8' => ['value' => '', 'remark' => null],
-        ],
-        'bedrooms' => [],
-        'bathrooms' => [],
-    ];
-
-    // Generate bedroom entries dynamically
-    $bedroomTemplate = [
-        'q1' => ['value' => '', 'remark' => null],
-        'q2' => ['value' => '', 'remark' => null],
-        'q3' => ['value' => '', 'remark' => null],
-        'q4' => ['value' => '', 'remark' => null],
-        'q5' => ['value' => '', 'remark' => null],
-        'q6' => ['value' => '', 'remark' => null],
-        'q7' => ['value' => '', 'remark' => null],
-        'q8' => ['value' => '', 'remark' => null],
-        'q9' => ['value' => '', 'remark' => null],
-    ];
-
-    for ($i = 1; $i <= $sale->order->bedroom_count; $i++) {
-        $metadata['bedrooms']["bedroom{$i}"] = $bedroomTemplate;
-    }
-
-    // Generate bathroom entries dynamically
-    $bathroomTemplate = [
-        'q1' => ['value' => '', 'remark' => null],
-        'q2' => ['value' => '', 'remark' => null],
-        'q3' => ['value' => '', 'remark' => null],
-        'q4' => ['value' => '', 'remark' => null],
-        'q5' => ['value' => '', 'remark' => null],
-        'q6' => ['value' => '', 'remark' => null],
-        'q7' => ['value' => '', 'remark' => null],
-        'q8' => ['value' => '', 'remark' => null],
-        'q9' => ['value' => '', 'remark' => null],
-    ];
-
-    for ($i = 1; $i <= $sale->order->bathroom_count; $i++) {
-        $metadata['bathrooms']["bathroom{$i}"] = $bathroomTemplate;
-    }
+//     for ($i = 1; $i <= $sale->order->bathroom_count; $i++) {
+//         $metadata['bathrooms']["bathroom{$i}"] = $bathroomTemplate;
+//     }
 
 
-    // Generate hashed link for report
-    $randomString = Str::random(32); // 32-character random string
-    $base64String = base64_encode($randomString);
-    $base64UrlString = str_replace(['+', '/', '='], ['-', '_', ''], $base64String);
+//     // Generate hashed link for report
+//     $randomString = Str::random(32); // 32-character random string
+//     $base64String = base64_encode($randomString);
+//     $base64UrlString = str_replace(['+', '/', '='], ['-', '_', ''], $base64String);
 
-    $form = DefectInspectionForm::create([
-        'reno_progress_id' => $renoProgress->id,
-        'property_name' => $sale->order->property_id,
-        'owner_email' => $sale->order->user->email,
-        'other_property_name' => null,
-        'block' => $sale->order->block,
-        'level' => $sale->order->floor,
-        'unit' => $sale->order->unit_no,
-        'status' => 'not_submitted',
-        'bedroom_count' => $sale->order->bedroom_count,
-        'bathroom_count' => $sale->order->bathroom_count,
-        'metadata' => json_encode($metadata),
-        'report_hash' => $base64UrlString
-    ]);
-});
+//     $form = DefectInspectionForm::create([
+//         'reno_progress_id' => $renoProgress->id,
+//         'property_name' => $sale->order->property_id,
+//         'owner_email' => $sale->order->user->email,
+//         'other_property_name' => null,
+//         'block' => $sale->order->block,
+//         'level' => $sale->order->floor,
+//         'unit' => $sale->order->unit_no,
+//         'status' => 'not_submitted',
+//         'bedroom_count' => $sale->order->bedroom_count,
+//         'bathroom_count' => $sale->order->bathroom_count,
+//         'metadata' => json_encode($metadata),
+//         'report_hash' => $base64UrlString
+//     ]);
+// });
 
-Route::get('/test/users/adduuid', function () {
-    $users = User::get();
+// Route::get('/test/users/adduuid', function () {
+//     $users = User::get();
 
-    foreach ($users as $user) {
-        $user->uuid = Str::uuid();
-        $user->save();
-    }
+//     foreach ($users as $user) {
+//         $user->uuid = Str::uuid();
+//         $user->save();
+//     }
 
-    return response()->json(['message' => 'UUID added successfully', 'count' => $users->count()]);
-});
+//     return response()->json(['message' => 'UUID added successfully', 'count' => $users->count()]);
+// });
 
 
-Route::get('/setDiFormHashed', function () {
-    // Fetch all records where report_hash is null
-    $forms = DefectInspectionForm::get();
+// Route::get('/setDiFormHashed', function () {
+//     // Fetch all records where report_hash is null
+//     $forms = DefectInspectionForm::get();
 
-    foreach ($forms as $form) {
-        // Combine id and reno_progress_id to create a unique base string
-        $baseString = $form->id . '-' . ($form->reno_progress_id ?? '0');
+//     foreach ($forms as $form) {
+//         // Combine id and reno_progress_id to create a unique base string
+//         $baseString = $form->id . '-' . ($form->reno_progress_id ?? '0');
 
-        // Generate SHA-256 hash and take the first 32 characters
-        $hash = hash('sha256', $baseString);
-        $shortHash = substr($hash, 0, 12); // Truncate to 16 characters for brevity
+//         // Generate SHA-256 hash and take the first 32 characters
+//         $hash = hash('sha256', $baseString);
+//         $shortHash = substr($hash, 0, 12); // Truncate to 16 characters for brevity
 
-        // Update the record with the new report_hash
-        $form->report_hash = $shortHash;
-        $form->save();
-    }
+//         // Update the record with the new report_hash
+//         $form->report_hash = $shortHash;
+//         $form->save();
+//     }
 
-    return response()->json(['message' => 'Report hashes updated successfully', 'count' => $forms->count()]);
-});
+//     return response()->json(['message' => 'Report hashes updated successfully', 'count' => $forms->count()]);
+// });

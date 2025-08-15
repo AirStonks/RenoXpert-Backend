@@ -17,15 +17,13 @@ class InvoiceResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'sale_id' => $this->sale_id,
-            'sale' => $this->sale ? new SaleResource($this->sale) : null,
-            'po' => $this->po ? new PurchaseOrderResource($this->po) : null,
+            'item_id' => $this->item_id,
             'payments' => PaymentResource::collection($this->payments),
             'invoice_no' => $this->invoice_no,
             'amount' => $this->amount,
-            'discountsData' => json_decode($this->discountsData),
+            'discountsData' => $this->discountsData,
             'percentage' => $this->percentage,
-            'feesData' => json_decode($this->feesData),
+            'feesData' => $this->feesData,
             'status' => $this->status,
             'link_status' => $this->link_status,
             'version' => $this->version,
@@ -35,4 +33,3 @@ class InvoiceResource extends JsonResource
         ];
     }
 }
-

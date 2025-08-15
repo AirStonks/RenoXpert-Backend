@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class POItem extends Model
+class RenoXSale extends Model
 {
     use SoftDeletes;
     use HasFactory;
 
-    protected $table = 'po_items';
+    protected $table = 'reno_x_sales';
 
     /**
      * The attributes that are mass assignable.
@@ -19,32 +19,12 @@ class POItem extends Model
      * @var array
      */
     protected $fillable = [
-        'po_package_id',
-        'product_id',
-        'product_name',
-        'product_desc',
-        'sku',
-        'qty',
-        'uom',
-        'supply',
-        'install',
-        'supply_price',
-        'install_price',
-        'supply_qty',
-        'install_qty',
-        'unit_price',
-        'total_price',
+        'reno_sale_no',
         'status',
-        'shipping_date',
-        'shipped_date',
-        'delivery_date',
-        'delivered_date',
         'created_by',
         'updated_by',
         'deleted_at',
-        'sequence',
     ];
-
 
     protected static function boot()
     {
@@ -59,8 +39,14 @@ class POItem extends Model
         });
     }
 
-    public function poPackage()
+
+    public function sales()
     {
-        return $this->belongsTo(POPackage::class, 'po_package_id', 'id');
+        return $this->hasMany(Sale::class, 'reno_sale_id', 'id');
+    }
+
+    public function purchaseOrders()
+    {
+        return $this->hasMany(PurchaseOrder::class, 'reno_sale_id', 'id');
     }
 }

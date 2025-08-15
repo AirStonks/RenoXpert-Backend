@@ -18,11 +18,7 @@ class PurchaseOrderResource extends JsonResource
             'id' => $this->id,
             'po_no' => $this->po_no,
             'sale_id' => $this->sale_id,
-            'sale' => $this->sale ? [
-                'id' => $this->sale->id,
-                'sales_no' => $this->sale->sales_no,
-                'order' => new OrderResource($this->sale->order),
-            ] : null,
+            'reno_sale_id' => $this->reno_sale_id,
             'vendor_id' => $this->vendor_id,
             // 'vendor' => $this->vendor()->with('address')->first(),
             'vendor' => $this->vendor,
@@ -32,7 +28,7 @@ class PurchaseOrderResource extends JsonResource
                 }])
                 ->orderBy('sequence', 'asc')
                 ->get(),
-            'invoices' => $this->invoices,
+            'invoices' => InvoiceResource::collection($this->invoices),
             'total_amount' => $this->total_amount,
             'remaining_amount' => $this->remaining_amount,
             'remaining_percentage' => $this->remaining_percentage,

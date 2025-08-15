@@ -30,7 +30,9 @@ class Invoice extends Model
     ];
 
     protected $casts = [
-        'due_date' => 'datetime'
+        'discountsData' => 'array',
+        'feesData' => 'array',
+        'due_date' => 'datetime',
     ];
 
     protected static function boot()

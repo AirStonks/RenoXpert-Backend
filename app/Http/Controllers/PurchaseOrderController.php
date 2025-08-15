@@ -130,6 +130,7 @@ class PurchaseOrderController extends BaseController
             // Step 1: Validate the input
             $validator = Validator::make($input, [
                 'sale_id' => 'nullable|exists:sales,id', // Changed to nullable
+                'reno_sale_id' => 'required|exists:reno_x_sales,id', // Changed to nullable
                 'vendor_id' => 'required|exists:users,id',
                 'po_packages' => 'required|array',
                 'po_packages.*.package_id' => 'required|integer',
@@ -141,8 +142,8 @@ class PurchaseOrderController extends BaseController
                 'po_packages.*.po_items.*.product_name' => 'required|string',
                 'po_packages.*.po_items.*.product_desc' => 'nullable|string',
                 'po_packages.*.po_items.*.qty' => 'required|integer|min:1',
-                'po_packages.*.po_items.*.supply' => 'required|boolean',
-                'po_packages.*.po_items.*.install' => 'required|boolean',
+                'po_packages.*.po_items.*.supply_qty' => 'required|integer|min:0',
+                'po_packages.*.po_items.*.install_qty' => 'required|integer|min:0',
                 'po_packages.*.po_items.*.supply_price' => 'required|numeric|min:0',
                 'po_packages.*.po_items.*.install_price' => 'required|numeric|min:0',
                 'po_packages.*.po_items.*.unit_price' => 'required|numeric|min:0',
@@ -169,6 +170,7 @@ class PurchaseOrderController extends BaseController
                 $newPo = PurchaseOrder::create([
                     'po_no' => $input['po_no'],
                     'sale_id' => $input['sale_id'] ?? null, // Allow null
+                    'reno_sale_id' => $input['reno_sale_id'] ?? null, // Allow null
                     'vendor_id' => $input['vendor_id'],
                     'total_amount' => $input['total_amount'],
                     'remaining_amount' => $input['total_amount'],
@@ -213,9 +215,9 @@ class PurchaseOrderController extends BaseController
                                     'product_name' => $itemData['product_name'],
                                     'product_desc' => $itemData['product_desc'],
                                     'qty' => $itemData['qty'],
+                                    'supply_qty' => $itemData['supply_qty'],
+                                    'install_qty' => $itemData['install_qty'],
                                     'uom' => $itemData['uom'] ?? null,
-                                    'supply' => $itemData['supply'],
-                                    'install' => $itemData['install'],
                                     'supply_price' => $itemData['supply_price'],
                                     'install_price' => $itemData['install_price'],
                                     'unit_price' => $itemData['unit_price'],
@@ -259,7 +261,7 @@ class PurchaseOrderController extends BaseController
         }
         */
 
-            return $this->sendResponse(new PurchaseOrderResource($newPo), 'Property added successfully.');
+            return $this->sendResponse(new PurchaseOrderResource($newPo), 'Purchase Order added successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th->getMessage());
         }
@@ -292,6 +294,17 @@ class PurchaseOrderController extends BaseController
         }
 
         return $this->sendResponse(new PurchaseOrderResource($po, true), 'Purchase Order retrieved successfully.');
+    }
+
+    public function getPurchaseOrderBySaleId($saleId)
+    {
+        $po = PurchaseOrder::where('sale_id', $saleId)->get();
+
+        if (is_null($po)) {
+            return $this->sendError('Purchase Order not found.');
+        }
+
+        return $this->sendResponse(PurchaseOrderResource::collection($po), 'Purchase Order retrieved successfully.');
     }
 
     /**
@@ -480,10 +493,8 @@ class PurchaseOrderController extends BaseController
     {
         return array_reduce($poPackages, function ($total, $packageItem) {
             $packageTotal = array_reduce($packageItem['po_items'] ?? [], function ($packageTotal, $product) {
-                $productTotal = $product['qty'] * (
-                    ($product['supply'] ? $product['supply_price'] : 0) +
-                    ($product['install'] ? $product['install_price'] : 0)
-                );
+                $productTotal = ($product['supply_qty'] * $product['supply_price']) + ($product['install_qty'] * $product['install_price']);
+
                 return $packageTotal + $productTotal;
             }, 0);
 
