@@ -111,7 +111,6 @@ class OrderController extends BaseController
         return $this->sendResponse(OwnerOrderResource::collection($orders), 'Order retrieved successfully.');
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
@@ -524,6 +523,8 @@ class OrderController extends BaseController
                     $totalRetailPrice += $packageRetail * ($pkg['quantity'] ?? 1);
                 }
             }
+
+            // return $this->sendError('TEST', $totalRetailPrice);
 
             // Update order properties
             $order->user_id = $validatedData['user_id'];

@@ -135,7 +135,6 @@ class PurchaseOrderController extends BaseController
                 'po_packages' => 'required|array',
                 'po_packages.*.package_id' => 'required|integer',
                 'po_packages.*.name' => 'required|string',
-                'po_packages.*.quantity' => 'required|integer|min:1',
                 'po_packages.*.total_price' => 'required|numeric|min:0',
                 'po_packages.*.po_items' => 'sometimes|array',
                 'po_packages.*.po_items.*.product_id' => 'required|integer',
@@ -195,7 +194,6 @@ class PurchaseOrderController extends BaseController
                             'description' => $packageData['description'] ?? null,
                             'description_internal' => $packageData['description_internal'] ?? null,
                             'category' => $packageData['category'] ?? null,
-                            'quantity' => $packageData['quantity'],
                             'total_price' => $packageData['total_price'],
                             'sequence' => $sequence,
                         ]);
@@ -344,6 +342,10 @@ class PurchaseOrderController extends BaseController
             foreach ($inputPackages as $index => $packageData) {
                 $sequence = $index + 1;
 
+                // We'll recalculate the package price after processing items
+                $calculatedPackagePrice = 0;
+                $package = null;
+
                 if (isset($packageData['id']) && $packageData['id']) {
                     // Existing package: update it
                     $package = POPackage::find($packageData['id']);
@@ -378,39 +380,56 @@ class PurchaseOrderController extends BaseController
                 foreach ($inputItems as $itemIndex => $itemData) {
                     $itemSequence = $itemIndex + 1;
 
+                    // Calculate item price: (supply_qty * supply_price) + (install_qty * install_price)
+                    $supplyQty = isset($itemData['supply_qty']) ? floatval($itemData['supply_qty']) : 0;
+                    $supplyPrice = isset($itemData['supply_price']) ? floatval($itemData['supply_price']) : 0;
+                    $installQty = isset($itemData['install_qty']) ? floatval($itemData['install_qty']) : 0;
+                    $installPrice = isset($itemData['install_price']) ? floatval($itemData['install_price']) : 0;
+                    $itemPrice = ($supplyQty * $supplyPrice) + ($installQty * $installPrice);
+
+                    $itemDataWithPrice = array_merge($itemData, [
+                        'sequence' => $itemSequence,
+                        'price' => $itemPrice,
+                    ]);
+
                     if (isset($itemData['id']) && $itemData['id']) {
                         // Existing item: update it
                         $item = POItem::find($itemData['id']);
                         if ($item) {
-                            $item->update(array_merge(
-                                $itemData,
-                                ['sequence' => $itemSequence]
-                            ));
+                            $item->update($itemDataWithPrice);
                         }
                     } else {
                         // New item: create it
                         $item = POItem::create(
-                            array_merge($itemData, [
+                            array_merge($itemDataWithPrice, [
                                 'po_package_id' => $package->id,
-                                'sequence' => $itemSequence,
                             ])
                         );
                         $newItemIds[] = $item->id; // Add new item ID
                     }
+
+                    // Add to package price
+                    $calculatedPackagePrice += $itemPrice;
                 }
 
-                // Step 6: Remove items not in the input (soft delete)
-                $allItemIds = array_merge($inputItemIds, $newItemIds); // Include new IDs
+                // Step 6: Remove items not in the input (hard delete)
+                // Compare existing items with input items and remove those not included
+                $allItemIds = array_merge($inputItemIds, $newItemIds);
                 POItem::where('po_package_id', $package->id)
                     ->whereNotIn('id', $allItemIds)
-                    ->delete();
+                    ->forceDelete();
+
+                // Step 7: Update the package price after all items processed
+                $package->total_price = $calculatedPackagePrice;
+                $package->save();
             }
 
-            // Step 7: Remove packages not in the input (soft delete)
+            // Step 8: Remove packages not in the input (hard delete)
+            // Compare existing packages with input packages and remove those not included
             $allPackageIds = array_merge($inputPackageIds, $newPackageIds);
             POPackage::where('po_id', $purchaseOrder->id)
                 ->whereNotIn('id', $allPackageIds)
-                ->delete();
+                ->forceDelete();
         });
 
         // Return success response with the updated Purchase Order
