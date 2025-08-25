@@ -57,6 +57,8 @@ use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\UserItemPermissionController;
 use App\Http\Controllers\DefectInspectionFormController;
 use App\Models\User;
+use App\Models\ApiKey;
+use App\Http\Controllers\ApiKeyController;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -145,6 +147,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/inventory', InventoryController::class);
     Route::apiResource('/defect-inspection-forms', DefectInspectionFormController::class);
     Route::apiResource('/key-management', KeyManagementController::class);
+
+    // API Key Management Routes
+    Route::apiResource('/api-keys', ApiKeyController::class);
+    Route::post('/api-keys/{id}/regenerate', [ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
 
     Route::get('users/{id}/password/reset', [UserController::class, 'resetPassword']);
     Route::get('users/{id}/deactivate', [UserController::class, 'deactivateUser']);
