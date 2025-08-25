@@ -290,6 +290,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/data', [MyController::class, 'getData']);
 });
 
+// API Key Management Routes
+Route::middleware('auth.api_key')->get('/v1/user', function () {
+    return response()->json(['user' => auth()->user()]);
+});
+Route::middleware('auth.api_key')->group(function () {
+    // API Key Management Routes
+    // Get owner order by uuid
+    Route::get('/v1/owner/orders/{uuid}', [OrderController::class, 'showOwnerOrdersByUuid']);
+});
+
 Route::get('/test/{id}', [TestController::class, 'test']);
 
 

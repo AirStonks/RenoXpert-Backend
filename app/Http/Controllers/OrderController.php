@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use App\Models\User;
 use App\Models\Order;
 use App\Models\Quotation;
 use App\Models\RenoXSale;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use App\Http\Resources\API\OrderResource as APIOrderResource;
 use App\Http\Resources\OrderResource;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
@@ -329,6 +331,25 @@ class OrderController extends BaseController
 
         // If the order exists and belongs to the user, return the order data
         return $this->sendResponse(new OwnerOrderResource($order), 'Order retrieved successfully.');
+    }
+
+    public function showOwnerOrdersByUuid($uuid)
+    {
+        // 1. Search user by uuid
+        $user = User::where('uuid', $uuid)->first();
+        if (!$user) {
+            return $this->sendError('User not found.');
+        }
+
+        // 2. Search order by user_id
+        $order = Order::where('user_id', $user->id)->get();
+
+        if (!$order) {
+            return $this->sendError('Order not found.');
+        }
+
+        // If the order exists and belongs to the user, return the order data
+        return $this->sendResponse(APIOrderResource::collection($order), 'Orders sretrieved successfully.');
     }
 
     public function getOrderOverviewHead($orderId)
