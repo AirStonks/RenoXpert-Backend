@@ -333,23 +333,48 @@ class OrderController extends BaseController
         return $this->sendResponse(new OwnerOrderResource($order), 'Order retrieved successfully.');
     }
 
-    public function showOwnerOrdersByUuid($uuid)
+    public function showOwnerOrdersByUuid(Request $request, $uuid)
     {
         // 1. Search user by uuid
         $user = User::where('uuid', $uuid)->first();
+        $input = $request->all();
         if (!$user) {
             return $this->sendError('User not found.');
         }
 
-        // 2. Search order by user_id
-        $order = Order::where('user_id', $user->id)->get();
+        // 2. Search order by id, but only if it belongs to the user
+        if (isset($input['id'])) {
+            $order = Order::where('id', $input['id'])
+                ->where('user_id', $user->id)
+                ->first();
+            if (!$order) {
+                return $this->sendError('Order not found or access denied.');
+            }
 
-        if (!$order) {
-            return $this->sendError('Order not found.');
+            return $this->sendResponse(new APIOrderResource($order), 'Order retrieved successfully.');
         }
 
-        // If the order exists and belongs to the user, return the order data
-        return $this->sendResponse(APIOrderResource::collection($order), 'Orders sretrieved successfully.');
+        // 3. Search order by order_no, but only if it belongs to the user
+        if (isset($input['order_no'])) {
+            $order = Order::where('order_no', $input['order_no'])
+                ->where('user_id', $user->id)
+                ->first();
+            if (!$order) {
+                return $this->sendError('Order not found or access denied.');
+            }
+
+            return $this->sendResponse(new APIOrderResource($order), 'Order retrieved successfully.');
+        }
+
+        // 4. Get all orders belonging to the user
+        $orders = Order::where('user_id', $user->id)->get();
+
+        if ($orders->isEmpty()) {
+            return $this->sendError('No orders found for this user.');
+        }
+
+        // If the orders exist and belong to the user, return the order data
+        return $this->sendResponse(APIOrderResource::collection($orders), 'Orders retrieved successfully.');
     }
 
     public function getOrderOverviewHead($orderId)
