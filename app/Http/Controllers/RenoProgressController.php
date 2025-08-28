@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use App\Models\User;
 use App\Models\Order;
 use App\Models\RPMJob;
 use GuzzleHttp\Client;
@@ -399,6 +400,31 @@ class RenoProgressController extends BaseController
         }
 
         return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
+    }
+
+    public function showOwnerProjectTrackersByUuid(Request $request, $uuid)
+    {
+        // 1. Search user by uuid
+        $user = User::where('uuid', $uuid)->first();
+        $input = $request->all();
+        if (!$user) {
+            return $this->sendError('User not found.');
+        }
+
+        // 2. Search reno progress by unit
+        if (isset($input['unit'])) {
+            //
+        }
+
+        // 3. Search reno progress by id
+        if (isset($input['id'])) {
+            //
+        }
+
+        // 4. Get all reno progress belonging to the user
+        $renoProgress = RenoProgress::where('sale_id', $user->phone_no)->get();
+
+        return $this->sendResponse(RenoProgressResource::collection($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
     /**

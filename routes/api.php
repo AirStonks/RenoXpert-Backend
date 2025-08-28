@@ -298,6 +298,7 @@ Route::middleware('auth.api_key')->group(function () {
     // API Key Management Routes
     // Get owner order by uuid
     Route::get('/v1/owner/{uuid}/orders', [OrderController::class, 'showOwnerOrdersByUuid']);
+    Route::get('/v1/owner/{uuid}/project-trackers', [RenoProgressController::class, 'showOwnerProjectTrackersByUuid']);
 });
 
 Route::get('/test/{id}', [TestController::class, 'test']);
