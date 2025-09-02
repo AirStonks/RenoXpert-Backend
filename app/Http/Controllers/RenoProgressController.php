@@ -646,6 +646,31 @@ class RenoProgressController extends BaseController
         }
     }
 
+    public function releaseOwnerHandover($id)
+    {
+        $renoProgress = RenoProgress::find($id);
+        if (!$renoProgress) {
+            return $this->sendError('Reno progress not found.');
+        }
+
+        $renoProgress->owner_handover_released_at = now();
+        $renoProgress->save();
+
+        return $this->sendResponse(new RenoProgressResource($renoProgress), 'Owner handover released successfully.');
+    }
+
+    public function submitOwnerHandover($id)
+    {
+        $renoProgress = RenoProgress::find($id);
+        if (!$renoProgress) {
+            return $this->sendError('Reno progress not found.');
+        }
+
+        $renoProgress->owner_handover_submitted_at = now();
+        $renoProgress->save();
+
+        return $this->sendResponse(new RenoProgressResource($renoProgress), 'Owner handover submitted successfully.');
+    }
 
     /**
      * Remove the specified resource from storage.

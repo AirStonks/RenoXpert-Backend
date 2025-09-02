@@ -244,6 +244,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reno-progress/{id}/date-management/change', [RenoProgressController::class, 'changeDateManagement']);
     Route::post('/reno-progress/generate', [RenoProgressController::class, 'createRenoProgress']);
 
+    Route::get('/reno-progress/{id}/owner-handover/release', [RenoProgressController::class, 'releaseOwnerHandover']);
+    Route::get('/reno-progress/{id}/owner-handover/submit', [RenoProgressController::class, 'submitOwnerHandover']);
+
     Route::get('/purchase-orders/table/advance', [PurchaseOrderController::class, 'getAdvanceTable']);
     Route::get('/purchase-orders/{id}/delivery/status/delivered', [POItemController::class, 'markAsDelivered']);
     Route::get('/purchase-orders/{id}/order/status/released', [PurchaseOrderController::class, 'releasePO']);
@@ -299,6 +302,7 @@ Route::middleware('auth.api_key')->group(function () {
     // Get owner order by uuid
     Route::get('/v1/owner/{uuid}/orders', [OrderController::class, 'showOwnerOrdersByUuid']);
     Route::get('/v1/owner/{uuid}/project-trackers', [RenoProgressController::class, 'showOwnerProjectTrackersByUuid']);
+    Route::get('/v1/products/{id}', [ProductController::class, 'showById']);
 });
 
 Route::get('/test/{id}', [TestController::class, 'test']);

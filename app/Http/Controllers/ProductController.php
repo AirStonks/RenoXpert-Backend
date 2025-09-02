@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Http\Resources\API\ProductResource as APIProductResource;
 use App\Http\Resources\ProductResource;
 use App\Models\ProductInstall;
 use App\Models\ProductSupply;
@@ -342,6 +343,17 @@ class ProductController extends BaseController
         }
 
         return $this->sendResponse(new ProductResource($product), 'Product retrieved successfully.');
+    }
+
+    public function showById($id): JsonResponse
+    {
+        $product = Product::find($id);
+
+        if (is_null($product)) {
+            return $this->sendError('Product not found.');
+        }
+
+        return $this->sendResponse(new APIProductResource($product), 'Product retrieved successfully.');
     }
 
     /**

@@ -66,6 +66,8 @@ class RenoProgressResource extends JsonResource
             'completed_at' => $this->completed_at?->format('d/m/Y'),
             'defect_updated_at' => $this->defect_updated_at?->format('d/m/Y'),
             'permit_updated_at' => $this->permit_updated_at?->format('d/m/Y'),
+            'owner_handover_released_at' => $this->owner_handover_released_at,
+            'owner_handover_submitted_at' => $this->owner_handover_submitted_at,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];

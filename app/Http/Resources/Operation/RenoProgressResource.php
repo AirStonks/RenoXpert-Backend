@@ -69,6 +69,8 @@ class RenoProgressResource extends JsonResource
             'remaining_percentage' => $this->mainSale->remaining_percentage,
             'paid_percentage' => $this->mainSale->invoices->where('status', 'paid')->sum('percentage'),
             'rpm_version' => $this->rpm_version,
+            'owner_handover_released_at' => $this->owner_handover_released_at?->format('d/m/Y'),
+            'owner_handover_submitted_at' => $this->owner_handover_submitted_at?->format('d/m/Y'),
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
