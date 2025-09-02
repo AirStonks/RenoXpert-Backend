@@ -356,6 +356,25 @@ class ProductController extends BaseController
         return $this->sendResponse(new APIProductResource($product), 'Product retrieved successfully.');
     }
 
+    public function showByName(Request $request): JsonResponse
+    {
+        $search = $request->input('search', '');
+        $size = $request->input('size', 5);
+
+        // ignore case
+        $search = strtolower($search);
+
+        if (!empty($search)) {
+            $product = Product::where('type', '!=', 'roundup')
+                ->whereRaw('LOWER(name) LIKE ?', ['%' . $search . '%'])
+                ->paginate($size);
+        } else {
+            $product = Product::where('type', '!=', 'roundup')->paginate($size);
+        }
+
+        return $this->sendResponse(APIProductResource::collection($product->items()), 'Product retrieved successfully.');
+    }
+
     /**
      * Update the specified resource in storage.
      *
