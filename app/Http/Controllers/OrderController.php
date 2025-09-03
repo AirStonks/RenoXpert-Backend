@@ -811,7 +811,7 @@ class OrderController extends BaseController
                         $amount *= ($package['quantity'] ?? 1);
 
                         return $carry + $amount;
-                    }, 25000);
+                    }, $order->be_powered_base_price);
                 } else if ($order->final_amount) {
                     $totalAmount = $order->final_amount; // Use final_amount if available
                 } else if ($order->is_be_powered) {

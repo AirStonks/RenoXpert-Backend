@@ -17,13 +17,11 @@ class OrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Load the quotations to ensure they are available for sorting
-        $this->orderQuotations->load('quotation');
+        // Get all orderQuotations with their related quotation, sorted by version descending
+        $orderQuotations = $this->orderQuotations->load('quotation')->sortByDesc('version')->values();
 
-        // Sort orderQuotations by version in descending order
-        $orderQuotations = $this->orderQuotations->sortByDesc('version')->values(); // Using values() to reindex the collection
-
-        $latestQuotation = $orderQuotations->first(); // Get the latest quotation from sorted collection
+        // The latest quotation is the first in the sorted collection
+        $latestQuotation = $orderQuotations->first();
 
         // Remove the latest quotation from the collection
         $orderQuotations = $orderQuotations->slice(1);

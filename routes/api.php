@@ -4,9 +4,11 @@
 
 use PgSql\Lob;
 use App\Models\Sale;
+use App\Models\User;
+use App\Models\ApiKey;
+
 use App\Models\RPMJob;
 use App\Models\Package;
-
 use App\Models\RPMTask;
 use App\Models\RenoXSale;
 use Illuminate\Support\Str;
@@ -28,8 +30,10 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ApiKeyController;
 use App\Http\Controllers\POItemController;
 use App\Http\Controllers\QCFormController;
+use App\Http\Controllers\RPMJobController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobTaskController;
@@ -56,9 +60,6 @@ use App\Http\Controllers\InvestorInterestController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\UserItemPermissionController;
 use App\Http\Controllers\DefectInspectionFormController;
-use App\Models\User;
-use App\Models\ApiKey;
-use App\Http\Controllers\ApiKeyController;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -304,6 +305,8 @@ Route::middleware('auth.api_key')->group(function () {
     Route::get('/v1/owner/{uuid}/project-trackers', [RenoProgressController::class, 'showOwnerProjectTrackersByUuid']);
     Route::get('/v1/products', [ProductController::class, 'showByName']);
     Route::get('/v1/products/{id}', [ProductController::class, 'showById']);
+    Route::get('/v1/owner/{uuid}/reno-progress', [RenoProgressController::class, 'showByOwnerUuid']);
+    Route::get('/v1/owner/{uuid}/reno-progress/{id}', [RPMJobController::class, 'showByJobName']);
 });
 
 Route::get('/test/{id}', [TestController::class, 'test']);

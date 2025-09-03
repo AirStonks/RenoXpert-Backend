@@ -24,6 +24,7 @@ use App\Http\Resources\RenoProgressResource;
 use App\Http\Resources\RenoProgressResourceHead;
 use App\Http\Resources\OwnerRenoProgressResource;
 use App\Http\Resources\RenoProgressResourceAdTable;
+use App\Http\Resources\API\RenoProgressResource as APIRenoProgressResource;
 use App\Http\Resources\Operation\RenoProgressResource as OperationRenoProgressResource;
 
 class RenoProgressController extends BaseController
@@ -475,6 +476,37 @@ class RenoProgressController extends BaseController
             'owner' => $order->user,
 
         ], 'Reno Progress Detail retrieved successfully.');
+    }
+
+    public function showByOwnerUuid(Request $request, $uuid)
+    {
+        $user = User::where('uuid', $uuid)->first();
+        $input = $request->all();
+
+        if (!$user) {
+            return $this->sendError('User not found.');
+        }
+
+        $renoProgress = null;
+
+        // When input "unit" is provided
+        if (array_key_exists('unit', $input)) {
+            // Return API still work in progress and return code 500
+            return $this->sendError('API still work in progress.', null, 418);
+        }
+
+
+        // If input "id" is provided, retrieve the reno progress by the id
+        if (array_key_exists('id', $input)) {
+            // if the input is "id=1", the reno progress will be retrieved by the id 1
+            $renoProgress = RenoProgress::find($input['id']);
+        }
+
+        if (!$renoProgress) {
+            return $this->sendError('Reno Progress not found.');
+        }
+
+        return $this->sendResponse(new APIRenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
     /**
