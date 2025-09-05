@@ -138,6 +138,8 @@ class OrderController extends BaseController
                 'bathroom_count' => 'nullable',
                 'include_partition' => 'nullable|boolean',
                 'is_progressive_payment' => 'nullable|boolean',
+                'is_rnpl' => 'nullable|boolean',
+                'rnpl_base_price' => 'nullable|numeric|min:0',
                 'is_be_powered' => 'nullable|boolean',
                 'installment_method' => 'nullable|string|max:255',
                 'installment_amount' => 'nullable|numeric|min:0',
@@ -588,6 +590,8 @@ class OrderController extends BaseController
             $order->bathroom_count = $validatedData['bathroom_count'];
             $order->include_partition = $input['include_partition'];
             $order->is_progressive_payment = $input['is_progressive_payment'];
+            $order->is_rnpl = $input['is_rnpl'];
+            $order->rnpl_base_price = $input['rnpl_base_price'];
             $order->is_be_powered = $input['is_be_powered'];
             $order->installment_method = $input['installment_method'] ?? 'dynamic';
             $order->installment_amount = $input['installment_amount'] ?? 0;
