@@ -30,6 +30,11 @@ return new class extends Migration
         // Schema::table('quo_pkg_prods', function (Blueprint $table) {
         //     $table->softDeletes();
         // });
+
+        Schema::table('orders', function (Blueprint $table) {
+            $table->boolean('is_rnpl')->default(false)->after('is_progressive_payment');
+            $table->double('rnpl_base_price')->default(0)->after('is_rnpl');
+        });
     }
 
     public function down()
