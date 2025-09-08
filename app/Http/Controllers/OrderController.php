@@ -228,31 +228,37 @@ class OrderController extends BaseController
             if (!isset($input['final_amount']) && isset($input['metadata'])) {
                 $totalRetailPrice = 0;
 
-                foreach ($input['metadata'] as $pkg) {
-                    if ($pkg['is_addon'] === true && $pkg['is_addon_included'] === false) {
-                        continue;
+                if ($input['is_rnpl']) {
+                    foreach ($input['metadata'] as $pkg) {
+                        $totalRetailPrice += $pkg['markup_amount'] * $pkg['quantity'];
                     }
-
-                    $packageRetail = 0;
-                    foreach ($pkg['products'] as $product) {
-                        $supplyPrice = 0;
-                        if ($product['pivot']['includeSupply']) {
-                            $supplyPrice = ($product['provisioning']['supply']['retail_price'] * $product['pivot']['quantity']) ?? 0;
-                        } else {
-                            $supplyPrice = ($product['provisioning']['supply']['retail_price'] - $product['provisioning']['supply']['excluded_price']) ?? 0;
+                } else {
+                    foreach ($input['metadata'] as $pkg) {
+                        if ($pkg['is_addon'] === true && $pkg['is_addon_included'] === false) {
+                            continue;
                         }
 
-                        $installPrice = 0;
-                        if ($product['pivot']['includeInstall']) {
-                            $installPrice = ($product['provisioning']['install']['retail_price'] * $product['pivot']['quantity']) ?? 0;
-                        } else {
-                            $installPrice = ($product['provisioning']['install']['retail_price'] - $product['provisioning']['install']['excluded_price']) ?? 0;
+                        $packageRetail = 0;
+                        foreach ($pkg['products'] as $product) {
+                            $supplyPrice = 0;
+                            if ($product['pivot']['includeSupply']) {
+                                $supplyPrice = ($product['provisioning']['supply']['retail_price'] * $product['pivot']['quantity']) ?? 0;
+                            } else {
+                                $supplyPrice = ($product['provisioning']['supply']['retail_price'] - $product['provisioning']['supply']['excluded_price']) ?? 0;
+                            }
+
+                            $installPrice = 0;
+                            if ($product['pivot']['includeInstall']) {
+                                $installPrice = ($product['provisioning']['install']['retail_price'] * $product['pivot']['quantity']) ?? 0;
+                            } else {
+                                $installPrice = ($product['provisioning']['install']['retail_price'] - $product['provisioning']['install']['excluded_price']) ?? 0;
+                            }
+
+                            $packageRetail += ($supplyPrice + $installPrice);
                         }
 
-                        $packageRetail += ($supplyPrice + $installPrice);
+                        $totalRetailPrice += $packageRetail * ($pkg['quantity'] ?? 1);
                     }
-
-                    $totalRetailPrice += $packageRetail * ($pkg['quantity']  ?? 1);
                 }
             }
 
@@ -423,10 +429,6 @@ class OrderController extends BaseController
             $validatedData = $validator->validated();
             $validatedData['bedroom_count'] = $input['single_bedroom_count'] + $input['queen_bedroom_count'] + $input['studio_count'];
 
-            $bonusValue = isset($input['bonus']['value']) && !empty($input['bonus']['value']) && (float)$input['bonus']['value'] != 0
-                ? (float)$input['bonus']['value']
-                : 0;
-
             // Handle bonus logic
             if (isset($input['bonus']) && is_array($input['bonus'])) {
                 if (empty($input['bonus']['value']) || $input['bonus']['value'] == 0) {
@@ -498,31 +500,37 @@ class OrderController extends BaseController
             if (!isset($input['final_amount']) && isset($input['metadata'])) {
                 $totalRetailPrice = 0;
 
-                foreach ($input['metadata'] as $pkg) {
-                    if ($pkg['is_addon'] === true && $pkg['is_addon_included'] === false) {
-                        continue;
+                if ($input['is_rnpl']) {
+                    foreach ($input['metadata'] as $pkg) {
+                        $totalRetailPrice += $pkg['markup_amount'] * $pkg['quantity'];
                     }
-
-                    $packageRetail = 0;
-                    foreach ($pkg['products'] as $product) {
-                        $supplyPrice = 0;
-                        if ($product['pivot']['includeSupply']) {
-                            $supplyPrice = ($product['provisioning']['supply']['retail_price'] * $product['pivot']['quantity']) ?? 0;
-                        } else {
-                            $supplyPrice = ($product['provisioning']['supply']['retail_price'] - $product['provisioning']['supply']['excluded_price']) ?? 0;
+                } else {
+                    foreach ($input['metadata'] as $pkg) {
+                        if ($pkg['is_addon'] === true && $pkg['is_addon_included'] === false) {
+                            continue;
                         }
 
-                        $installPrice = 0;
-                        if ($product['pivot']['includeInstall']) {
-                            $installPrice = ($product['provisioning']['install']['retail_price'] * $product['pivot']['quantity']) ?? 0;
-                        } else {
-                            $installPrice = ($product['provisioning']['install']['retail_price'] - $product['provisioning']['install']['excluded_price']) ?? 0;
+                        $packageRetail = 0;
+                        foreach ($pkg['products'] as $product) {
+                            $supplyPrice = 0;
+                            if ($product['pivot']['includeSupply']) {
+                                $supplyPrice = ($product['provisioning']['supply']['retail_price'] * $product['pivot']['quantity']) ?? 0;
+                            } else {
+                                $supplyPrice = ($product['provisioning']['supply']['retail_price'] - $product['provisioning']['supply']['excluded_price']) ?? 0;
+                            }
+
+                            $installPrice = 0;
+                            if ($product['pivot']['includeInstall']) {
+                                $installPrice = ($product['provisioning']['install']['retail_price'] * $product['pivot']['quantity']) ?? 0;
+                            } else {
+                                $installPrice = ($product['provisioning']['install']['retail_price'] - $product['provisioning']['install']['excluded_price']) ?? 0;
+                            }
+
+                            $packageRetail += ($supplyPrice + $installPrice);
                         }
 
-                        $packageRetail += ($supplyPrice + $installPrice);
+                        $totalRetailPrice += $packageRetail * ($pkg['quantity'] ?? 1);
                     }
-
-                    $totalRetailPrice += $packageRetail * ($pkg['quantity'] ?? 1);
                 }
             }
 
