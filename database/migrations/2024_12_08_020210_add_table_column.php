@@ -31,11 +31,11 @@ return new class extends Migration
         //     $table->softDeletes();
         // });
 
-        // Staging: Done
-        Schema::table('orders', function (Blueprint $table) {
-            $table->boolean('is_rnpl')->default(false)->after('is_progressive_payment');
-            $table->double('rnpl_base_price')->default(0)->after('is_rnpl');
-        });
+        // // Staging: Done
+        // Schema::table('orders', function (Blueprint $table) {
+        //     $table->boolean('is_rnpl')->default(false)->after('is_progressive_payment');
+        //     $table->double('rnpl_base_price')->default(0)->after('is_rnpl');
+        // });
 
         // Staging: Done
         Schema::create('reno_x_sale', function (Blueprint $table) {
