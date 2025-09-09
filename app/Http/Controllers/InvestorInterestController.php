@@ -24,9 +24,9 @@ class InvestorInterestController extends BaseController
         // Build the query to retrieve Investor Interest
         $query = InvestorInterest::query();
 
-        // Apply search filter if a search term is provided
+        // Apply search filter if a search term is provided (case-insensitive)
         if (!empty($search)) {
-            // $query->where('name', 'like', '%' . $search . '%'); // Assuming 'name' is the field you want to search
+            $query->whereRaw('LOWER(property_name) LIKE ?', ['%' . strtolower($search) . '%']);
         }
 
         // Paginate the results
