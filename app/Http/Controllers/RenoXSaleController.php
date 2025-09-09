@@ -49,16 +49,16 @@ class RenoXSaleController extends BaseController
 
         $query = RenoXSale::query();
 
-        // Apply search filter if a search term is provided
+        // Apply search filter if a search term is provided (search for unit and user)
         if (!empty($search)) {
             $normalizedSearch = str_replace(['-', ' '], '', $search);
-            $query->where(function ($q) use ($normalizedSearch) {
-                $q->where('properties.name', 'like', '%' . $normalizedSearch . '%')
-                    ->orWhereRaw("REPLACE(REPLACE(CONCAT(orders.block, orders.floor, orders.unit_no), '-', ''), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("REPLACE(REPLACE(sales.sales_no, '-', ''), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhere('users.name_first', 'like', '%' . $normalizedSearch . '%')
-                    ->orWhere('users.name_last', 'like', '%' . $normalizedSearch . '%')
-                    ->orWhereRaw("REPLACE(CONCAT(users.name_first, ' ', users.name_last), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%']);
+
+            $query->where(function ($q) use ($search, $normalizedSearch) {
+                $q->whereHas('user', function ($q) use ($search) {
+                    $q->where('name_first', 'like', '%' . $search . '%')
+                        ->orWhere('name_last', 'like', '%' . $search . '%')
+                        ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%']);
+                })->orWhereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
             });
         }
 

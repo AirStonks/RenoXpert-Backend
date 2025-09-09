@@ -918,6 +918,12 @@ class OrderController extends BaseController
 
                     $newRenoSale = RenoXSale::create([
                         'reno_sale_no' => $renoSaleNo,
+                        'user_id' => $order->user_id,
+                        'property_id' => $order->property_id,
+                        'unit_type' => $order->unit_type,
+                        'block' => $order->block,
+                        'floor' => $order->floor,
+                        'unit_no' => $order->unit_no,
                     ]);
 
                     // Assign new reno_sale_id to the current sale

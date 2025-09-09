@@ -20,6 +20,12 @@ class RenoXSale extends Model
      */
     protected $fillable = [
         'reno_sale_no',
+        'user_id',
+        'property_id',
+        'unit_type',
+        'block',
+        'floor',
+        'unit_no',
         'status',
         'created_by',
         'updated_by',
@@ -39,6 +45,10 @@ class RenoXSale extends Model
         });
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 
     public function sales()
     {
