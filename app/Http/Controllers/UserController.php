@@ -220,6 +220,19 @@ class UserController extends BaseController
             // Define validation rules based on user type
             $rules = $this->getValidationRules($user->type, true); // true for update
 
+            // If phone_no and country_code are present in the request and are the same as the current user's, remove phone_no and country_code from validation rules
+            $inputPhoneNo = $request->input('phone_no');
+            $inputCountryCode = $request->input('country_code', $user->country_code);
+
+            if (
+                $inputPhoneNo !== null &&
+                $inputPhoneNo == $user->phone_no &&
+                $inputCountryCode == $user->country_code
+            ) {
+                unset($rules['phone_no']);
+                unset($rules['country_code']);
+            }
+
             // Validate the request
             $validator = Validator::make($request->all(), $rules);
 
@@ -250,7 +263,14 @@ class UserController extends BaseController
             }
 
             // Handle phone number uniqueness check (exclude current user)
-            if (isset($validatedData['phone_no'])) {
+            // Only check if phone_no is present and is different from previous
+            if (
+                isset($validatedData['phone_no']) &&
+                (
+                    $validatedData['phone_no'] != $user->phone_no ||
+                    ($validatedData['country_code'] ?? $user->country_code) != $user->country_code
+                )
+            ) {
                 $phoneExists = User::where('phone_no', $validatedData['phone_no'])
                     ->where('country_code', $validatedData['country_code'] ?? $user->country_code)
                     ->where('id', '!=', $id)
@@ -372,14 +392,14 @@ class UserController extends BaseController
             return $targetUser->type !== 'super-admin' || $currentUser->id === $targetUser->id;
         }
 
-        // Admin can update staff and their own profile
+        // Admin can update staff, owner, and their own profile
         if ($currentUser->type === 'admin') {
-            return $targetUser->type === 'staff' || $currentUser->id === $targetUser->id;
+            return in_array($targetUser->type, ['staff', 'owner']) || $currentUser->id === $targetUser->id;
         }
 
-        // Staff can only update their own profile
+        // Staff can update owner and their own profile
         if ($currentUser->type === 'staff') {
-            return $currentUser->id === $targetUser->id;
+            return $targetUser->type === 'owner' || $currentUser->id === $targetUser->id;
         }
 
         // Users can update their own profile
