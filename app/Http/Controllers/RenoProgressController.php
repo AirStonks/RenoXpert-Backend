@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use App\Models\User;
 use App\Models\Order;
 use App\Models\RPMJob;
 use GuzzleHttp\Client;
@@ -23,6 +24,7 @@ use App\Http\Resources\RenoProgressResource;
 use App\Http\Resources\RenoProgressResourceHead;
 use App\Http\Resources\OwnerRenoProgressResource;
 use App\Http\Resources\RenoProgressResourceAdTable;
+use App\Http\Resources\API\RenoProgressResource as APIRenoProgressResource;
 use App\Http\Resources\Operation\RenoProgressResource as OperationRenoProgressResource;
 
 class RenoProgressController extends BaseController
@@ -401,6 +403,31 @@ class RenoProgressController extends BaseController
         return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
+    public function showOwnerProjectTrackersByUuid(Request $request, $uuid)
+    {
+        // 1. Search user by uuid
+        $user = User::where('uuid', $uuid)->first();
+        $input = $request->all();
+        if (!$user) {
+            return $this->sendError('User not found.');
+        }
+
+        // 2. Search reno progress by unit
+        if (isset($input['unit'])) {
+            //
+        }
+
+        // 3. Search reno progress by id
+        if (isset($input['id'])) {
+            //
+        }
+
+        // 4. Get all reno progress belonging to the user
+        $renoProgress = RenoProgress::where('sale_id', $user->phone_no)->get();
+
+        return $this->sendResponse(RenoProgressResource::collection($renoProgress), 'Reno Progress retrieved successfully.');
+    }
+
     /**
      * Display the specified resource.
      */
@@ -449,6 +476,37 @@ class RenoProgressController extends BaseController
             'owner' => $order->user,
 
         ], 'Reno Progress Detail retrieved successfully.');
+    }
+
+    public function showByOwnerUuid(Request $request, $uuid)
+    {
+        $user = User::where('uuid', $uuid)->first();
+        $input = $request->all();
+
+        if (!$user) {
+            return $this->sendError('User not found.');
+        }
+
+        $renoProgress = null;
+
+        // When input "unit" is provided
+        if (array_key_exists('unit', $input)) {
+            // Return API still work in progress and return code 500
+            return $this->sendError('API still work in progress.', null, 418);
+        }
+
+
+        // If input "id" is provided, retrieve the reno progress by the id
+        if (array_key_exists('id', $input)) {
+            // if the input is "id=1", the reno progress will be retrieved by the id 1
+            $renoProgress = RenoProgress::find($input['id']);
+        }
+
+        if (!$renoProgress) {
+            return $this->sendError('Reno Progress not found.');
+        }
+
+        return $this->sendResponse(new APIRenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
     /**
@@ -620,6 +678,31 @@ class RenoProgressController extends BaseController
         }
     }
 
+    public function releaseOwnerHandover($id)
+    {
+        $renoProgress = RenoProgress::find($id);
+        if (!$renoProgress) {
+            return $this->sendError('Reno progress not found.');
+        }
+
+        $renoProgress->owner_handover_released_at = now();
+        $renoProgress->save();
+
+        return $this->sendResponse(new RenoProgressResource($renoProgress), 'Owner handover released successfully.');
+    }
+
+    public function submitOwnerHandover($id)
+    {
+        $renoProgress = RenoProgress::find($id);
+        if (!$renoProgress) {
+            return $this->sendError('Reno progress not found.');
+        }
+
+        $renoProgress->owner_handover_submitted_at = now();
+        $renoProgress->save();
+
+        return $this->sendResponse(new RenoProgressResource($renoProgress), 'Owner handover submitted successfully.');
+    }
 
     /**
      * Remove the specified resource from storage.

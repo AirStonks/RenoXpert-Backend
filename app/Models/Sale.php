@@ -19,6 +19,7 @@ class Sale extends Model
      */
     protected $fillable = [
         'order_id',
+        'reno_sale_id',
         'user_id',
         'sales_no',
         'description',
@@ -67,6 +68,12 @@ class Sale extends Model
 
     public function purchaseOrders()
     {
-        return $this->hasMany(PurchaseOrder::class, 'sale_id', 'id');
+        return $this->belongsToMany(PurchaseOrder::class, 'sale_po', 'sale_id', 'po_id')
+            ->withTimestamps();
+    }
+
+    public function renoSale()
+    {
+        return $this->belongsTo(RenoXSale::class, 'reno_sale_id', 'id');
     }
 }

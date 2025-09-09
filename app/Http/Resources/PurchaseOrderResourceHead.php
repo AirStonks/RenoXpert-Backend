@@ -18,6 +18,7 @@ class PurchaseOrderResourceHead extends JsonResource
             'id' => $this->id,
             'po_no' => $this->po_no,
             'sale_id' => $this->sale_id,
+            'reno_sale_id' => $this->reno_sale_id,
             'sale' => $this->sale ? [
                 'sales_no' => $this->sale->sales_no,
                 'order' => new OrderResource($this->sale->order),

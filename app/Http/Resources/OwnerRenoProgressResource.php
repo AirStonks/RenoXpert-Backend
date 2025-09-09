@@ -61,6 +61,8 @@ class OwnerRenoProgressResource extends JsonResource
             'status' => $this->status,
             'date_management' => $this->date_management,
             'completed_at' => $this->completed_at?->format('d/m/Y'),
+            'owner_handover_released_at' => $this->owner_handover_released_at,
+            'owner_handover_submitted_at' => $this->owner_handover_submitted_at,
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),
         ];

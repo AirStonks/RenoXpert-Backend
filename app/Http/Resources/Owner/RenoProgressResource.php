@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Owner;
 
+use App\Http\Resources\ProgressPhaseResource;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -26,6 +27,8 @@ class RenoProgressResource extends JsonResource
             'pre_reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[0] ?? null),
             'reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[1] ?? null),
             'post_reno_completion' => $this->calculatePhaseCompletion($this->progressPhases[2] ?? null),
+            'owner_handover_released_at' => $this->owner_handover_released_at,
+            'owner_handover_submitted_at' => $this->owner_handover_submitted_at,
             // 'completed_at' => $this->completed_at?->format('d/m/Y'),
             'created_at' => $this->created_at->format('d/m/Y'),
             'updated_at' => $this->updated_at->format('d/m/Y'),

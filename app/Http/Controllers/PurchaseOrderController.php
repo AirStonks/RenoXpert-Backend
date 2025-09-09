@@ -130,19 +130,19 @@ class PurchaseOrderController extends BaseController
             // Step 1: Validate the input
             $validator = Validator::make($input, [
                 'sale_id' => 'nullable|exists:sales,id', // Changed to nullable
+                'reno_sale_id' => 'required|exists:reno_x_sales,id', // Changed to nullable
                 'vendor_id' => 'required|exists:users,id',
                 'po_packages' => 'required|array',
                 'po_packages.*.package_id' => 'required|integer',
                 'po_packages.*.name' => 'required|string',
-                'po_packages.*.quantity' => 'required|integer|min:1',
                 'po_packages.*.total_price' => 'required|numeric|min:0',
                 'po_packages.*.po_items' => 'sometimes|array',
                 'po_packages.*.po_items.*.product_id' => 'required|integer',
                 'po_packages.*.po_items.*.product_name' => 'required|string',
                 'po_packages.*.po_items.*.product_desc' => 'nullable|string',
                 'po_packages.*.po_items.*.qty' => 'required|integer|min:1',
-                'po_packages.*.po_items.*.supply' => 'required|boolean',
-                'po_packages.*.po_items.*.install' => 'required|boolean',
+                'po_packages.*.po_items.*.supply_qty' => 'required|integer|min:0',
+                'po_packages.*.po_items.*.install_qty' => 'required|integer|min:0',
                 'po_packages.*.po_items.*.supply_price' => 'required|numeric|min:0',
                 'po_packages.*.po_items.*.install_price' => 'required|numeric|min:0',
                 'po_packages.*.po_items.*.unit_price' => 'required|numeric|min:0',
@@ -169,6 +169,7 @@ class PurchaseOrderController extends BaseController
                 $newPo = PurchaseOrder::create([
                     'po_no' => $input['po_no'],
                     'sale_id' => $input['sale_id'] ?? null, // Allow null
+                    'reno_sale_id' => $input['reno_sale_id'] ?? null, // Allow null
                     'vendor_id' => $input['vendor_id'],
                     'total_amount' => $input['total_amount'],
                     'remaining_amount' => $input['total_amount'],
@@ -193,7 +194,6 @@ class PurchaseOrderController extends BaseController
                             'description' => $packageData['description'] ?? null,
                             'description_internal' => $packageData['description_internal'] ?? null,
                             'category' => $packageData['category'] ?? null,
-                            'quantity' => $packageData['quantity'],
                             'total_price' => $packageData['total_price'],
                             'sequence' => $sequence,
                         ]);
@@ -213,9 +213,9 @@ class PurchaseOrderController extends BaseController
                                     'product_name' => $itemData['product_name'],
                                     'product_desc' => $itemData['product_desc'],
                                     'qty' => $itemData['qty'],
+                                    'supply_qty' => $itemData['supply_qty'],
+                                    'install_qty' => $itemData['install_qty'],
                                     'uom' => $itemData['uom'] ?? null,
-                                    'supply' => $itemData['supply'],
-                                    'install' => $itemData['install'],
                                     'supply_price' => $itemData['supply_price'],
                                     'install_price' => $itemData['install_price'],
                                     'unit_price' => $itemData['unit_price'],
@@ -259,7 +259,7 @@ class PurchaseOrderController extends BaseController
         }
         */
 
-            return $this->sendResponse(new PurchaseOrderResource($newPo), 'Property added successfully.');
+            return $this->sendResponse(new PurchaseOrderResource($newPo), 'Purchase Order added successfully.');
         } catch (\Throwable $th) {
             return $this->sendError('Error.', $th->getMessage());
         }
@@ -292,6 +292,17 @@ class PurchaseOrderController extends BaseController
         }
 
         return $this->sendResponse(new PurchaseOrderResource($po, true), 'Purchase Order retrieved successfully.');
+    }
+
+    public function getPurchaseOrderBySaleId($saleId)
+    {
+        $po = PurchaseOrder::where('sale_id', $saleId)->get();
+
+        if (is_null($po)) {
+            return $this->sendError('Purchase Order not found.');
+        }
+
+        return $this->sendResponse(PurchaseOrderResource::collection($po), 'Purchase Order retrieved successfully.');
     }
 
     /**
@@ -331,6 +342,10 @@ class PurchaseOrderController extends BaseController
             foreach ($inputPackages as $index => $packageData) {
                 $sequence = $index + 1;
 
+                // We'll recalculate the package price after processing items
+                $calculatedPackagePrice = 0;
+                $package = null;
+
                 if (isset($packageData['id']) && $packageData['id']) {
                     // Existing package: update it
                     $package = POPackage::find($packageData['id']);
@@ -365,39 +380,56 @@ class PurchaseOrderController extends BaseController
                 foreach ($inputItems as $itemIndex => $itemData) {
                     $itemSequence = $itemIndex + 1;
 
+                    // Calculate item price: (supply_qty * supply_price) + (install_qty * install_price)
+                    $supplyQty = isset($itemData['supply_qty']) ? floatval($itemData['supply_qty']) : 0;
+                    $supplyPrice = isset($itemData['supply_price']) ? floatval($itemData['supply_price']) : 0;
+                    $installQty = isset($itemData['install_qty']) ? floatval($itemData['install_qty']) : 0;
+                    $installPrice = isset($itemData['install_price']) ? floatval($itemData['install_price']) : 0;
+                    $itemPrice = ($supplyQty * $supplyPrice) + ($installQty * $installPrice);
+
+                    $itemDataWithPrice = array_merge($itemData, [
+                        'sequence' => $itemSequence,
+                        'price' => $itemPrice,
+                    ]);
+
                     if (isset($itemData['id']) && $itemData['id']) {
                         // Existing item: update it
                         $item = POItem::find($itemData['id']);
                         if ($item) {
-                            $item->update(array_merge(
-                                $itemData,
-                                ['sequence' => $itemSequence]
-                            ));
+                            $item->update($itemDataWithPrice);
                         }
                     } else {
                         // New item: create it
                         $item = POItem::create(
-                            array_merge($itemData, [
+                            array_merge($itemDataWithPrice, [
                                 'po_package_id' => $package->id,
-                                'sequence' => $itemSequence,
                             ])
                         );
                         $newItemIds[] = $item->id; // Add new item ID
                     }
+
+                    // Add to package price
+                    $calculatedPackagePrice += $itemPrice;
                 }
 
-                // Step 6: Remove items not in the input (soft delete)
-                $allItemIds = array_merge($inputItemIds, $newItemIds); // Include new IDs
+                // Step 6: Remove items not in the input (hard delete)
+                // Compare existing items with input items and remove those not included
+                $allItemIds = array_merge($inputItemIds, $newItemIds);
                 POItem::where('po_package_id', $package->id)
                     ->whereNotIn('id', $allItemIds)
-                    ->delete();
+                    ->forceDelete();
+
+                // Step 7: Update the package price after all items processed
+                $package->total_price = $calculatedPackagePrice;
+                $package->save();
             }
 
-            // Step 7: Remove packages not in the input (soft delete)
+            // Step 8: Remove packages not in the input (hard delete)
+            // Compare existing packages with input packages and remove those not included
             $allPackageIds = array_merge($inputPackageIds, $newPackageIds);
             POPackage::where('po_id', $purchaseOrder->id)
                 ->whereNotIn('id', $allPackageIds)
-                ->delete();
+                ->forceDelete();
         });
 
         // Return success response with the updated Purchase Order
@@ -480,10 +512,8 @@ class PurchaseOrderController extends BaseController
     {
         return array_reduce($poPackages, function ($total, $packageItem) {
             $packageTotal = array_reduce($packageItem['po_items'] ?? [], function ($packageTotal, $product) {
-                $productTotal = $product['qty'] * (
-                    ($product['supply'] ? $product['supply_price'] : 0) +
-                    ($product['install'] ? $product['install_price'] : 0)
-                );
+                $productTotal = ($product['supply_qty'] * $product['supply_price']) + ($product['install_qty'] * $product['install_price']);
+
                 return $packageTotal + $productTotal;
             }, 0);
 

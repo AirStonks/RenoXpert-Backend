@@ -41,6 +41,8 @@ class RenoProgress extends Model
         'resource_id',
         'defect_updated_at',
         'permit_updated_at',
+        'owner_handover_released_at',
+        'owner_handover_submitted_at',
         'completed_at',
         'rpm_version',
         'sent_to_lark_date',

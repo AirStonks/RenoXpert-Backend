@@ -34,90 +34,118 @@ class InvoiceController extends BaseController
             // Validate the input
             $validator = Validator::make($input, [
                 'percentage' => 'required|numeric|max:255',
+                'item_type' => 'required|string|max:255|in:sale,purchase_order',
+                'item_id' => 'required|integer',
+                'discountsData' => 'nullable|string',
+                'feesData' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors(), 422);
             }
 
-            // Get the selected Sale
-            $sale = Sale::find($input['item_id']);
-            if (!$sale) {
-                return $this->sendError('Sale not found.', [], 404);
+            $itemType = $input['item_type'];
+            $itemId = $input['item_id'];
+            $percentage = $input['percentage'];
+
+            // Handle Sale or PurchaseOrder
+            if ($itemType === 'sale') {
+                $itemModel = Sale::find($itemId);
+                if (!$itemModel) {
+                    return $this->sendError('Sale not found.', [], 404);
+                }
+                $itemTypeClass = 'App\Models\Sale';
+                $itemNo = $itemModel->sales_no;
+                $totalAmount = $itemModel->total_amount;
+                $remainingAmountField = 'remaining_amount';
+                $remainingPercentageField = 'remaining_percentage';
+            } elseif ($itemType === 'purchase_order') {
+                $itemModel = PurchaseOrder::find($itemId);
+                if (!$itemModel) {
+                    return $this->sendError('Purchase Order not found.', [], 404);
+                }
+                $itemTypeClass = 'App\Models\PurchaseOrder';
+                $itemNo = $itemModel->po_no;
+                $totalAmount = $itemModel->total_amount;
+                $remainingAmountField = 'remaining_amount';
+                $remainingPercentageField = 'remaining_percentage';
+            } else {
+                return $this->sendError('Invalid item type.', [], 422);
             }
 
             // Determine the new invoice number and version
             $latestInvoice = Invoice::orderBy('id', 'desc')->first();
-            $newInvoiceNumber = 'INV-RNV-1000001'; // Default in case there are no invoices
-            $newVersion = 1; // Default version in case there are no invoices
+            $newInvoiceNumber = $itemType === 'sale' ? 'INV-RNV-1000001' : 'INV-RPO-1000001'; // Default
+            $newVersion = 1; // Default version
 
-            $selectedSaleLatestInvoice = Invoice::where('item_id', $sale->id)
-                ->where('item_type', 'App\Model\Sale')
+            $selectedItemLatestInvoice = Invoice::where('item_id', $itemId)
+                ->where('item_type', $itemTypeClass)
                 ->orderBy('id', 'desc')
                 ->first();
 
-            // Check if there's a latest invoice for the sale
             if ($latestInvoice) {
-                // Increment the version number
-
                 $newVersion = 1;
-
-                if ($selectedSaleLatestInvoice) {
-                    $newVersion = $selectedSaleLatestInvoice->version + 1;
+                if ($selectedItemLatestInvoice) {
+                    $newVersion = $selectedItemLatestInvoice->version + 1;
                 }
-
-
-                $newInvoiceNumber = 'INV-' . $sale->sales_no . '-' . $sale->invoices->count() + 1;
+                // Count only invoices for this item and type
+                $itemInvoiceCount = Invoice::where('item_id', $itemId)
+                    ->where('item_type', $itemTypeClass)
+                    ->count();
+                $newInvoiceNumber = 'INV-' . $itemNo . '-' . ($itemInvoiceCount + 1);
             }
 
             // Set the new invoice number and version in the input array
             $input['invoice_no'] = $newInvoiceNumber;
-            $input['version'] = $newVersion; // Add the version to the input
+            $input['version'] = $newVersion;
 
             // Calculate due date based on version
-            $dueDate = now()->addDays(3); // Current date
-            $input['due_date'] = $dueDate; // Add the due date to the input
+            $dueDate = now()->addDays(3);
+            $input['due_date'] = $dueDate;
 
             // Extract discount and fee into collection 
-            $discounts = json_decode($input['discountsData'], true);
-            $fees = json_decode($input['feesData'], true);
+            $discounts = [];
+            $fees = [];
+            if (!empty($input['discountsData'])) {
+                $discounts = json_decode($input['discountsData'], true) ?? [];
+            }
+            if (!empty($input['feesData'])) {
+                $fees = json_decode($input['feesData'], true) ?? [];
+            }
 
             // Calculate balance amount
-            $sale->remaining_amount -= round($sale->total_amount * $input['percentage'], 2);
-
+            $itemModel->$remainingAmountField -= round($totalAmount * $percentage, 2);
 
             // If there are discounts, deduct from balance amount
             $totalDiscount = 0;
             $totalFee = 0;
 
-
             // Calculate total discounts
             foreach ($discounts as $discount) {
-                if ($discount['valueType'] === 'percentage') {
-                    $totalDiscount += ($sale->total_amount * $input['percentage']) * $discount['value'];
-                } else {
+                if (isset($discount['valueType']) && $discount['valueType'] === 'percentage') {
+                    $totalDiscount += ($totalAmount * $percentage) * $discount['value'];
+                } elseif (isset($discount['value'])) {
                     $totalDiscount += $discount['value'];
                 }
             }
 
             // Calculate total fees
             foreach ($fees as $fee) {
-                if ($fee['valueType'] === 'percentage') {
-                    $totalFee += ($sale->total_amount * $input['percentage']) * $fee['value'];
-                } else {
+                if (isset($fee['valueType']) && $fee['valueType'] === 'percentage') {
+                    $totalFee += ($totalAmount * $percentage) * $fee['value'];
+                } elseif (isset($fee['value'])) {
                     $totalFee += $fee['value'];
                 }
             }
 
-
             // Calculate remaining percentage
-            $sale->remaining_percentage -= $input['percentage'];
+            $itemModel->$remainingPercentageField -= $percentage;
 
-            // Update Sale
-            $sale->save();
+            // Update Sale or PO
+            $itemModel->save();
 
             // Calculate Payment Invoice Amount
-            $input['amount'] = ($sale->total_amount * $input['percentage']) - $totalDiscount + $totalFee;
+            $input['amount'] = ($totalAmount * $percentage) - $totalDiscount + $totalFee;
 
             // Round up to two decimal places
             $input['amount'] = ceil($input['amount'] * 100) / 100;
@@ -130,7 +158,7 @@ class InvoiceController extends BaseController
             $input['status'] = 'unpaid';
 
             // Set invoice item type
-            $input['item_type'] = 'App\Models\Sale';
+            $input['item_type'] = $itemTypeClass;
 
             // Create the Invoice
             $invoice = Invoice::create($input);
@@ -145,126 +173,126 @@ class InvoiceController extends BaseController
         }
     }
 
-    public function storePOInvoice(Request $request)
-    {
-        try {
-            $input = $request->all();
+    // public function storePOInvoice(Request $request)
+    // {
+    //     try {
+    //         $input = $request->all();
 
-            // Validate the input
-            $validator = Validator::make($input, [
-                'percentage' => 'required|numeric|max:255',
-            ]);
+    //         // Validate the input
+    //         $validator = Validator::make($input, [
+    //             'percentage' => 'required|numeric|max:255',
+    //         ]);
 
-            if ($validator->fails()) {
-                return $this->sendError('Validation Error.', $validator->errors(), 422);
-            }
+    //         if ($validator->fails()) {
+    //             return $this->sendError('Validation Error.', $validator->errors(), 422);
+    //         }
 
-            // Get the selected Sale
-            $po = PurchaseOrder::find($input['item_id']);
-            if (!$po) {
-                return $this->sendError('PO not found.', [], 404);
-            }
+    //         // Get the selected Sale
+    //         $po = PurchaseOrder::find($input['item_id']);
+    //         if (!$po) {
+    //             return $this->sendError('PO not found.', [], 404);
+    //         }
 
-            // Determine the new invoice number and version
-            $latestInvoice = Invoice::orderBy('id', 'desc')->first();
-            $newInvoiceNumber = 'INV-RPO-1000001'; // Default in case there are no invoices
-            $newVersion = 1; // Default version in case there are no invoices
+    //         // Determine the new invoice number and version
+    //         $latestInvoice = Invoice::orderBy('id', 'desc')->first();
+    //         $newInvoiceNumber = 'INV-RPO-1000001'; // Default in case there are no invoices
+    //         $newVersion = 1; // Default version in case there are no invoices
 
-            $selectedPPOLatestInvoice = Invoice::where('item_id', $po->id)
-                ->where('item_type', 'App\Model\PurchaseOrder')
-                ->orderBy('id', 'desc')
-                ->first();
+    //         $selectedPPOLatestInvoice = Invoice::where('item_id', $po->id)
+    //             ->where('item_type', 'App\Models\PurchaseOrder')
+    //             ->orderBy('id', 'desc')
+    //             ->first();
 
-            // Check if there's a latest invoice for the sale
-            if ($latestInvoice) {
-                // Increment the version number
+    //         // Check if there's a latest invoice for the sale
+    //         if ($latestInvoice) {
+    //             // Increment the version number
 
-                $newVersion = 1;
+    //             $newVersion = 1;
 
-                if ($selectedPPOLatestInvoice) {
-                    $newVersion = $selectedPPOLatestInvoice->version + 1;
-                }
-
-
-                $newInvoiceNumber = 'INV-' . $po->po_no . '-' . $po->invoices->count() + 1;
-            }
-
-            // Set the new invoice number and version in the input array
-            $input['invoice_no'] = $newInvoiceNumber;
-            $input['version'] = $newVersion; // Add the version to the input
-
-            // Calculate due date based on version
-            $dueDate = now()->addDays(3); // Current date
-            $input['due_date'] = $dueDate; // Add the due date to the input
-
-            // Extract discount and fee into collection 
-            $discounts = json_decode($input['discountsData'], true);
-            $fees = json_decode($input['feesData'], true);
-
-            // Calculate balance amount
-            $po->remaining_amount -= round($po->total_amount * $input['percentage'], 2);
+    //             if ($selectedPPOLatestInvoice) {
+    //                 $newVersion = $selectedPPOLatestInvoice->version + 1;
+    //             }
 
 
-            // If there are discounts, deduct from balance amount
-            $totalDiscount = 0;
-            $totalFee = 0;
+    //             $newInvoiceNumber = 'INV-' . $po->po_no . '-' . $po->invoices->count() + 1;
+    //         }
+
+    //         // Set the new invoice number and version in the input array
+    //         $input['invoice_no'] = $newInvoiceNumber;
+    //         $input['version'] = $newVersion; // Add the version to the input
+
+    //         // Calculate due date based on version
+    //         $dueDate = now()->addDays(3); // Current date
+    //         $input['due_date'] = $dueDate; // Add the due date to the input
+
+    //         // Extract discount and fee into collection 
+    //         $discounts = json_decode($input['discountsData'], true);
+    //         $fees = json_decode($input['feesData'], true);
+
+    //         // Calculate balance amount
+    //         $po->remaining_amount -= round($po->total_amount * $input['percentage'], 2);
 
 
-            // Calculate total discounts
-            foreach ($discounts as $discount) {
-                if ($discount['valueType'] === 'percentage') {
-                    $totalDiscount += ($po->total_amount * $input['percentage']) * $discount['value'];
-                } else {
-                    $totalDiscount += $discount['value'];
-                }
-            }
-
-            // Calculate total fees
-            foreach ($fees as $fee) {
-                if ($fee['valueType'] === 'percentage') {
-                    $totalFee += ($po->total_amount * $input['percentage']) * $fee['value'];
-                } else {
-                    $totalFee += $fee['value'];
-                }
-            }
+    //         // If there are discounts, deduct from balance amount
+    //         $totalDiscount = 0;
+    //         $totalFee = 0;
 
 
-            // Calculate remaining percentage
-            $po->remaining_percentage -= $input['percentage'];
+    //         // Calculate total discounts
+    //         foreach ($discounts as $discount) {
+    //             if ($discount['valueType'] === 'percentage') {
+    //                 $totalDiscount += ($po->total_amount * $input['percentage']) * $discount['value'];
+    //             } else {
+    //                 $totalDiscount += $discount['value'];
+    //             }
+    //         }
 
-            // Update PO
-            $po->save();
+    //         // Calculate total fees
+    //         foreach ($fees as $fee) {
+    //             if ($fee['valueType'] === 'percentage') {
+    //                 $totalFee += ($po->total_amount * $input['percentage']) * $fee['value'];
+    //             } else {
+    //                 $totalFee += $fee['value'];
+    //             }
+    //         }
 
-            // Calculate Payment Invoice Amount
-            $input['amount'] = ($po->total_amount * $input['percentage']) - $totalDiscount + $totalFee;
 
-            // Round up to two decimal places
-            $input['amount'] = ceil($input['amount'] * 100) / 100;
+    //         // Calculate remaining percentage
+    //         $po->remaining_percentage -= $input['percentage'];
 
-            // Store the metadata as JSON
-            $input['discountsData'] = json_encode($discounts);
-            $input['feesData'] = json_encode($fees);
+    //         // Update PO
+    //         $po->save();
 
-            // Set invoice to unpaid
-            $input['status'] = 'unpaid';
+    //         // Calculate Payment Invoice Amount
+    //         $input['amount'] = ($po->total_amount * $input['percentage']) - $totalDiscount + $totalFee;
 
-            // Set invoice item type
-            $input['item_type'] = 'App\Models\PurchaseOrder';
+    //         // Round up to two decimal places
+    //         $input['amount'] = ceil($input['amount'] * 100) / 100;
 
-            // Create the Invoice
-            $invoice = Invoice::create($input);
+    //         // Store the metadata as JSON
+    //         $input['discountsData'] = json_encode($discounts);
+    //         $input['feesData'] = json_encode($fees);
 
-            return $this->sendResponse(new InvoiceResource($invoice), 'Invoice created successfully.');
-        } catch (\Throwable $th) {
-            // Return a more specific error response including the line number
-            return $this->sendError('Database Error.', [
-                'message' => $th->getMessage(),
-                'code' => $th->getCode(),
-                'line' => $th->getLine(), // Add the line number
-                'file' => $th->getFile(), // Optionally add the file name for more context
-            ]);
-        }
-    }
+    //         // Set invoice to unpaid
+    //         $input['status'] = 'unpaid';
+
+    //         // Set invoice item type
+    //         $input['item_type'] = 'App\Models\PurchaseOrder';
+
+    //         // Create the Invoice
+    //         $invoice = Invoice::create($input);
+
+    //         return $this->sendResponse(new InvoiceResource($invoice), 'Invoice created successfully.');
+    //     } catch (\Throwable $th) {
+    //         // Return a more specific error response including the line number
+    //         return $this->sendError('Database Error.', [
+    //             'message' => $th->getMessage(),
+    //             'code' => $th->getCode(),
+    //             'line' => $th->getLine(), // Add the line number
+    //             'file' => $th->getFile(), // Optionally add the file name for more context
+    //         ]);
+    //     }
+    // }
 
     /**
      * Display the specified resource.
@@ -485,7 +513,7 @@ class InvoiceController extends BaseController
         if ($invoice->discountsData) {
             foreach (json_decode($invoice->discountsData) as $discount) {
                 $value = $discount->valueType == 'percentage'
-                    ? ($entity->total_amount * $invoice->percentage) *$discount->value
+                    ? ($entity->total_amount * $invoice->percentage) * $discount->value
                     : $discount->value;
                 $invoice->amount += $value;
             }
