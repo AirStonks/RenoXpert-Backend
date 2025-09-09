@@ -342,7 +342,7 @@ Route::get('/disk', [DiskController::class, 'index']);
 //     return response()->json(['message' => 'Sale status updated successfully']);
 // });
 
-Route::get('/tmp/handle-auto-assign-reno-sales', function () {
+Route::get('/tmp/update-reno-x-sale-info', function () {
     $sales = Sale::with('order')->get();
 
     // Group by property_id, block, floor, unit_no
@@ -351,45 +351,73 @@ Route::get('/tmp/handle-auto-assign-reno-sales', function () {
         return $order->property_id . '|' . $order->block . '|' . $order->floor . '|' . $order->unit_no;
     });
 
-    DB::beginTransaction();
+    $tmpArr = [];
 
-    try {
-        foreach ($grouped as $groupKey => $groupSales) {
-            $firstSale = $groupSales->first();
-            $order = $firstSale->order;
+    foreach ($grouped as $groupKey => $groupSales) {
+        $firstSale = $groupSales->first();
+        $order = $firstSale->order;
 
-            // Check if reno_sale_id already exists
-            $existingRenoSaleId = $groupSales->pluck('reno_sale_id')->filter()->first();
+        // Check if reno_sale_id already exists
+        $existingRenoSaleId = $groupSales->pluck('reno_sale_id')->filter()->first();
 
-            if (!$existingRenoSaleId) {
-                // Generate next reno_sale_no
-                $lastReno = RenoXSale::withTrashed()->latest('id')->first();
-                $lastNumber = $lastReno ? (int)substr($lastReno->reno_sale_no, 4) : 2500000;
-                $newNumber = $lastNumber + 1;
-                $formattedNo = 'RXS-' . $newNumber;
 
-                $renoSale = RenoXSale::create([
-                    'reno_sale_no' => $formattedNo,
-                ]);
+        if ($existingRenoSaleId) {
+            $foundedRenoSale = RenoXSale::find($existingRenoSaleId);
 
-                $renoSaleId = $renoSale->id;
-            } else {
-                $renoSaleId = $existingRenoSaleId;
-            }
+            $foundedRenoSale->user_id = $order->user_id;
+            $foundedRenoSale->property_id = $order->property_id;
+            $foundedRenoSale->unit_type = $order->unit_type;
+            $foundedRenoSale->block = $order->block;
+            $foundedRenoSale->floor = $order->floor;
+            $foundedRenoSale->unit_no = $order->unit_no;
+            $foundedRenoSale->save();
 
-            // Assign to each Sale
-            foreach ($groupSales as $sale) {
-                $sale->reno_sale_id = $renoSaleId;
-                $sale->save();
-            }
+            $tmpArr[] = $foundedRenoSale;
         }
-
-        DB::commit();
-        return "RenoXSales created and linked successfully.";
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json(['error' => $e->getMessage()], 500);
     }
+
+
+    return response()->json(['Updated RenoXSales' => $tmpArr]);
+
+    // DB::beginTransaction();
+
+    // try {
+    //     foreach ($grouped as $groupKey => $groupSales) {
+    //         $firstSale = $groupSales->first();
+    //         $order = $firstSale->order;
+
+    //         // Check if reno_sale_id already exists
+    //         $existingRenoSaleId = $groupSales->pluck('reno_sale_id')->filter()->first();
+
+    //         if (!$existingRenoSaleId) {
+    //             // Generate next reno_sale_no
+    //             $lastReno = RenoXSale::withTrashed()->latest('id')->first();
+    //             $lastNumber = $lastReno ? (int)substr($lastReno->reno_sale_no, 4) : 2500000;
+    //             $newNumber = $lastNumber + 1;
+    //             $formattedNo = 'RXS-' . $newNumber;
+
+    //             $renoSale = RenoXSale::create([
+    //                 'reno_sale_no' => $formattedNo,
+    //             ]);
+
+    //             $renoSaleId = $renoSale->id;
+    //         } else {
+    //             $renoSaleId = $existingRenoSaleId;
+    //         }
+
+    //         // Assign to each Sale
+    //         foreach ($groupSales as $sale) {
+    //             $sale->reno_sale_id = $renoSaleId;
+    //             $sale->save();
+    //         }
+    //     }
+
+    //     DB::commit();
+    //     return "RenoXSales created and linked successfully.";
+    // } catch (\Exception $e) {
+    //     DB::rollBack();
+    //     return response()->json(['error' => $e->getMessage()], 500);
+    // }
 });
 
 // Route::get('/tmp/get-sales-with-no-reno/{property_id}', [SaleController::class, 'getSaleWithoutReno']);
