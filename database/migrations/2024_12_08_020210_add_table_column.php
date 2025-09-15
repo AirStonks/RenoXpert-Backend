@@ -32,9 +32,45 @@ return new class extends Migration
         // });
 
         // Staging: Done
-        Schema::table('reno_progress', function (Blueprint $table) {
-            $table->timestamp('owner_handover_released_at')->nullable()->after('completed_at');
-            $table->timestamp('owner_handover_submitted_at')->nullable()->after('owner_handover_released_at');
+        Schema::create('campaigns', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->text('internal_description')->nullable();
+            $table->double('base_amount')->default(0);
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->timestamp('published_at')->nullable();
+            $table->unsignedBigInteger('published_by')->nullable();
+            $table->integer('slot_total')->default(0);
+            $table->integer('slot_used')->default(0);
+            $table->integer('slot_remaining')->default(0);
+            $table->string('status')->default('unpublished');
+            $table->json('metadata')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+        // Staging: Done
+        Schema::create('bookings', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('campaign_id')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->string('booking_no');
+            $table->double('amount')->default(0);
+            $table->string('payment_url')->nullable();
+            $table->timestamp('booked_at');
+            $table->timestamp('expired_at');
+            $table->text('internal_remark')->nullable();
+            $table->string('status')->default('pending');
+            $table->json('metadata')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('campaign_id')->references('id')->on('campaigns')->onDelete('set null');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
     }
 

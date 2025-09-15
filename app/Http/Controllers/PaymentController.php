@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use GuzzleHttp\Client;
+use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Payment;
 use Illuminate\Support\Str;
@@ -30,7 +31,7 @@ class PaymentController extends Controller
 
         $this->auth = base64_encode("$this->username:$this->password");
 
-        $this->token = $this->getToken();
+        $this->token = env('PAYEX_TOKEN');
     }
 
     // public function index(Request $request): JsonResponse
@@ -104,6 +105,60 @@ class PaymentController extends Controller
         $data = [
             [
                 "amount" => floor($invoice->amount * 100),
+                "currency" => "MYR",
+                "capture" => true,
+                "customer_name" => $invoice->sale->order->user->name,
+                "email" => $invoice->sale->order->user->email,
+                "contact_number" => $invoice->sale->order->user->phone_no,
+                // "description" => "Testing",
+                "reference_number" => $invoice->invoice_no,
+                // "payment_type" => "ewallet",
+                // "payment_types" => [
+                //     "ewallet"
+                // ],
+                "show_payment_types" => true,
+                "tokenize" => false,
+                "return_url" => $returnUrl,
+                // "callback_url" => "https://www.google.com/",
+                "reject_url" => $returnUrl,
+                "single_attempt" => true,
+                "metadata" => [
+                    "invoiceId" => $invoice->id,
+                    "clientDomain" => $clientDomain,
+                ]
+                // "expiry_date" => "2024-12-07T15:30:00Z"
+            ]
+        ];
+
+        $body = json_encode($data);
+
+        try {
+            $req = $client->request('POST', 'https://sandbox-payexapi.azurewebsites.net/api/v1/PaymentIntents', [
+                'headers' => $headers,
+                'body' => $body,
+            ]);
+
+            $res = json_decode($req->getBody(), true);
+
+            // Check for a successful response
+            if ($req->getStatusCode() === 200) {
+                return $res;
+            } else {
+                return $req->getBody();
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function paymentIntentBooking(Request $request, $bookingId)
+    {
+        $booking = Booking::find($bookingId);
+        $client = new Client();
+
+        $data = [
+            [
+                "amount" => floor($booking->amount * 100),
                 "currency" => "MYR",
                 "capture" => true,
                 "customer_name" => $invoice->sale->order->user->name,
@@ -323,29 +378,29 @@ class PaymentController extends Controller
     // session()->flash('paymentSuccess', $storageData);
     // session()->flash('paymentError', $storageData);
 
-    private function getToken()
-    {
-        $client = new Client();
+    // private function getToken()
+    // {
+    //     $client = new Client();
 
-        $headers = [
-            'Authorization' => 'Basic ' . $this->auth,
-            'Content-Type' => 'application/json' // Add this if your API expects JSON
-        ];
+    //     $headers = [
+    //         'Authorization' => 'Basic ' . $this->auth,
+    //         'Content-Type' => 'application/json' // Add this if your API expects JSON
+    //     ];
 
-        try {
-            // Make sure to include a body if the API requires it
-            $response = $client->request('POST', 'https://sandbox-payexapi.azurewebsites.net/api/Auth/Token', [
-                'headers' => $headers,
-            ]);
+    //     try {
+    //         // Make sure to include a body if the API requires it
+    //         $response = $client->request('POST', 'https://sandbox-payexapi.azurewebsites.net/api/Auth/Token', [
+    //             'headers' => $headers,
+    //         ]);
 
-            // Check for a successful response
-            if ($response->getStatusCode() === 200) {
-                return json_decode($response->getBody(), true)['token'];
-            } else {
-                return $response->getBody();
-            }
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
-    }
+    //         // Check for a successful response
+    //         if ($response->getStatusCode() === 200) {
+    //             return json_decode($response->getBody(), true)['token'];
+    //         } else {
+    //             return $response->getBody();
+    //         }
+    //     } catch (\Exception $e) {
+    //         return $e->getMessage();
+    //     }
+    // }
 }

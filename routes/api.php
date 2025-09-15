@@ -34,6 +34,7 @@ use App\Http\Controllers\ApiKeyController;
 use App\Http\Controllers\POItemController;
 use App\Http\Controllers\QCFormController;
 use App\Http\Controllers\RPMJobController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobTaskController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RPMTaskController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\PhaseJobController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\InventoryController;
@@ -148,6 +150,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/inventory', InventoryController::class);
     Route::apiResource('/defect-inspection-forms', DefectInspectionFormController::class);
     Route::apiResource('/key-management', KeyManagementController::class);
+    Route::apiResource('/campaigns', CampaignController::class);
 
     // API Key Management Routes
     Route::apiResource('/api-keys', ApiKeyController::class);
@@ -284,6 +287,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('key-management/{keyManagementId}/{category}/remove/{itemIndex}', [KeyManagementController::class, 'removeKeyManagementItem']);
     Route::post('key-management/{keyManagementId}/info/update', [KeyManagementController::class, 'updateKeyManagementInfo']);
     Route::post('key-management/{keyManagementId}/quantity/update', [KeyManagementController::class, 'updateKeyCategoryQuantity']);
+
+    Route::get('campaigns/{campaignId}/bookings', [BookingController::class, 'getBookingByCampaign']);
 
     Route::post('resource-items/add/user/permission', [ResourceItemController::class, 'createUserPermission']);
     Route::post('resource-items/{userId}/{itemId}/permission', [ResourceItemController::class, 'changeUserPermission']);
