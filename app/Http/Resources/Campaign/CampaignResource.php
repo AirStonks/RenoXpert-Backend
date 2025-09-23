@@ -1,30 +1,25 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Campaign;
 
-use App\Models\User;
+use App\Http\Resources\CampaignPackageResource;
+use App\Models\Sale;
+use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CampaignResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'internal_description' => $this->internal_description,
             'packages' => $this->whenLoaded('packages', function () {
                 return CampaignPackageResource::collection($this->packages);
-            }),
-            'bookings' => $this->whenLoaded('bookings', function () {
-                return BookingResource::collection($this->bookings);
             }),
             'base_amount' => $this->base_amount,
             'start_date' => $this->start_date,
@@ -36,11 +31,6 @@ class CampaignResource extends JsonResource
             'slot_remaining' => $this->slot_remaining,
             'status' => $this->status,
             'metadata' => $this->metadata,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'created_by' => $this->created_by,
-            'updated_by' => $this->updated_by,
-            'deleted_at' => $this->deleted_at,
         ];
     }
 }

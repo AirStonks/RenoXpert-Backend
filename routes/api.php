@@ -93,6 +93,14 @@ Route::post("/investor-interest-form", [InvestorInterestController::class, 'stor
 
 Route::get("/reno-progress/{id}/rpm/acknowledge", [RenoProgressController::class, 'acknowledgedByRPM']);
 
+Route::get('/public/campaigns/{id}', [CampaignController::class, 'showPublic']);
+
+Route::get('/public/bookings/validate', [BookingController::class, 'validateBooking']);
+
+Route::post('/public/bookings/{bookingId}/payment/intent', [PaymentController::class, 'paymentIntentBooking']);
+Route::post('/public/bookings/{bookingId}/payment/success', [PaymentController::class, 'paymentSuccessBooking']);
+Route::post('/public/bookings/{bookingId}/payment/reject', [PaymentController::class, 'paymentRejectBooking']);
+
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login', 'login');
@@ -151,6 +159,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/defect-inspection-forms', DefectInspectionFormController::class);
     Route::apiResource('/key-management', KeyManagementController::class);
     Route::apiResource('/campaigns', CampaignController::class);
+    Route::apiResource('/bookings', BookingController::class);
 
     // API Key Management Routes
     Route::apiResource('/api-keys', ApiKeyController::class);
@@ -312,6 +321,9 @@ Route::middleware('auth.api_key')->group(function () {
     Route::get('/v1/products/{id}', [ProductController::class, 'showById']);
     Route::get('/v1/owner/{uuid}/reno-progress', [RenoProgressController::class, 'showByOwnerUuid']);
     Route::get('/v1/owner/{uuid}/reno-progress/{id}', [RPMJobController::class, 'showByJobName']);
+
+    // WIP
+    Route::get('/v1/owners', [UserController::class, 'showOwners']);
 });
 
 Route::get('/test/{id}', [TestController::class, 'test']);

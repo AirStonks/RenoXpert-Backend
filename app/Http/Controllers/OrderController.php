@@ -344,8 +344,10 @@ class OrderController extends BaseController
     public function showOwnerOrdersByUuid(Request $request, $uuid)
     {
         // 1. Search user by uuid
+        // SELECT User where uuid = 'value'
         $user = User::where('uuid', $uuid)->first();
         $input = $request->all();
+
         if (!$user) {
             return $this->sendError('User not found.');
         }
@@ -355,6 +357,7 @@ class OrderController extends BaseController
             $order = Order::where('id', $input['id'])
                 ->where('user_id', $user->id)
                 ->first();
+                
             if (!$order) {
                 return $this->sendError('Order not found or access denied.');
             }

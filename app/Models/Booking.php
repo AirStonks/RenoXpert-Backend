@@ -12,8 +12,10 @@ class Booking extends Model
 
     protected $fillable = [
         'campaign_id',
+        'campaign_package_id',
         'user_id',
         'booking_no',
+        'booking_hash',
         'amount',
         'payment_url',
         'booked_at',
@@ -44,6 +46,11 @@ class Booking extends Model
         return $this->belongsTo(Campaign::class, 'campaign_id', 'id');
     }
     
+    public function campaignPackage()
+    {
+        return $this->belongsTo(CampaignPackage::class, 'campaign_package_id', 'id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');

@@ -7,6 +7,8 @@ use App\Models\Campaign;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\CampaignResource;
+use App\Http\Resources\List\CampaignListResource;
+use App\Http\Resources\Campaign\CampaignResource as PublicCampaignResource;
 use Illuminate\Support\Facades\Validator;
 
 class CampaignController extends BaseController
@@ -46,7 +48,7 @@ class CampaignController extends BaseController
                 "sortField" => $sortField,
                 "sortOrder" => $sortOrder,
                 "totalCount" => $campaigns->total(),
-                "data" => CampaignResource::collection($campaigns->items())
+                "data" => CampaignListResource::collection($campaigns->items())
             ];
 
             return response()->json($response, 200);
@@ -60,6 +62,9 @@ class CampaignController extends BaseController
     {
         $campaign = Campaign::find($id);
 
+        // Load packages
+        $campaign->load('packages');
+
         if (is_null($campaign)) {
             return $this->sendError('Campaign not found.');
         }
@@ -67,10 +72,25 @@ class CampaignController extends BaseController
         return $this->sendResponse(new CampaignResource($campaign), 'Campaign retrieved successfully.');
     }
 
+    public function showPublic(Request $request, $id)
+    {
+        $campaign = Campaign::find($id);
+
+        if (is_null($campaign)) {
+            return $this->sendError('Campaign not found.');
+        }
+
+        // Load packages
+        $campaign->load('packages');
+
+        return $this->sendResponse(new PublicCampaignResource($campaign), 'Campaign retrieved successfully.');
+    }
+
     public function store(Request $request)
     {
         $input = $request->all();
 
+        // Packages name must be unique and not empty
         $validator = Validator::make($input, [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -81,11 +101,36 @@ class CampaignController extends BaseController
             'slot_total' => 'nullable|numeric',
             'status' => 'nullable|string',
             'metadata' => 'nullable',
+            'packages' => 'required|array',
+            'packages.*.name' => 'required|string|max:255',
+            'packages.*.description' => 'nullable|string',
+            'packages.*.internal_description' => 'nullable|string',
+            'packages.*.base_amount' => 'nullable|numeric',
+            'packages.*.slot_total' => 'nullable|numeric',
         ]);
 
         // Calculate slot_remaining
         $input['slot_used'] = 0;
         $input['slot_remaining'] = $input['slot_total'];
+        
+
+        // If package.base_amount, package.slot_total is empty or null, then set it to the campaign.base_amount, campaign.slot_total
+        foreach ($input['packages'] as $package) {
+            if ($package['base_amount'] == null) {
+                $package['base_amount'] = $input['base_amount'];
+            }
+
+            if ($package['slot_total'] == null) {
+                $package['slot_total'] = $input['slot_total'];
+            }
+
+            // Calculate slot_remaining
+            $package['slot_used'] = 0;
+            $package['slot_remaining'] = $package['slot_total'];
+
+            // status set to unpublished
+            $package['status'] = 'unpublished';
+        }
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors(), 422);
@@ -97,7 +142,12 @@ class CampaignController extends BaseController
 
         $campaign = Campaign::create($validatedData);
 
-        return $this->sendResponse(new CampaignResource($campaign), 'Campaign created successfully.');
+        // Create packages
+        foreach ($input['packages'] as $package) {
+            $campaign->packages()->create($package);
+        }
+
+        return $this->sendResponse(new CampaignResource($campaign->load('packages')), 'Campaign created successfully.');
     }
 
     public function update(Request $request, $id)

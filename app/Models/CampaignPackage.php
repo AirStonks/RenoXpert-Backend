@@ -6,19 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Campaign extends Model
+class CampaignPackage extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'title',
+        'campaign_id',
+        'name',
         'description',
         'internal_description',
         'base_amount',
         'start_date',
         'end_date',
-        'published_at',
-        'published_by',
         'slot_total',
         'slot_used',
         'slot_remaining',
@@ -42,13 +41,13 @@ class Campaign extends Model
         });
     }
 
-    public function bookings()
+    public function campaign()
     {
-        return $this->hasMany(Booking::class, 'campaign_id', 'id');
+        return $this->belongsTo(Campaign::class, 'campaign_id', 'id');
     }
 
-    public function packages()
+    public function bookings()
     {
-        return $this->hasMany(CampaignPackage::class, 'campaign_id', 'id');
+        return $this->hasMany(Booking::class, 'campaign_package_id', 'id');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\Booking;
+use App\Models\Campaign;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\BookingResource;
@@ -87,8 +88,9 @@ class BookingController extends BaseController
         }
 
         $input['booking_no'] = 'RCB-' . now()->format('y') . str_pad(Booking::count() + 1, 5, '0', STR_PAD_LEFT);
+        $input['booking_hash'] = bin2hex(random_bytes(16));
 
-        $booking = Booking::create($request->all());
+        $booking = Booking::create($input);
 
         return $this->sendResponse(new BookingResource($booking), 'Booking created successfully.');
     }
@@ -96,6 +98,21 @@ class BookingController extends BaseController
     public function generateBooking(Request $request)
     {
         //
+    }
+
+    public function validateBooking(Request $request)
+    {
+        $input = $request->all();
+
+        $booking = Booking::where('booking_hash', $input['booking_hash'])
+            ->where('campaign_id', $input['campaign_id'])
+            ->first();
+
+        if (!$booking) {
+            return $this->sendError('Booking not found.');
+        }
+
+        return $this->sendResponse(new BookingResource($booking), 'Booking retrieved successfully.');
     }
 
     public function update(Request $request, $id)

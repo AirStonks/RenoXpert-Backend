@@ -1,18 +1,14 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\List;
 
+use App\Http\Resources\CampaignPackageResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CampaignResource extends JsonResource
+class CampaignListResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
@@ -20,12 +16,6 @@ class CampaignResource extends JsonResource
             'title' => $this->title,
             'description' => $this->description,
             'internal_description' => $this->internal_description,
-            'packages' => $this->whenLoaded('packages', function () {
-                return CampaignPackageResource::collection($this->packages);
-            }),
-            'bookings' => $this->whenLoaded('bookings', function () {
-                return BookingResource::collection($this->bookings);
-            }),
             'base_amount' => $this->base_amount,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
