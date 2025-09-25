@@ -97,9 +97,10 @@ Route::get('/public/campaigns/{id}', [CampaignController::class, 'showPublic']);
 
 Route::get('/public/bookings/validate', [BookingController::class, 'validateBooking']);
 
-Route::post('/public/bookings/{bookingId}/payment/intent', [PaymentController::class, 'paymentIntentBooking']);
-Route::post('/public/bookings/{bookingId}/payment/success', [PaymentController::class, 'paymentSuccessBooking']);
-Route::post('/public/bookings/{bookingId}/payment/reject', [PaymentController::class, 'paymentRejectBooking']);
+Route::post('/public/campaigns/{campaignSlug}/booking/payment/intent', [PaymentController::class, 'paymentIntentBooking']);
+Route::post('/public/campaigns/{campaignSlug}/booking/payment/success/process', [PaymentController::class, 'paymentSuccessBookingProcess']);
+Route::post('/public/campaigns/{campaignSlug}/booking/payment/success', [PaymentController::class, 'paymentSuccessBooking']);
+Route::post('/public/campaigns/{campaignSlug}/booking/payment/error', [PaymentController::class, 'paymentErrorBooking']);
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
@@ -298,6 +299,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('key-management/{keyManagementId}/quantity/update', [KeyManagementController::class, 'updateKeyCategoryQuantity']);
 
     Route::get('campaigns/{campaignId}/bookings', [BookingController::class, 'getBookingByCampaign']);
+    Route::post('campaigns/{campaignId}/update', [CampaignController::class, 'update']);
 
     Route::post('resource-items/add/user/permission', [ResourceItemController::class, 'createUserPermission']);
     Route::post('resource-items/{userId}/{itemId}/permission', [ResourceItemController::class, 'changeUserPermission']);

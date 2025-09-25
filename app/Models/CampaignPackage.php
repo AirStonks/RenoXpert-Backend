@@ -16,6 +16,7 @@ class CampaignPackage extends Model
         'description',
         'internal_description',
         'base_amount',
+        'booking_amount',
         'start_date',
         'end_date',
         'slot_total',

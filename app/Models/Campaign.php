@@ -12,9 +12,12 @@ class Campaign extends Model
 
     protected $fillable = [
         'title',
+        'slug',
         'description',
         'internal_description',
+        'thumbnail',
         'base_amount',
+        'booking_amount',
         'start_date',
         'end_date',
         'published_at',
@@ -31,6 +34,7 @@ class Campaign extends Model
 
     protected $casts = [
         'metadata' => 'array',
+        'thumbnail' => 'array',
     ];
 
     protected static function boot()

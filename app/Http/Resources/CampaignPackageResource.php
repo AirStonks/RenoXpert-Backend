@@ -27,6 +27,7 @@ class CampaignPackageResource extends JsonResource
                 return BookingResource::collection($this->bookings);
             }),
             'base_amount' => $this->base_amount,
+            'booking_amount' => $this->booking_amount,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'slot_total' => $this->slot_total,

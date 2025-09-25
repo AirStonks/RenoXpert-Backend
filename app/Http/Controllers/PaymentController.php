@@ -69,101 +69,102 @@ class PaymentController extends BaseController
     //     return response()->json($response, 200);
     // }
 
-    public function paymentIntent($invoiceId)
+    // public function paymentIntent($invoiceId)
+    // {
+    //     $invoice = Invoice::find($invoiceId);
+    //     $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
+    //     $clientHost = request()->getHost();
+
+    //     // if (env('APP_BYPASS') === true) {
+    //     //     // Set the properties before calling the method
+    //     //     $this->invoiceId = $invoice->id;
+    //     //     $this->clientDomain = $clientDomain;
+
+    //     //     return $this->paymentSuccess(new Request());
+    //     // }
+
+    //     if (!($invoice->status == 'unpaid' && $invoice->link_status == 'active')) {
+    //         // return 'error';
+    //         // return new InvoiceResource($invoice);
+    //         return $clientDomain . '/invoice/' . $invoice->id . '/view';
+    //     }
+
+    //     // NOTE:
+    //     // callback_url is backend process url
+
+    //     $client = new Client();
+
+    //     // $returnUrl = $clientDomain . '/invoice/' . $invoice->id . '/view';
+    //     // $returnUrl = 'http://' . $clientHost . ':8000/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
+    //     $returnUrl = $this->host . 'api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
+
+    //     $headers = [
+    //         'Content-Type' => 'application/json',
+    //         'Authorization' => 'Bearer ' . $this->token
+    //     ];
+
+    //     // $amount = $invoice->amount * 100;
+
+    //     $data = [
+    //         [
+    //             "amount" => floor($invoice->amount * 100),
+    //             "currency" => "MYR",
+    //             "capture" => true,
+    //             "customer_name" => $invoice->sale->order->user->name,
+    //             "email" => $invoice->sale->order->user->email,
+    //             "contact_number" => $invoice->sale->order->user->phone_no,
+    //             // "description" => "Testing",
+    //             "reference_number" => $invoice->invoice_no,
+    //             // "payment_type" => "ewallet",
+    //             // "payment_types" => [
+    //             //     "ewallet"
+    //             // ],
+    //             "show_payment_types" => true,
+    //             "tokenize" => false,
+    //             "return_url" => $returnUrl,
+    //             // "callback_url" => "https://www.google.com/",
+    //             "reject_url" => $returnUrl,
+    //             "single_attempt" => true,
+    //             "metadata" => [
+    //                 "invoiceId" => $invoice->id,
+    //                 "clientDomain" => $clientDomain,
+    //             ]
+    //             // "expiry_date" => "2024-12-07T15:30:00Z"
+    //         ]
+    //     ];
+
+    //     $body = json_encode($data);
+
+    //     try {
+    //         $req = $client->request('POST', 'https://sandbox-payexapi.azurewebsites.net/api/v1/PaymentIntents', [
+    //             'headers' => $headers,
+    //             'body' => $body,
+    //         ]);
+
+    //         $res = json_decode($req->getBody(), true);
+
+    //         // Check for a successful response
+    //         if ($req->getStatusCode() === 200) {
+    //             return $res;
+    //         } else {
+    //             return $req->getBody();
+    //         }
+    //     } catch (\Exception $e) {
+    //         return $e->getMessage();
+    //     }
+    // }
+
+    public function paymentIntentBooking(Request $request, $campaignSlug)
     {
-        $invoice = Invoice::find($invoiceId);
-        $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
-        $clientHost = request()->getHost();
-
-        // if (env('APP_BYPASS') === true) {
-        //     // Set the properties before calling the method
-        //     $this->invoiceId = $invoice->id;
-        //     $this->clientDomain = $clientDomain;
-
-        //     return $this->paymentSuccess(new Request());
-        // }
-
-        if (!($invoice->status == 'unpaid' && $invoice->link_status == 'active')) {
-            // return 'error';
-            // return new InvoiceResource($invoice);
-            return $clientDomain . '/invoice/' . $invoice->id . '/view';
-        }
-
-        // NOTE:
-        // callback_url is backend process url
-
-        $client = new Client();
-
-        // $returnUrl = $clientDomain . '/invoice/' . $invoice->id . '/view';
-        // $returnUrl = 'http://' . $clientHost . ':8000/api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
-        $returnUrl = $this->host . 'api/payex/paymentIntent/invoice/' . $invoiceId . '/payment/success';
-
-        $headers = [
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . $this->token
-        ];
-
-        // $amount = $invoice->amount * 100;
-
-        $data = [
-            [
-                "amount" => floor($invoice->amount * 100),
-                "currency" => "MYR",
-                "capture" => true,
-                "customer_name" => $invoice->sale->order->user->name,
-                "email" => $invoice->sale->order->user->email,
-                "contact_number" => $invoice->sale->order->user->phone_no,
-                // "description" => "Testing",
-                "reference_number" => $invoice->invoice_no,
-                // "payment_type" => "ewallet",
-                // "payment_types" => [
-                //     "ewallet"
-                // ],
-                "show_payment_types" => true,
-                "tokenize" => false,
-                "return_url" => $returnUrl,
-                // "callback_url" => "https://www.google.com/",
-                "reject_url" => $returnUrl,
-                "single_attempt" => true,
-                "metadata" => [
-                    "invoiceId" => $invoice->id,
-                    "clientDomain" => $clientDomain,
-                ]
-                // "expiry_date" => "2024-12-07T15:30:00Z"
-            ]
-        ];
-
-        $body = json_encode($data);
-
-        try {
-            $req = $client->request('POST', 'https://sandbox-payexapi.azurewebsites.net/api/v1/PaymentIntents', [
-                'headers' => $headers,
-                'body' => $body,
-            ]);
-
-            $res = json_decode($req->getBody(), true);
-
-            // Check for a successful response
-            if ($req->getStatusCode() === 200) {
-                return $res;
-            } else {
-                return $req->getBody();
-            }
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
-    }
-
-    public function paymentIntentBooking(Request $request, $bookingId)
-    {
-        $booking = Booking::find($bookingId);
+        $campaign = Campaign::where('slug', $campaignSlug)->first();
 
         $input = $request->all();
+        $amount = 0;
 
         $validator = Validator::make($input, [
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
+            'email' => 'nullable|string|max:255',
             'packageId' => 'nullable|numeric',
         ]);
 
@@ -171,43 +172,54 @@ class PaymentController extends BaseController
             return $this->sendError('Validation Error.', $validator->errors(), 422);
         }
 
+        if ($input['packageId']) {
+            $package = CampaignPackage::find($input['packageId']);
+            $amount = $package->booking_amount;
+        } else {
+            $amount = $campaign->booking_amount;
+        }
+
+        // Generate a meaningful booking reference number
+        $bookingNumber = $this->generateBookingReference();
+
         $client = new Client();
         $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
+        $originateUrl = $clientDomain . '/campaign/campaigns/' . $campaignSlug;
         $headers = [
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer ' . $this->token
         ];
 
-        // TMP
-        $returnUrl = 'http://local-api.renoxpert.test/api/public/bookings/' . $bookingId . '/payment';
+        $returnUrl = $clientDomain . '/campaign/campaigns/' . $campaignSlug . '/booking/payment';
 
         $data = [
             [
-                "amount" => floor($booking->amount * 100),
+                "amount" => floor($amount * 100),
                 "currency" => "MYR",
                 "capture" => true,
                 "customer_name" => $input['name'],
                 // "email" => $invoice->sale->order->user->email,
+                "email" => $input['email'],
                 "contact_number" => $input['phone'],
                 // "description" => "Testing",
-                "reference_number" => $booking->booking_no,
+                "reference_number" => $bookingNumber,
                 // "payment_type" => "ewallet",
                 // "payment_types" => [
                 //     "ewallet"
                 // ],
                 "show_payment_types" => true,
                 "tokenize" => false,
-                "return_url" => $returnUrl . '/success',
-                // "callback_url" => "https://www.google.com/",
-                "reject_url" => $returnUrl . '/reject',
+                "return_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/success',
+                "callback_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/success/process',
+                "reject_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/error',
                 "single_attempt" => true,
                 "metadata" => [
                     'phone' => $input['phone'],
-                    'campaignId' => $booking->campaign_id,
+                    'email' => $input['email'],
+                    'campaignId' => $campaign->id,
                     'packageId' => $input['packageId'] ?? null,
-                    "booking_hash" => $booking->booking_hash,
                     "clientDomain" => $clientDomain,
-                    "originateUrl" => $clientDomain . '/campaign/' . $booking->campaign_id . '/booking?ref=' . $booking->booking_hash,
+                    "originateUrl" => $originateUrl,
                 ]
                 // "expiry_date" => "2024-12-07T15:30:00Z"
             ]
@@ -234,14 +246,11 @@ class PaymentController extends BaseController
         }
     }
 
-    public function paymentSuccessBooking(Request $request)
+    public function paymentSuccessBookingProcess(Request $request, $campaignSlug)
     {
         $input = $request->all();
         $metadata = json_decode($input['metadata'], true);
-        $campaignId = $metadata['campaignId'] ?? null;
         $packageId = $metadata['packageId'] ?? null;
-        $clientDomain = $metadata['clientDomain'] ?? null;
-        $originateUrl = $metadata['originateUrl'] ?? null;
         $bookingHash = $metadata['booking_hash'] ?? null;
         $phone = $metadata['phone'] ?? null;
         $amount = $input['amount'] ?? null;
@@ -249,10 +258,8 @@ class PaymentController extends BaseController
         $bookingNumber = $input['reference_number'] ?? null;
         $paymentDate = $input['txn_date'] ?? null;
 
-
         // Store booking detail (name, phone)
-        $booking = Booking::where('booking_hash', $bookingHash)->first();
-        $campaign = Campaign::find($campaignId);
+        $campaign = Campaign::where('slug', $campaignSlug)->first();
 
         // If packageId is not null, update package slots
         if ($packageId) {
@@ -279,41 +286,48 @@ class PaymentController extends BaseController
             }
         }
 
+        // Use the reference number from the payment as the booking number
+        $bookingNumber = $input['reference_number'] ?? 'RCB-' . now()->format('y') . str_pad(Booking::count() + 1, 5, '0', STR_PAD_LEFT);
+        $bookingHash = bin2hex(random_bytes(16));
 
-        // Store in booking metadata
-        $booking->metadata = json_encode([
-            'name' => $name,
-            'phone' => $phone,
+        $booking = Booking::create([
+            'campaign_id' => $campaign->id,
+            'campaign_package_id' => $packageId,
+            'booking_no' => $bookingNumber,
+            'booking_hash' => $bookingHash,
+            'booked_at' => strtotime($paymentDate),
+            'amount' => $amount,
+            'status' => 'paid',
+            'metadata' => json_encode([
+                'name' => $name,
+                'phone' => $phone,
+                'email' => $metadata['email'] ?? null,
+            ]),
         ]);
 
-        // Change Status to 'paid'
-        $booking->status = 'paid';
-        $booking->campaign_package_id = $packageId;
-
-        // Update booking record
-        $booking->save();
-
-        return redirect()->to($clientDomain . '/campaign/' . $campaignId . '/booking/payment/success?ref=' . $bookingHash . '&amount=' . $amount . '&originateUrl=' . $originateUrl . '&name=' . $name . '&bookingNumber=' . $bookingNumber . '&paymentDate=' . $paymentDate);
-
-        // Allow user to download invoice
-        // With info: name, phone, booking_no, amount, payment_date
-
-        // // Return in json
-        // return response()->json($input);
+        return $this->sendResponse($booking, 'Booking created successfully.');
     }
 
-    public function paymentRejectBooking(Request $request)
+    public function paymentSuccessBooking(Request $request, $campaignSlug)
     {
         $input = $request->all();
         $metadata = json_decode($input['metadata'], true);
-        $campaignId = $metadata['campaignId'] ?? null;
         $clientDomain = $metadata['clientDomain'] ?? null;
         $originateUrl = $metadata['originateUrl'] ?? null;
-        $bookingHash = $metadata['booking_hash'] ?? null;
+
+        return redirect()->to($clientDomain . '/campaign/campaigns/' . $campaignSlug . '/booking/payment/success?originateUrl=' . $originateUrl);
+    }
+
+    public function paymentErrorBooking(Request $request, $campaignSlug)
+    {
+        $input = $request->all();
+        $metadata = json_decode($input['metadata'], true);
+        $clientDomain = $metadata['clientDomain'] ?? null;
+        $originateUrl = $metadata['originateUrl'] ?? null;
 
         // return response()->json($input + $metadata + ['amount' => $amount] + ['originateUrl' => $originateUrl] + ['bookingHash' => $bookingHash] + ['campaignId' => $campaignId] + ['clientDomain' => $clientDomain]);
 
-        return redirect()->to($clientDomain . '/campaign/' . $campaignId . '/booking/payment/declined?ref=' . $bookingHash . '&originateUrl=' . $originateUrl);
+        return redirect()->to($clientDomain . '/campaign/campaigns/' . $campaignSlug . '/booking/payment/error?originateUrl=' . $originateUrl);
 
         // // Return in json
         // return response()->json($input);
@@ -516,5 +530,15 @@ class PaymentController extends BaseController
         } catch (\Exception $e) {
             return $e->getMessage();
         }
+    }
+
+    /**
+     * Generate a meaningful booking reference number
+     * Format: RCB-{yy}{sequence}
+     * Example: RCB-250001
+     */
+    private function generateBookingReference()
+    {
+        return 'RCB-' . now()->format('y') . str_pad(Booking::count() + 1, 5, '0', STR_PAD_LEFT);
     }
 }

@@ -17,11 +17,14 @@ class CampaignResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'slug' => $this->slug,
             'description' => $this->description,
+            'thumbnail' => $this->thumbnail,
             'packages' => $this->whenLoaded('packages', function () {
                 return CampaignPackageResource::collection($this->packages);
             }),
             'base_amount' => $this->base_amount,
+            'booking_amount' => $this->booking_amount,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'published_at' => $this->published_at,
