@@ -375,7 +375,7 @@ class PaymentController extends BaseController
 
         // return response()->json($input + $metadata + ['amount' => $amount] + ['originateUrl' => $originateUrl] + ['bookingHash' => $bookingHash] + ['campaignId' => $campaignId] + ['clientDomain' => $clientDomain]);
 
-        return redirect()->to($clientDomain . '/campaign/campaigns/' . $campaignSlug . '/booking/payment/error?originateUrl=' . $originateUrl);
+        return redirect()->to($clientDomain . '/campaigns/' . $campaignSlug . '/booking/payment/error?originateUrl=' . $originateUrl);
 
         // // Return in json
         // return response()->json($input);
