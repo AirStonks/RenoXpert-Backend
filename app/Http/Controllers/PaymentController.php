@@ -230,8 +230,8 @@ class PaymentController extends BaseController
                 // ],
                 "show_payment_types" => true,
                 "tokenize" => false,
-                "return_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/success/process',
-                "callback_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/success',
+                "return_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/success',
+                "callback_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/success/process',
                 "reject_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/error',
                 "single_attempt" => true,
                 "metadata" => [
@@ -279,9 +279,9 @@ class PaymentController extends BaseController
         $name = $input['customer_name'] ?? null;
         $bookingNumber = $input['reference_number'] ?? null;
         $paymentDate = $input['txn_date'] ?? null;
-        $authCode = $input['auth_code'] ?? null;
+        $success = $input['success'] ?? null;
 
-        if ($authCode != "00") {
+        if (!$success) {
             return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
         }
 
