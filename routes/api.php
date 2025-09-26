@@ -98,7 +98,7 @@ Route::get('/public/campaigns/{id}', [CampaignController::class, 'showPublic']);
 Route::get('/public/bookings/validate', [BookingController::class, 'validateBooking']);
 
 Route::post('/public/campaigns/{campaignSlug}/booking/payment/intent', [PaymentController::class, 'paymentIntentBooking']);
-Route::post('/public/campaigns/{campaignSlug}/booking/payment/success/process', [PaymentController::class, 'paymentSuccessBookingProcess']);
+Route::post('/public/campaigns/{campaignSlug}/booking/payment/success/process', [PaymentController::class, 'paymentBookingProcess']);
 Route::post('/public/campaigns/{campaignSlug}/booking/payment/success', [PaymentController::class, 'paymentSuccessBooking']);
 Route::post('/public/campaigns/{campaignSlug}/booking/payment/error', [PaymentController::class, 'paymentErrorBooking']);
 

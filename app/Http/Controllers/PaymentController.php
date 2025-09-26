@@ -268,7 +268,7 @@ class PaymentController extends BaseController
         }
     }
 
-    public function paymentSuccessBookingProcess(Request $request, $campaignSlug)
+    public function paymentBookingProcess(Request $request, $campaignSlug)
     {
         $input = $request->all();
         $metadata = json_decode($input['metadata'], true);
@@ -279,6 +279,11 @@ class PaymentController extends BaseController
         $name = $input['customer_name'] ?? null;
         $bookingNumber = $input['reference_number'] ?? null;
         $paymentDate = $input['txn_date'] ?? null;
+        $authCode = $input['auth_code'] ?? null;
+
+        if ($authCode != "20") {
+            return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
+        }
 
         // Store booking detail (name, phone)
         $campaign = Campaign::where('slug', $campaignSlug)->first();
