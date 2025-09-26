@@ -342,11 +342,11 @@ class PaymentController extends BaseController
             'booked_at' => $paymentDate ? date('Y-m-d H:i:s', strtotime($paymentDate)) : now(),
             'amount' => $amount,
             'status' => 'paid',
-            'metadata' => json_encode([
+            'metadata' => [
                 'name' => $name,
                 'phone' => $phone,
                 'email' => $metadata['email'] ?? null,
-            ]),
+            ],
         ]);
 
         return $this->sendResponse($booking, 'Booking created successfully.');
