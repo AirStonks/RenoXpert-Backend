@@ -205,7 +205,7 @@ class PaymentController extends BaseController
 
         $client = new Client();
         $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
-        $originateUrl = $clientDomain . '/campaign/campaigns/' . $campaignSlug;
+        $originateUrl = $clientDomain . '/campaigns/' . $campaignSlug;
         $headers = [
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer ' . $this->token
