@@ -279,11 +279,12 @@ class PaymentController extends BaseController
         $name = $input['customer_name'] ?? null;
         $bookingNumber = $input['reference_number'] ?? null;
         $paymentDate = $input['txn_date'] ?? null;
-        $success = $input['success'] ?? null;
+        $authCode = $input['auth_code'] ?? null;
 
-        if (!$success) {
-            return response()->json($input, 400);
-        }
+        return response()->json($authCode, 400);
+        // if (!$success) {
+        //     return response()->json($input, 400);
+        // }
 
         // Store booking detail (name, phone)
         $campaign = Campaign::where('slug', $campaignSlug)->first();
