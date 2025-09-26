@@ -281,10 +281,9 @@ class PaymentController extends BaseController
         $paymentDate = $input['txn_date'] ?? null;
         $authCode = $input['auth_code'] ?? null;
 
-        return response()->json($authCode, 400);
-        // if (!$success) {
-        //     return response()->json($input, 400);
-        // }
+        if ($authCode != "00") {
+            return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
+        }
 
         // Store booking detail (name, phone)
         $campaign = Campaign::where('slug', $campaignSlug)->first();
