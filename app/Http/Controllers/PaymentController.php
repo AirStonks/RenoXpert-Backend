@@ -282,7 +282,7 @@ class PaymentController extends BaseController
         $success = $input['success'] ?? null;
 
         if (!$success) {
-            return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
+            return response()->json($input, 400);
         }
 
         // Store booking detail (name, phone)
