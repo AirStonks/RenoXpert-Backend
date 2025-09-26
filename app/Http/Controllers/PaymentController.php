@@ -281,7 +281,7 @@ class PaymentController extends BaseController
         $paymentDate = $input['txn_date'] ?? null;
         $authCode = $input['auth_code'] ?? null;
 
-        if ($authCode != "20") {
+        if ($authCode != "00") {
             return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
         }
 
