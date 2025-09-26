@@ -23,8 +23,8 @@ class CampaignController extends BaseController
             $sortField = $request->input('sortField', 'id'); // Default to 'id'
             $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
 
-            // Build the query to retrieve orders
-            $query = Campaign::query();
+            // Build the query to retrieve campaigns with packages loaded
+            $query = Campaign::with('packages');
 
             // Apply search filter
             if (!empty($search)) {

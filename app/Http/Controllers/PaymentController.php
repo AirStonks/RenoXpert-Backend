@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PaymentResource;
 use App\Models\CampaignPackage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends BaseController
 {
@@ -174,8 +175,28 @@ class PaymentController extends BaseController
 
         if ($input['packageId']) {
             $package = CampaignPackage::find($input['packageId']);
+
+            if (!$package) {
+                return $this->sendError('Package not found.', [], 404);
+            }
+
+            // Check if package belongs to this campaign
+            if ($package->campaign_id !== $campaign->id) {
+                return $this->sendError('Package does not belong to this campaign.', [], 400);
+            }
+
+            // Check slot availability for the package
+            if ($package->slot_remaining <= 0) {
+                return $this->sendError('No available slots for this package.', ['code' => 'fully_redeemed'], 400);
+            }
+
             $amount = $package->booking_amount;
         } else {
+            // Check slot availability for the campaign
+            if ($campaign->slot_remaining <= 0) {
+                return $this->sendError('No available slots for this campaign.', ['code' => 'fully_redeemed'], 400);
+            }
+
             $amount = $campaign->booking_amount;
         }
 
@@ -190,7 +211,7 @@ class PaymentController extends BaseController
             'Authorization' => 'Bearer ' . $this->token
         ];
 
-        $returnUrl = $clientDomain . '/campaign/campaigns/' . $campaignSlug . '/booking/payment';
+        $returnUrl = $clientDomain . '/campaigns/' . $campaignSlug . '/booking/payment';
 
         $data = [
             [
@@ -214,6 +235,7 @@ class PaymentController extends BaseController
                 "reject_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/error',
                 "single_attempt" => true,
                 "metadata" => [
+                    'bookingNumber' => $bookingNumber,
                     'phone' => $input['phone'],
                     'email' => $input['email'],
                     'campaignId' => $campaign->id,
@@ -264,25 +286,47 @@ class PaymentController extends BaseController
         // If packageId is not null, update package slots
         if ($packageId) {
             $package = CampaignPackage::find($packageId);
-            $package->slot_used++;
-            $package->slot_remaining--;
-            $package->save();
 
-            // If package slots is 0, change package status to 'completed'
-            if ($package->slot_remaining == 0) {
-                $package->status = 'fully-redeemed';
+            // Safety check: ensure package still has available slots
+            if ($package && $package->slot_remaining > 0) {
+                $package->slot_used++;
+                $package->slot_remaining--;
                 $package->save();
+
+                // If package slots is 0, change package status to 'fully-redeemed'
+                if ($package->slot_remaining == 0) {
+                    $package->status = 'fully-redeemed';
+                    $package->save();
+                }
+            } else {
+                // No slots available - this shouldn't happen if paymentIntentBooking worked correctly
+                Log::warning('Payment success callback received but no slots available', [
+                    'campaign_slug' => $campaignSlug,
+                    'package_id' => $packageId,
+                    'metadata' => $metadata
+                ]);
+                return response()->json(['message' => 'No available slots', 'code' => 'fully_redeemed'], 400);
             }
         } else {
-            // update campaign slots
-            $campaign->slot_used++;
-            $campaign->slot_remaining--;
-            $campaign->save();
-
-            // If campaign slots is 0, change campaign status to 'completed'
-            if ($campaign->slot_remaining == 0) {
-                $campaign->status = 'fully-redeemed';
+            // Safety check: ensure campaign still has available slots
+            if ($campaign->slot_remaining > 0) {
+                // update campaign slots
+                $campaign->slot_used++;
+                $campaign->slot_remaining--;
                 $campaign->save();
+
+                // If campaign slots is 0, change campaign status to 'fully-redeemed'
+                if ($campaign->slot_remaining == 0) {
+                    $campaign->status = 'fully-redeemed';
+                    $campaign->save();
+                }
+            } else {
+                // No slots available - this shouldn't happen if paymentIntentBooking worked correctly
+                Log::warning('Payment success callback received but no slots available', [
+                    'campaign_slug' => $campaignSlug,
+                    'metadata' => $metadata
+                ]);
+                return response()->json(['message' => 'No available slots', 'code' => 'fully_redeemed'], 400);
             }
         }
 
@@ -295,7 +339,7 @@ class PaymentController extends BaseController
             'campaign_package_id' => $packageId,
             'booking_no' => $bookingNumber,
             'booking_hash' => $bookingHash,
-            'booked_at' => strtotime($paymentDate),
+            'booked_at' => $paymentDate ? date('Y-m-d H:i:s', strtotime($paymentDate)) : now(),
             'amount' => $amount,
             'status' => 'paid',
             'metadata' => json_encode([
@@ -314,8 +358,12 @@ class PaymentController extends BaseController
         $metadata = json_decode($input['metadata'], true);
         $clientDomain = $metadata['clientDomain'] ?? null;
         $originateUrl = $metadata['originateUrl'] ?? null;
+        $bookingNumber = $metadata['bookingNumber'] ?? null;
+        $amount = $input['amount'] ?? null;
+        $paymentDate = $input['txn_date'] ?? null;
+        $name = $input['customer_name'] ?? null;
 
-        return redirect()->to($clientDomain . '/campaign/campaigns/' . $campaignSlug . '/booking/payment/success?originateUrl=' . $originateUrl);
+        return redirect()->to($clientDomain . '/campaigns/' . $campaignSlug . '/booking/payment/success?originateUrl=' . $originateUrl . '&bookingNumber=' . $bookingNumber . '&amount=' . $amount . '&paymentDate=' . $paymentDate . '&name=' . $name);
     }
 
     public function paymentErrorBooking(Request $request, $campaignSlug)

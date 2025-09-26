@@ -11,6 +11,18 @@ class CampaignListResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        // Calculate slot values based on packages if they exist
+        $slotTotal = $this->slot_total;
+        $slotUsed = $this->slot_used;
+        $slotRemaining = $this->slot_remaining;
+
+        // If packages are loaded and exist, recalculate slot values from packages
+        if ($this->packages->isNotEmpty()) {
+            $slotTotal = $this->packages->sum('slot_total');
+            $slotUsed = $this->packages->sum('slot_used');
+            $slotRemaining = $this->packages->sum('slot_remaining');
+        }
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -21,9 +33,9 @@ class CampaignListResource extends JsonResource
             'end_date' => $this->end_date,
             'published_at' => $this->published_at,
             'published_by' => $this->published_by,
-            'slot_total' => $this->slot_total,
-            'slot_used' => $this->slot_used,
-            'slot_remaining' => $this->slot_remaining,
+            'slot_total' => $slotTotal,
+            'slot_used' => $slotUsed,
+            'slot_remaining' => $slotRemaining,
             'status' => $this->status,
             'metadata' => $this->metadata,
             'created_at' => $this->created_at,

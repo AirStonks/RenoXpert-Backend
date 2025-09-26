@@ -28,6 +28,10 @@ class Booking extends Model
         'deleted_at',
     ];
 
+    protected $casts = [
+        'metadata' => 'array',
+    ];
+
     protected static function boot()
     {
         parent::boot();
@@ -45,7 +49,7 @@ class Booking extends Model
     {
         return $this->belongsTo(Campaign::class, 'campaign_id', 'id');
     }
-    
+
     public function campaignPackage()
     {
         return $this->belongsTo(CampaignPackage::class, 'campaign_package_id', 'id');
