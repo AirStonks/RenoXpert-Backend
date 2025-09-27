@@ -31,74 +31,79 @@ return new class extends Migration
         //     $table->softDeletes();
         // });
 
-        // // Staging: Done
-        // Schema::table('orders', function (Blueprint $table) {
-        //     $table->boolean('is_rnpl')->default(false)->after('is_progressive_payment');
-        //     $table->double('rnpl_base_price')->default(0)->after('is_rnpl');
-        // });
+        // Staging: Done
+        Schema::create('campaigns', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
+            $table->text('internal_description')->nullable();
+            $table->json('thumbnail')->nullable();
+            $table->double('base_amount')->default(0);
+            $table->double('booking_amount')->default(0);
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->timestamp('published_at')->nullable();
+            $table->unsignedBigInteger('published_by')->nullable();
+            $table->integer('slot_total')->default(0);
+            $table->integer('slot_used')->default(0);
+            $table->integer('slot_remaining')->default(0);
+            $table->string('status')->default('unpublished');
+            $table->json('metadata')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
 
         // Staging: Done
-        Schema::create('reno_x_sale', function (Blueprint $table) {
+        Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->string('reno_sale_no');
+            $table->unsignedBigInteger('campaign_id')->nullable();
+            $table->unsignedBigInteger('campaign_package_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->unsignedBigInteger('property_id')->nullable();
-            $table->string('unit_type')->nullable();
-            $table->string('block')->nullable();
-            $table->string('floor')->nullable();
-            $table->string('unit_no')->nullable();
-            $table->integer('bedroom_count')->default(0);
-            $table->integer('single_bedroom_count')->default(0);
-            $table->integer('queen_bedroom_count')->default(0);
-            $table->integer('studio_count')->default(0);
-            $table->integer('bathroom_count')->default(0);
-            $table->string('status')->default('active');
+            $table->string('booking_no');
+            $table->string('booking_hash')->unique(); // Unique value for URL reference
+            $table->double('amount')->default(0);
+            $table->string('payment_url')->nullable();
+            $table->timestamp('booked_at')->nullable();
+            $table->timestamp('expired_at')->nullable();
+            $table->text('internal_remark')->nullable();
+            $table->string('status')->default('pending');
+            $table->json('metadata')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign('campaign_id')->references('id')->on('campaigns')->onDelete('set null');
+            $table->foreign('campaign_package_id')->references('id')->on('campaign_packages')->onDelete('set null');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
 
-        // Staging: Done
-        Schema::table('sales', function (Blueprint $table) {
-            $table->unsignedBigInteger('reno_sale_id')->nullable()->after('order_id');
-        });
 
         // Staging: Done
-        Schema::table('purchase_orders', function (Blueprint $table) {
-            $table->unsignedBigInteger('reno_sale_id')->nullable()->after('sale_id');
-        });
-
-        // Staging: Done
-        Schema::table('po_items', function (Blueprint $table) {
-            $table->integer('supply_qty')->default(0)->after('supply_price');
-            $table->integer('install_qty')->default(0)->after('install_price');
-        });
-
-        // Staging: Done
-        Schema::create('api_keys', function (Blueprint $table) {
+        Schema::create('campaign_packages', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
+            $table->unsignedBigInteger('campaign_id');
             $table->string('name');
-            $table->text('key')->unique();
-            $table->string('prefix', 8);
-            $table->timestamp('last_used_at')->nullable();
-            $table->timestamp('expires_at')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->text('description')->nullable();
+            $table->text('internal_description')->nullable();
+            $table->double('base_amount')->nullable();
+            $table->double('booking_amount')->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->integer('slot_total')->default(0);
+            $table->integer('slot_used')->default(0);
+            $table->integer('slot_remaining')->default(0);
+            $table->string('status')->default('unpublished');
+            $table->json('metadata')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
-            $table->index(['prefix', 'is_active']);
-        });
-
-        // Staging: Done
-        Schema::table('reno_progress', function (Blueprint $table) {
-            $table->timestamp('owner_handover_released_at')->nullable()->after('completed_at');
-            $table->timestamp('owner_handover_submitted_at')->nullable()->after('owner_handover_released_at');
+            $table->foreign('campaign_id')->references('id')->on('campaigns')->onDelete('cascade');
         });
     }
 

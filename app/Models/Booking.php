@@ -6,30 +6,30 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class RenoXSale extends Model
+class Booking extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use SoftDeletes, HasFactory;
 
-    protected $table = 'reno_x_sales';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        'reno_sale_no',
+        'campaign_id',
+        'campaign_package_id',
         'user_id',
-        'property_id',
-        'unit_type',
-        'block',
-        'floor',
-        'unit_no',
+        'booking_no',
+        'booking_hash',
+        'amount',
+        'payment_url',
+        'booked_at',
+        'expired_at',
+        'internal_remark',
         'status',
+        'metadata',
         'created_by',
         'updated_by',
         'deleted_at',
+    ];
+
+    protected $casts = [
+        'metadata' => 'array',
     ];
 
     protected static function boot()
@@ -45,18 +45,18 @@ class RenoXSale extends Model
         });
     }
 
+    public function campaign()
+    {
+        return $this->belongsTo(Campaign::class, 'campaign_id', 'id');
+    }
+
+    public function campaignPackage()
+    {
+        return $this->belongsTo(CampaignPackage::class, 'campaign_package_id', 'id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
-    }
-
-    public function sales()
-    {
-        return $this->hasMany(Sale::class, 'reno_sale_id', 'id');
-    }
-
-    public function purchaseOrders()
-    {
-        return $this->hasMany(PurchaseOrder::class, 'reno_sale_id', 'id');
     }
 }

@@ -34,6 +34,7 @@ use App\Http\Controllers\ApiKeyController;
 use App\Http\Controllers\POItemController;
 use App\Http\Controllers\QCFormController;
 use App\Http\Controllers\RPMJobController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobTaskController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RPMTaskController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\PhaseJobController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\InventoryController;
@@ -90,6 +92,15 @@ Route::get('defect-inspection-forms/public/{hashedString}', [DefectInspectionFor
 Route::post("/investor-interest-form", [InvestorInterestController::class, 'store']);
 
 Route::get("/reno-progress/{id}/rpm/acknowledge", [RenoProgressController::class, 'acknowledgedByRPM']);
+
+Route::get('/public/campaigns/{id}', [CampaignController::class, 'showPublic']);
+
+Route::get('/public/bookings/validate', [BookingController::class, 'validateBooking']);
+
+Route::post('/public/campaigns/{campaignSlug}/booking/payment/intent', [PaymentController::class, 'paymentIntentBooking']);
+Route::post('/public/campaigns/{campaignSlug}/booking/payment/success/process', [PaymentController::class, 'paymentBookingProcess']);
+Route::post('/public/campaigns/{campaignSlug}/booking/payment/success', [PaymentController::class, 'paymentSuccessBooking']);
+Route::post('/public/campaigns/{campaignSlug}/booking/payment/error', [PaymentController::class, 'paymentErrorBooking']);
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
@@ -148,6 +159,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/inventory', InventoryController::class);
     Route::apiResource('/defect-inspection-forms', DefectInspectionFormController::class);
     Route::apiResource('/key-management', KeyManagementController::class);
+    Route::apiResource('/campaigns', CampaignController::class);
+    Route::apiResource('/bookings', BookingController::class);
 
     // API Key Management Routes
     Route::apiResource('/api-keys', ApiKeyController::class);
@@ -285,6 +298,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('key-management/{keyManagementId}/info/update', [KeyManagementController::class, 'updateKeyManagementInfo']);
     Route::post('key-management/{keyManagementId}/quantity/update', [KeyManagementController::class, 'updateKeyCategoryQuantity']);
 
+    Route::get('campaigns/{campaignId}/bookings', [BookingController::class, 'getBookingByCampaign']);
+    Route::post('campaigns/{campaignId}/update', [CampaignController::class, 'update']);
+
     Route::post('resource-items/add/user/permission', [ResourceItemController::class, 'createUserPermission']);
     Route::post('resource-items/{userId}/{itemId}/permission', [ResourceItemController::class, 'changeUserPermission']);
     Route::delete('resource-items/{userId}/{itemId}', [ResourceItemController::class, 'deleteUserPermission']);
@@ -307,6 +323,9 @@ Route::middleware('auth.api_key')->group(function () {
     Route::get('/v1/products/{id}', [ProductController::class, 'showById']);
     Route::get('/v1/owner/{uuid}/reno-progress', [RenoProgressController::class, 'showByOwnerUuid']);
     Route::get('/v1/owner/{uuid}/reno-progress/{id}', [RPMJobController::class, 'showByJobName']);
+
+    // WIP
+    Route::get('/v1/owners', [UserController::class, 'showOwners']);
 });
 
 Route::get('/test/{id}', [TestController::class, 'test']);
@@ -342,7 +361,7 @@ Route::get('/disk', [DiskController::class, 'index']);
 //     return response()->json(['message' => 'Sale status updated successfully']);
 // });
 
-Route::get('/tmp/handle-auto-assign-reno-sales', function () {
+Route::get('/tmp/update-reno-x-sale-info', function () {
     $sales = Sale::with('order')->get();
 
     // Group by property_id, block, floor, unit_no
@@ -351,45 +370,73 @@ Route::get('/tmp/handle-auto-assign-reno-sales', function () {
         return $order->property_id . '|' . $order->block . '|' . $order->floor . '|' . $order->unit_no;
     });
 
-    DB::beginTransaction();
+    $tmpArr = [];
 
-    try {
-        foreach ($grouped as $groupKey => $groupSales) {
-            $firstSale = $groupSales->first();
-            $order = $firstSale->order;
+    foreach ($grouped as $groupKey => $groupSales) {
+        $firstSale = $groupSales->first();
+        $order = $firstSale->order;
 
-            // Check if reno_sale_id already exists
-            $existingRenoSaleId = $groupSales->pluck('reno_sale_id')->filter()->first();
+        // Check if reno_sale_id already exists
+        $existingRenoSaleId = $groupSales->pluck('reno_sale_id')->filter()->first();
 
-            if (!$existingRenoSaleId) {
-                // Generate next reno_sale_no
-                $lastReno = RenoXSale::withTrashed()->latest('id')->first();
-                $lastNumber = $lastReno ? (int)substr($lastReno->reno_sale_no, 4) : 2500000;
-                $newNumber = $lastNumber + 1;
-                $formattedNo = 'RXS-' . $newNumber;
 
-                $renoSale = RenoXSale::create([
-                    'reno_sale_no' => $formattedNo,
-                ]);
+        if ($existingRenoSaleId) {
+            $foundedRenoSale = RenoXSale::find($existingRenoSaleId);
 
-                $renoSaleId = $renoSale->id;
-            } else {
-                $renoSaleId = $existingRenoSaleId;
-            }
+            $foundedRenoSale->user_id = $order->user_id;
+            $foundedRenoSale->property_id = $order->property_id;
+            $foundedRenoSale->unit_type = $order->unit_type;
+            $foundedRenoSale->block = $order->block;
+            $foundedRenoSale->floor = $order->floor;
+            $foundedRenoSale->unit_no = $order->unit_no;
+            $foundedRenoSale->save();
 
-            // Assign to each Sale
-            foreach ($groupSales as $sale) {
-                $sale->reno_sale_id = $renoSaleId;
-                $sale->save();
-            }
+            $tmpArr[] = $foundedRenoSale;
         }
-
-        DB::commit();
-        return "RenoXSales created and linked successfully.";
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json(['error' => $e->getMessage()], 500);
     }
+
+
+    return response()->json(['Updated RenoXSales' => $tmpArr]);
+
+    // DB::beginTransaction();
+
+    // try {
+    //     foreach ($grouped as $groupKey => $groupSales) {
+    //         $firstSale = $groupSales->first();
+    //         $order = $firstSale->order;
+
+    //         // Check if reno_sale_id already exists
+    //         $existingRenoSaleId = $groupSales->pluck('reno_sale_id')->filter()->first();
+
+    //         if (!$existingRenoSaleId) {
+    //             // Generate next reno_sale_no
+    //             $lastReno = RenoXSale::withTrashed()->latest('id')->first();
+    //             $lastNumber = $lastReno ? (int)substr($lastReno->reno_sale_no, 4) : 2500000;
+    //             $newNumber = $lastNumber + 1;
+    //             $formattedNo = 'RXS-' . $newNumber;
+
+    //             $renoSale = RenoXSale::create([
+    //                 'reno_sale_no' => $formattedNo,
+    //             ]);
+
+    //             $renoSaleId = $renoSale->id;
+    //         } else {
+    //             $renoSaleId = $existingRenoSaleId;
+    //         }
+
+    //         // Assign to each Sale
+    //         foreach ($groupSales as $sale) {
+    //             $sale->reno_sale_id = $renoSaleId;
+    //             $sale->save();
+    //         }
+    //     }
+
+    //     DB::commit();
+    //     return "RenoXSales created and linked successfully.";
+    // } catch (\Exception $e) {
+    //     DB::rollBack();
+    //     return response()->json(['error' => $e->getMessage()], 500);
+    // }
 });
 
 // Route::get('/tmp/get-sales-with-no-reno/{property_id}', [SaleController::class, 'getSaleWithoutReno']);
