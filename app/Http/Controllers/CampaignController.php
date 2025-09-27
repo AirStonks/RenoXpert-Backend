@@ -215,7 +215,6 @@ class CampaignController extends BaseController
                 'start_date' => 'nullable|date',
                 'end_date' => 'nullable|date',
                 'slot_total' => 'nullable|numeric',
-                'status' => 'nullable|string',
                 'packages' => 'nullable|array',
                 'packages.*.id' => 'nullable|integer|exists:campaign_packages,id',
                 'packages.*.name' => 'required|string|max:255',
@@ -259,6 +258,10 @@ class CampaignController extends BaseController
                     'file_url' => config('filesystems.disks.s3.url') . '/' . $thumbnailPath,
                     'path' => $thumbnailPath
                 ];
+
+
+                // TODO: Current stage set to published
+                $validatedData['status'] = 'published';
             }
 
             DB::beginTransaction();
@@ -343,6 +346,7 @@ class CampaignController extends BaseController
                 'booking_amount' => 'required|numeric',
                 'slot_total' => 'nullable|numeric',
                 'metadata' => 'nullable',
+                'status' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -353,7 +357,7 @@ class CampaignController extends BaseController
             // Calculate slot_remaining for package
             $validatedData['slot_remaining'] = $validatedData['slot_total'] - $package->slot_used;
             // TODO: Current stage set to published
-            $validatedData['status'] = 'published';
+            $validatedData['status'] = $validatedData['status'] ?? 'published';
 
             $package->update($validatedData);
 
