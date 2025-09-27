@@ -106,7 +106,6 @@ class CampaignController extends BaseController
                 'start_date' => 'nullable|date',
                 'end_date' => 'nullable|date',
                 'slot_total' => 'nullable|numeric',
-                'status' => 'nullable|string',
                 'metadata' => 'nullable',
                 'packages' => 'required|array',
                 'packages.*.name' => 'required|string|max:255',
@@ -127,16 +126,16 @@ class CampaignController extends BaseController
 
 
             // If package.base_amount, package.slot_total is empty or null, then set it to the campaign.base_amount, campaign.slot_total
-            foreach ($input['packages'] as $package) {
-                if ($package['base_amount'] == null) {
+            foreach ($input['packages'] as $key => $package) {
+                if (!isset($package['base_amount']) || $package['base_amount'] == null) {
                     $package['base_amount'] = $input['base_amount'];
                 }
 
-                if ($package['booking_amount'] == null) {
+                if (!isset($package['booking_amount']) || $package['booking_amount'] == null) {
                     $package['booking_amount'] = $input['booking_amount'];
                 }
 
-                if ($package['slot_total'] == null) {
+                if (!isset($package['slot_total']) || $package['slot_total'] == null) {
                     $package['slot_total'] = $input['slot_total'];
                 }
 
@@ -144,13 +143,18 @@ class CampaignController extends BaseController
                 $package['slot_used'] = 0;
                 $package['slot_remaining'] = $package['slot_total'];
 
-                // status set to unpublished
-                $package['status'] = 'unpublished';
+                // TODO: Current stage set to published
+                $package['status'] = 'published';
+
+                // Update the package back to the input array
+                $input['packages'][$key] = $package;
             }
 
             $validatedData = $validator->validated();
             $validatedData['slot_used'] = 0;
             $validatedData['slot_remaining'] = $validatedData['slot_total'];
+            // TODO: Current stage set to published
+            $validatedData['status'] = 'published';
 
             // Handle thumbnail upload
             if ($request->hasFile('thumbnail')) {
@@ -212,7 +216,6 @@ class CampaignController extends BaseController
                 'end_date' => 'nullable|date',
                 'slot_total' => 'nullable|numeric',
                 'status' => 'nullable|string',
-                'metadata' => 'nullable',
                 'packages' => 'nullable|array',
                 'packages.*.id' => 'nullable|integer|exists:campaign_packages,id',
                 'packages.*.name' => 'required|string|max:255',
@@ -291,7 +294,9 @@ class CampaignController extends BaseController
                             $packageData['campaign_id'] = $campaign->id;
                             $packageData['slot_used'] = 0;
                             $packageData['slot_remaining'] = $packageData['slot_total'];
-                            $packageData['status'] = $packageData['status'] ?? 'unpublished';
+
+                            // TODO: Current stage set to published
+                            $packageData['status'] = 'published';
                             $campaign->packages()->create($packageData);
                         }
                     }
@@ -337,7 +342,6 @@ class CampaignController extends BaseController
                 'base_amount' => 'required|numeric',
                 'booking_amount' => 'required|numeric',
                 'slot_total' => 'nullable|numeric',
-                'status' => 'nullable|string',
                 'metadata' => 'nullable',
             ]);
 
@@ -348,6 +352,8 @@ class CampaignController extends BaseController
             $validatedData = $validator->validated();
             // Calculate slot_remaining for package
             $validatedData['slot_remaining'] = $validatedData['slot_total'] - $package->slot_used;
+            // TODO: Current stage set to published
+            $validatedData['status'] = 'published';
 
             $package->update($validatedData);
 
