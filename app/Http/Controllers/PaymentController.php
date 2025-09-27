@@ -202,7 +202,7 @@ class PaymentController extends BaseController
 
         // Generate a meaningful booking reference number
         $bookingNumber = $this->generateBookingReference();
-        $description = $this->generateDescription($bookingNumber, $campaign->title, $package->name ?? null);
+        $description = $this->generateDescription($bookingNumber, $campaign->title, $package->name ?? null, $input['name'], $input['phone']);
 
         $client = new Client();
         $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
@@ -598,16 +598,16 @@ class PaymentController extends BaseController
 
     /**
      * Generate a meaningful description for the booking
-     * Format: "RenoXpert Sdn Bhd" -{Booking Number} - {Campaign Name} - {Package Name}
-     * Example: RCB-250001 - The Great Campaign - RM5000 Early Bird Package
+     * Format: "RenoXpert Sdn Bhd" - {Name} - {Phone} -{Booking Number} - {Campaign Name} - {Package Name}
+     * Example: RCB-250001 - Test Owner - 0123456789 - The Great Campaign - RM5000 Early Bird Package
      */
-    private function generateDescription($bookingNumber, $campaignName, $packageName = null)
+    private function generateDescription($bookingNumber, $campaignName, $packageName = null, $name, $phone)
     {
         // Description format: {Booking Number} - {Campaign Name} - {Package Name}
         if ($packageName) {
-            return 'RenoXpert Sdn Bhd' . ' - ' . $bookingNumber . ' - ' . $campaignName . ' - ' . $packageName;
+            return 'RenoXpert Sdn Bhd' . ' - ' . $name . ' - ' . $phone . ' - ' . $bookingNumber . ' - ' . $campaignName . ' - ' . $packageName;
         } else {
-            return 'RenoXpert Sdn Bhd' . ' - ' . $bookingNumber . ' - ' . $campaignName;
+            return 'RenoXpert Sdn Bhd' . ' - ' . $name . ' - ' . $phone . ' - ' . $bookingNumber . ' - ' . $campaignName;
         }
     }
 }
