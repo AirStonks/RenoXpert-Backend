@@ -43,6 +43,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RPMTaskController;
 use App\Http\Controllers\CampaignController;
+// use App\Http\Controllers\LarkAuthController;
 use App\Http\Controllers\PhaseJobController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\InventoryController;
@@ -53,9 +54,11 @@ use App\Http\Controllers\OTPRequestController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PMCategoryController;
 use App\Http\Controllers\DiscountFeeController;
+use App\Http\Controllers\KayaHeigFormController;
 use App\Http\Controllers\RenoProgressController;
 use App\Http\Controllers\ResourceItemController;
 use App\Http\Controllers\KeyManagementController;
+// use App\Http\Controllers\LarkSuiteAuthController;
 use App\Http\Controllers\ProgressPhaseController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\InvestorInterestController;
@@ -90,6 +93,7 @@ Route::get('/orders/{id}/release', [OrderController::class, 'releaseOrder'])->na
 Route::get('defect-inspection-forms/public/{hashedString}', [DefectInspectionFormController::class, 'publicShow']);
 
 Route::post("/investor-interest-form", [InvestorInterestController::class, 'store']);
+Route::post("/kaya-heig-form", [KayaHeigFormController::class, 'store']);
 
 Route::get("/reno-progress/{id}/rpm/acknowledge", [RenoProgressController::class, 'acknowledgedByRPM']);
 
@@ -110,6 +114,11 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('credential/verify', 'isAuthenticated');
     Route::post('vendor/login', 'vendorLogin');
 });
+
+// OAuth routes
+// Route::get('/auth/larksuite', [LarkSuiteAuthController::class, 'redirectToLarkSuite']);
+// Route::get('/auth/larksuite/callback', [LarkSuiteAuthController::class, 'handleLarkSuiteCallback']);
+// Route::get('/auth/larksuite/debug', [LarkSuiteAuthController::class, 'debugSession']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -153,6 +162,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/users', UserController::class);
     Route::apiResource('/owner/quotation-request-form', RegistrationFormController::class);
     Route::apiResource("/investor-interest-forms", InvestorInterestController::class);
+    Route::apiResource("/kaya-heig-forms", KayaHeigFormController::class);
     Route::apiResource('/reno-progress', RenoProgressController::class);
     Route::apiResource('/otp-requests', OTPRequestController::class);
     Route::apiResource('/purchase-orders', PurchaseOrderController::class);
