@@ -202,6 +202,7 @@ class PaymentController extends BaseController
 
         // Generate a meaningful booking reference number
         $bookingNumber = $this->generateBookingReference();
+        $description = $this->generateDescription($bookingNumber, $campaign->title, $package->name ?? null, $input['name'], $input['phone']);
 
         $client = new Client();
         $clientDomain = request()->headers->get('Origin') ?: request()->headers->get('Referer');
@@ -222,7 +223,7 @@ class PaymentController extends BaseController
                 // "email" => $invoice->sale->order->user->email,
                 "email" => $input['email'],
                 "contact_number" => $input['phone'],
-                // "description" => "Testing",
+                "description" => $description,
                 "reference_number" => $bookingNumber,
                 // "payment_type" => "ewallet",
                 // "payment_types" => [
@@ -593,5 +594,20 @@ class PaymentController extends BaseController
     private function generateBookingReference()
     {
         return 'RCB-' . now()->format('y') . str_pad(Booking::count() + 1, 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Generate a meaningful description for the booking
+     * Format: "RenoXpert Sdn Bhd" - {Name} - {Phone} -{Booking Number} - {Campaign Name} - {Package Name}
+     * Example: RCB-250001 - Test Owner - 0123456789 - The Great Campaign - RM5000 Early Bird Package
+     */
+    private function generateDescription($bookingNumber, $campaignName, $packageName = null, $name, $phone)
+    {
+        // Description format: {Booking Number} - {Campaign Name} - {Package Name}
+        if ($packageName) {
+            return 'RenoXpert Sdn Bhd' . ' - ' . $name . ' - ' . $phone . ' - ' . $bookingNumber . ' - ' . $campaignName . ' - ' . $packageName;
+        } else {
+            return 'RenoXpert Sdn Bhd' . ' - ' . $name . ' - ' . $phone . ' - ' . $bookingNumber . ' - ' . $campaignName;
+        }
     }
 }
