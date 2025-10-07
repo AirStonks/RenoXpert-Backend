@@ -58,7 +58,7 @@ class KayaHeigFormController extends BaseController
             'tower' => 'required|string|in:A1,A2',
             'floor' => 'required|string|max:255',
             'unitType' => 'required|string|in:Type B,Type C,Others',
-            'unitsOwned' => 'required|string|in:1,2,3,4-or-more', // New field
+            'unitsOwned' => 'required|string|in:1,2,3-or-more', // New field
             'rentalPlan' => 'required|array|min:1',
             'rentalPlan.*' => 'string|in:room-rental,whole-unit,airbnb,not-sure,own-stay',
             'concerns' => 'required|array|min:1',
