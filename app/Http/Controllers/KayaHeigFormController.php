@@ -66,7 +66,7 @@ class KayaHeigFormController extends BaseController
             'supportNeeded' => 'required|array|min:1',
             'supportNeeded.*' => 'string|in:belive-services,renovation-quotation,feasibility-check,rental-strategy,property-consultant',
             'preferredContact' => 'required|string|in:whatsapp,call,email',
-            'preferredTime' => 'nullable|string|in:weekday-morning,weekday-afternoon,evening,weekend',
+            'preferredTime' => 'nullable|string|in:weekday-morning,weekday-afternoon,weekday-evening,weekend',
             'additionalInfo' => 'nullable|string|max:1000',
         ];
 
