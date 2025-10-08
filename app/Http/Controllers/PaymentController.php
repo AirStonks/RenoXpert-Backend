@@ -252,7 +252,7 @@ class PaymentController extends BaseController
         $body = json_encode($data);
 
         try {
-            $req = $client->request('POST', 'https://sandbox-payexapi.azurewebsites.net/api/v1/PaymentIntents', [
+            $req = $client->request('POST', env('PAYEX_PAYMENT_INTENT_ENDPOINT'), [
                 'headers' => $headers,
                 'body' => $body,
             ]);
@@ -596,7 +596,7 @@ class PaymentController extends BaseController
 
         try {
             // Make sure to include a body if the API requires it
-            $response = $client->request('POST', 'https://sandbox-payexapi.azurewebsites.net/api/Auth/Token', [
+            $response = $client->request('POST', env('PAYEX_PAYMENT_TOKEN_ENDPOINT'), [
                 'headers' => $headers,
             ]);
 
