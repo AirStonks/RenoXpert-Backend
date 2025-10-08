@@ -283,6 +283,8 @@ class PaymentController extends BaseController
         $paymentDate = $input['txn_date'] ?? null;
         $authCode = $input['auth_code'] ?? null;
 
+        Log::info($request->all());
+
         if ($authCode != "00") {
             return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
         }
@@ -353,6 +355,7 @@ class PaymentController extends BaseController
         // Create User record
         $user = User::create([
             'name' => $name,
+            'email' => $metadata['email'] ?? null,
             'type' => 'owner',
             'country_code' => $countryCode,
             'phone_no' => $phoneNo,
