@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Campaign;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -339,6 +340,24 @@ class PaymentController extends BaseController
         // Use the reference number from the payment as the booking number
         $bookingNumber = $input['reference_number'] ?? 'RCB-' . now()->format('y') . str_pad(Booking::count() + 1, 5, '0', STR_PAD_LEFT);
         $bookingHash = bin2hex(random_bytes(16));
+
+        // Parse phone number to extract country code and phone number
+        $countryCode = "60";
+        $phoneNo = $phone;
+        
+        // If phone starts with "0", remove it and use country code "60"
+        if (str_starts_with($phone, '0')) {
+            $phoneNo = substr($phone, 1);
+        }
+
+        // Create User record
+        $user = User::create([
+            'name' => $name,
+            'type' => 'owner',
+            'country_code' => $countryCode,
+            'phone_no' => $phoneNo,
+            'status' => 'active',
+        ]);
 
         $booking = Booking::create([
             'campaign_id' => $campaign->id,
