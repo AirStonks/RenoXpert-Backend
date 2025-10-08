@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Campaign;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -273,6 +274,7 @@ class PaymentController extends BaseController
     {
         $input = $request->all();
         $metadata = json_decode($input['metadata'], true);
+        $txnId = $input['txn_id'] ?? null;
         $packageId = $metadata['packageId'] ?? null;
         $bookingHash = $metadata['booking_hash'] ?? null;
         $phone = $metadata['phone'] ?? null;
@@ -281,6 +283,9 @@ class PaymentController extends BaseController
         $bookingNumber = $input['reference_number'] ?? null;
         $paymentDate = $input['txn_date'] ?? null;
         $authCode = $input['auth_code'] ?? null;
+
+        // Log thr request data
+        Log::info('Payment booking process request data: ' . json_encode($request->all()));
 
         if ($authCode != "00") {
             return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
@@ -340,6 +345,25 @@ class PaymentController extends BaseController
         $bookingNumber = $input['reference_number'] ?? 'RCB-' . now()->format('y') . str_pad(Booking::count() + 1, 5, '0', STR_PAD_LEFT);
         $bookingHash = bin2hex(random_bytes(16));
 
+        // Parse phone number to extract country code and phone number
+        $countryCode = "60";
+        $phoneNo = $phone;
+
+        // If phone starts with "0", remove it and use country code "60"
+        if (str_starts_with($phone, '0')) {
+            $phoneNo = substr($phone, 1);
+        }
+
+        // Create User record
+        $user = User::create([
+            'name' => $name,
+            'email' => $metadata['email'] ?? null,
+            'type' => 'owner',
+            'country_code' => $countryCode,
+            'phone_no' => $phoneNo,
+            'status' => 'active',
+        ]);
+
         $booking = Booking::create([
             'campaign_id' => $campaign->id,
             'campaign_package_id' => $packageId,
@@ -364,12 +388,13 @@ class PaymentController extends BaseController
         $metadata = json_decode($input['metadata'], true);
         $clientDomain = $metadata['clientDomain'] ?? null;
         $originateUrl = $metadata['originateUrl'] ?? null;
+        $txnId = $input['txn_id'] ?? null;
         $bookingNumber = $metadata['bookingNumber'] ?? null;
         $amount = $input['amount'] ?? null;
         $paymentDate = $input['txn_date'] ?? null;
         $name = $input['customer_name'] ?? null;
 
-        return redirect()->to($clientDomain . '/campaigns/' . $campaignSlug . '/booking/payment/success?originateUrl=' . $originateUrl . '&bookingNumber=' . $bookingNumber . '&amount=' . $amount . '&paymentDate=' . $paymentDate . '&name=' . $name);
+        return redirect()->to($clientDomain . '/campaigns/' . $campaignSlug . '/booking/payment/success?originateUrl=' . $originateUrl . '&bookingNumber=' . $bookingNumber . '&amount=' . $amount . '&txnId=' . $txnId . '&paymentDate=' . $paymentDate . '&name=' . $name);
     }
 
     public function paymentErrorBooking(Request $request, $campaignSlug)
