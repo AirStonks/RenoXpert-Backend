@@ -285,7 +285,7 @@ class PaymentController extends BaseController
         $authCode = $input['auth_code'] ?? null;
 
         // Log thr request data
-        Log::info('Payment booking process request data: ' . $request->all());
+        Log::info('Payment booking process request data: ' . json_encode($request->all()));
 
         if ($authCode != "00") {
             return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
