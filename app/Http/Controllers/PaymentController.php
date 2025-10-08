@@ -274,6 +274,7 @@ class PaymentController extends BaseController
     {
         $input = $request->all();
         $metadata = json_decode($input['metadata'], true);
+        $txnId = $input['txn_id'] ?? null;
         $packageId = $metadata['packageId'] ?? null;
         $bookingHash = $metadata['booking_hash'] ?? null;
         $phone = $metadata['phone'] ?? null;
@@ -387,12 +388,13 @@ class PaymentController extends BaseController
         $metadata = json_decode($input['metadata'], true);
         $clientDomain = $metadata['clientDomain'] ?? null;
         $originateUrl = $metadata['originateUrl'] ?? null;
+        $txnId = $input['txn_id'] ?? null;
         $bookingNumber = $metadata['bookingNumber'] ?? null;
         $amount = $input['amount'] ?? null;
         $paymentDate = $input['txn_date'] ?? null;
         $name = $input['customer_name'] ?? null;
 
-        return redirect()->to($clientDomain . '/campaigns/' . $campaignSlug . '/booking/payment/success?originateUrl=' . $originateUrl . '&bookingNumber=' . $bookingNumber . '&amount=' . $amount . '&paymentDate=' . $paymentDate . '&name=' . $name);
+        return redirect()->to($clientDomain . '/campaigns/' . $campaignSlug . '/booking/payment/success?originateUrl=' . $originateUrl . '&bookingNumber=' . $bookingNumber . '&amount=' . $amount . '&txnId=' . $txnId . '&paymentDate=' . $paymentDate . '&name=' . $name);
     }
 
     public function paymentErrorBooking(Request $request, $campaignSlug)
