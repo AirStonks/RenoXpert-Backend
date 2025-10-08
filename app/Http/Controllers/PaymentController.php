@@ -283,7 +283,7 @@ class PaymentController extends BaseController
         $paymentDate = $input['txn_date'] ?? null;
         $authCode = $input['auth_code'] ?? null;
 
-        Log::info($request->all());
+        Log::info('Customer name: ' . $name);
 
         if ($authCode != "00") {
             return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
@@ -346,7 +346,7 @@ class PaymentController extends BaseController
         // Parse phone number to extract country code and phone number
         $countryCode = "60";
         $phoneNo = $phone;
-        
+
         // If phone starts with "0", remove it and use country code "60"
         if (str_starts_with($phone, '0')) {
             $phoneNo = substr($phone, 1);
