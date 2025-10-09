@@ -296,7 +296,7 @@ class PaymentController extends BaseController
         if ($existingBooking) {
             Log::info('Transaction already processed for booking number: ' . $bookingNumber);
             return response()->json([
-                'message' => 'Booking already processed', 
+                'message' => 'Booking already processed',
                 'booking' => $existingBooking,
                 'code' => 'already_processed'
             ], 200);
@@ -685,6 +685,7 @@ class PaymentController extends BaseController
         // $campaignUrl = env('APP_BYPASS') === 'production' ? `https://app.renoxpert.my/registration-forms/{$formId}` : `https://sapp.renoxpert.my/registration-forms/{$formId}`;
 
         $bodyData = [
+            "msg_type" => "card",
             "card" => [
                 "header" => [
                     "template" => "red",
