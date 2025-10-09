@@ -389,6 +389,8 @@ class PaymentController extends BaseController
             'email' => $metadata['email'] ?? null,
         ];
 
+        Log::info('Campaign data: ' . $this->sendLarkMessage($campaignData));
+
         return $this->sendResponse($booking, 'Booking created successfully.');
     }
 
