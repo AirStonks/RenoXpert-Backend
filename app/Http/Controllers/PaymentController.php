@@ -379,6 +379,18 @@ class PaymentController extends BaseController
             ],
         ]);
 
+        $campaignData = [
+            'id' => $campaign->id,
+            'name' => $campaign->name,
+            'package_name' => $package->name,
+            'booking_number' => $bookingNumber,
+            'owner_name' => $name,
+            'phone' => $phone,
+            'email' => $metadata['email'] ?? null,
+        ];
+
+        $this->sendLarkMessage($campaignData);
+
         return $this->sendResponse($booking, 'Booking created successfully.');
     }
 
@@ -634,5 +646,160 @@ class PaymentController extends BaseController
         } else {
             return 'RenoXpert Sdn Bhd' . ' - ' . $name . ' - ' . $phone . ' - ' . $bookingNumber . ' - ' . $campaignName;
         }
+    }
+
+    private function sendLarkMessage($campaignData)
+    {
+        $client = new Client();
+
+        $headers = [
+            'Content-Type' => 'application/json',
+        ];
+
+        $campaignId = $campaignData->id;
+        $campaignName = $campaignData->name;
+        $campaignPackageName = $campaignData->package_name;
+        $bookingNumber = $campaignData->booking_number;
+        $ownername = $campaignData->owner_name;
+        $phone = $campaignData->phone;
+        $email = $campaignData->email;
+
+        // $campaignUrl = env('APP_BYPASS') === 'production' ? `https://app.renoxpert.my/registration-forms/{$formId}` : `https://sapp.renoxpert.my/registration-forms/{$formId}`;
+
+        $bodyData = [
+            "card" => [
+                "header" => [
+                    "template" => "red",
+                    "title" => [
+                        "tag" => "plain_text",
+                        "content" => "New Booking - {$campaignName}"
+                    ]
+                ],
+                "elements" => [
+                    [
+                        "tag" => "markdown",
+                        "content" => "**Congratulations to the Owner Sales Team!**\nWe've just locked in a new booking for **{$campaignName}**!\nThis milestone highlights your outstanding hustle, collaboration, and client-winning skills. Let's keep the momentum going."
+                    ],
+                    [
+                        "tag" => "column_set",
+                        "flex_mode" => "none",
+                        "background_style" => "default",
+                        "columns" => [
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**🔴 Campaign Package:**\n{$campaignPackageName}",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**👤 Owner Name:**\n{$ownername}",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        "tag" => "column_set",
+                        "flex_mode" => "none",
+                        "background_style" => "default",
+                        "columns" => [
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**🧾 Booking Number:**\n{$bookingNumber}",
+                                            "tag" => "lark_md"
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            [
+                                "tag" => "column",
+                                "width" => "weighted",
+                                "weight" => 1,
+                                "vertical_align" => "top",
+                                "elements" => [
+                                    [
+                                        "tag" => "markdown",
+                                        "content" => ""
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        "tag" => "hr"
+                    ],
+                    [
+                        "tag" => "div",
+                        "text" => [
+                            "content" => "🙋🏼 [View Campaign](https://app.renoxpert.my/campaigns/{$campaignId})",
+                            "tag" => "lark_md"
+                        ]
+                    ]
+                ],
+            ]
+        ];
+
+        // // Convert array to JSON
+        $body = json_encode($this->convertEmptyArrayToObject($bodyData), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        try {
+            $req = $client->request('POST', env('APP_BYPASS') === true ? env('LARK_MSG_TEST_BOT_URL') : env('LARK_MSG_BOT_URL'), [
+                'headers' => $headers,
+                'body' => $body,
+            ]);
+
+            $res = json_decode($req->getBody(), true);
+
+            // Check for a successful response
+            if ($req->getStatusCode() === 200) {
+                return $res;
+            } else {
+                return $req->getBody();
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    private function convertEmptyArrayToObject($data)
+    {
+        if (is_array($data)) {
+            // If it's an empty array, return an empty object (stdClass)
+            if (empty($data)) {
+                return (object) [];
+            }
+
+            // Recursively process the array
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->convertEmptyArrayToObject($value);
+            }
+        }
+        return $data;
     }
 }
