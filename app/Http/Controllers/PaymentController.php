@@ -393,7 +393,7 @@ class PaymentController extends BaseController
 
         $campaignData = (object) [
             'id' => $campaign->id,
-            'name' => $campaign->name,
+            'name' => $campaign->title,
             'package_name' => $package->name ?? null,
             'booking_number' => $bookingNumber,
             'owner_name' => $name,
