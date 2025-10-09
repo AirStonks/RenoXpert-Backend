@@ -756,7 +756,7 @@ class PaymentController extends BaseController
                                     [
                                         "tag" => "div",
                                         "text" => [
-                                            "content" => "**💵 Booking Fee:\nRM {$bookingFee}**",
+                                            "content" => "**💵 Booking Fee:**\nRM {$bookingFee}",
                                             "tag" => "lark_md"
                                         ]
                                     ]
