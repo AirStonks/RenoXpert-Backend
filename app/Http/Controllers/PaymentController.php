@@ -788,7 +788,7 @@ class PaymentController extends BaseController
         $body = json_encode($this->convertEmptyArrayToObject($bodyData), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         try {
-            $req = $client->request('POST', env('APP_BYPASS') === true ? env('LARK_MSG_TEST_BOT_URL') : env('LARK_MSG_BOT_URL'), [
+            $req = $client->request('POST', env('APP_BYPASS') === true ? env('LARK_MSG_TEST_OS_URL') : env('LARK_MSG_OS_URL'), [
                 'headers' => $headers,
                 'body' => $body,
             ]);
