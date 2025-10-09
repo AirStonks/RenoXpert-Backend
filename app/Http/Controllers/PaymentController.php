@@ -679,7 +679,6 @@ class PaymentController extends BaseController
         $bookingNumber = $campaignData->booking_number;
         $ownername = $campaignData->owner_name;
         $bookingFee = $campaignData->booking_fee;
-        $email = $campaignData->email;
 
         // $campaignUrl = env('APP_BYPASS') === 'production' ? `https://app.renoxpert.my/registration-forms/{$formId}` : `https://sapp.renoxpert.my/registration-forms/{$formId}`;
 
