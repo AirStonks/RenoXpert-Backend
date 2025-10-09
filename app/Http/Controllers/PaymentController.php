@@ -284,15 +284,27 @@ class PaymentController extends BaseController
         $paymentDate = $input['txn_date'] ?? null;
         $authCode = $input['auth_code'] ?? null;
 
-        // Log thr request data
+        // Log the request data
         Log::info('Payment booking process request data: ' . json_encode($request->all()));
 
         if ($authCode != "00") {
             return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
         }
 
+        // Check if this transaction has already been processed (idempotency check)
+        $existingBooking = Booking::where('booking_no', $bookingNumber)->first();
+        if ($existingBooking) {
+            Log::info('Transaction already processed for booking number: ' . $bookingNumber);
+            return response()->json([
+                'message' => 'Booking already processed', 
+                'booking' => $existingBooking,
+                'code' => 'already_processed'
+            ], 200);
+        }
+
         // Store booking detail (name, phone)
         $campaign = Campaign::where('slug', $campaignSlug)->first();
+        $package = null;
 
         // If packageId is not null, update package slots
         if ($packageId) {
@@ -379,17 +391,23 @@ class PaymentController extends BaseController
             ],
         ]);
 
-        $campaignData = [
+        $campaignData = (object) [
             'id' => $campaign->id,
             'name' => $campaign->name,
-            'package_name' => $package->name,
+            'package_name' => $package->name ?? null,
             'booking_number' => $bookingNumber,
             'owner_name' => $name,
             'phone' => $phone,
             'email' => $metadata['email'] ?? null,
         ];
 
-        Log::info('Campaign data: ' . $this->sendLarkMessage($campaignData));
+        // Send Lark message notification
+        try {
+            $larkResponse = $this->sendLarkMessage($campaignData);
+            Log::info('Lark message sent successfully', ['response' => $larkResponse]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send Lark message', ['error' => $e->getMessage()]);
+        }
 
         return $this->sendResponse($booking, 'Booking created successfully.');
     }
