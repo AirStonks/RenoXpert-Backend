@@ -397,8 +397,7 @@ class PaymentController extends BaseController
             'package_name' => $package->name ?? null,
             'booking_number' => $bookingNumber,
             'owner_name' => $name,
-            'phone' => $phone,
-            'email' => $metadata['email'] ?? null,
+            'booking_fee' => $amount,
         ];
 
         // Send Lark message notification
@@ -679,7 +678,7 @@ class PaymentController extends BaseController
         $campaignPackageName = $campaignData->package_name;
         $bookingNumber = $campaignData->booking_number;
         $ownername = $campaignData->owner_name;
-        $phone = $campaignData->phone;
+        $bookingFee = $campaignData->booking_fee;
         $email = $campaignData->email;
 
         // $campaignUrl = env('APP_BYPASS') === 'production' ? `https://app.renoxpert.my/registration-forms/{$formId}` : `https://sapp.renoxpert.my/registration-forms/{$formId}`;
@@ -756,8 +755,11 @@ class PaymentController extends BaseController
                                 "vertical_align" => "top",
                                 "elements" => [
                                     [
-                                        "tag" => "markdown",
-                                        "content" => ""
+                                        "tag" => "div",
+                                        "text" => [
+                                            "content" => "**💵 Booking Fee:\nRM {$bookingFee}**",
+                                            "tag" => "lark_md"
+                                        ]
                                     ]
                                 ]
                             ]
