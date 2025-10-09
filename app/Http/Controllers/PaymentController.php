@@ -389,8 +389,6 @@ class PaymentController extends BaseController
             'email' => $metadata['email'] ?? null,
         ];
 
-        $this->sendLarkMessage($campaignData);
-
         return $this->sendResponse($booking, 'Booking created successfully.');
     }
 
