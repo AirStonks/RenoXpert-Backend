@@ -685,15 +685,8 @@ class PaymentController extends BaseController
         // $campaignUrl = env('APP_BYPASS') === 'production' ? `https://app.renoxpert.my/registration-forms/{$formId}` : `https://sapp.renoxpert.my/registration-forms/{$formId}`;
 
         $bodyData = [
-            "msg_type" => "card",
+            "msg_type" => "interactive",
             "card" => [
-                "header" => [
-                    "template" => "red",
-                    "title" => [
-                        "tag" => "plain_text",
-                        "content" => "New Booking - {$campaignName}"
-                    ]
-                ],
                 "elements" => [
                     [
                         "tag" => "markdown",
@@ -781,6 +774,13 @@ class PaymentController extends BaseController
                         ]
                     ]
                 ],
+                "header" => [
+                    "template" => "red",
+                    "title" => [
+                        "tag" => "plain_text",
+                        "content" => "New Booking - {$campaignName}"
+                    ]
+                ]
             ]
         ];
 
