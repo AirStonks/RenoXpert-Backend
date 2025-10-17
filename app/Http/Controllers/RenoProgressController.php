@@ -678,6 +678,25 @@ class RenoProgressController extends BaseController
         }
     }
 
+    public function updateRenoProgressStatus(Request $request, $id)
+    {
+        $renoProgress = RenoProgress::find($id);
+        if (!$renoProgress) {
+            return $this->sendError('Reno progress not found.');
+        }
+
+        $status = $request->input('status');
+
+        if ($status) {
+            $renoProgress->status = $status;
+            $renoProgress->save();
+
+            return $this->sendResponse(['status' => $status], 'Reno Progress updated successfully.');
+        }
+
+        return $this->sendError('Status is required.');
+    }
+
     public function releaseOwnerHandover($id)
     {
         $renoProgress = RenoProgress::find($id);
