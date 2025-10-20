@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class RenoProgress extends Model
@@ -156,5 +157,13 @@ class RenoProgress extends Model
                 $query->withPivot('permission_id')
                     ->withTimestamps();
             }]);
+    }
+
+    /**
+     * Get the project status histories for the reno progress.
+     */
+    public function projectStatusHistories()
+    {
+        return $this->hasMany(ProjectStatusHistory::class, 'reno_progress_id', 'id');
     }
 }

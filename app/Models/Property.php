@@ -47,4 +47,12 @@ class Property extends Model
     {
         return $this->hasOne(PropertyROI::class, 'property_id', 'id');
     }
+
+    /**
+     * Get the project status histories for the property.
+     */
+    public function projectStatusHistories()
+    {
+        return $this->hasMany(ProjectStatusHistory::class, 'property_id', 'id');
+    }
 }

@@ -41,6 +41,7 @@ use App\Http\Controllers\JobTaskController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProjectStatusHistoryController;
 use App\Http\Controllers\RPMTaskController;
 use App\Http\Controllers\CampaignController;
 // use App\Http\Controllers\LarkAuthController;
@@ -164,6 +165,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource("/investor-interest-forms", InvestorInterestController::class);
     Route::apiResource("/kaya-heig-forms", KayaHeigFormController::class);
     Route::apiResource('/reno-progress', RenoProgressController::class);
+    Route::apiResource('/project-status-history', ProjectStatusHistoryController::class);
     Route::apiResource('/otp-requests', OTPRequestController::class);
     Route::apiResource('/purchase-orders', PurchaseOrderController::class);
     Route::apiResource('/inventory', InventoryController::class);
@@ -266,6 +268,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reno-progress/{id}/convert/v3', [RenoProgressController::class, 'convertV2toV3']);
     Route::get('/reno-progress/{id}/old-ver', [RenoProgressController::class, 'showOldVersion']);
     Route::post('/reno-progress/{id}/date-management/change', [RenoProgressController::class, 'changeDateManagement']);
+    Route::put('/reno-progress/{id}/status', [RenoProgressController::class, 'updateRenoProgressStatus']);
     Route::post('/reno-progress/generate', [RenoProgressController::class, 'createRenoProgress']);
 
     Route::get('/reno-progress/{id}/owner-handover/release', [RenoProgressController::class, 'releaseOwnerHandover']);
