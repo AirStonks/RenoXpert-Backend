@@ -291,7 +291,7 @@ class AuthController extends BaseController
 
             return $this->sendResponse(
                 [
-                    'redirect_url' => 'https://client.renoxpert.my',
+                    'redirect_url' => env('CLIENT_OWNER_URL'),
                     'o_token' => $bearerToken
                 ],
                 'User authenticated successfully'
@@ -398,7 +398,7 @@ class AuthController extends BaseController
 
             return $this->sendResponse(
                 [
-                    'redirect_url' => 'https://client.renoxpert.my',
+                    'redirect_url' => env('CLIENT_OWNER_URL'),
                     'o_token' => $bearerToken
                 ],
                 'User authenticated successfully'
@@ -489,7 +489,7 @@ class AuthController extends BaseController
 
             return $this->sendResponse(
                 [
-                    'redirect_url' => 'https://client.renoxpert.my',
+                    'redirect_url' => env('CLIENT_OWNER_URL'),
                     'o_token' => $bearerToken
                 ],
                 'User authenticated successfully'
