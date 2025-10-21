@@ -114,6 +114,9 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('operation/login', 'operationLogin');
     Route::post('credential/verify', 'isAuthenticated');
     Route::post('vendor/login', 'vendorLogin');
+
+    Route::get('get-owner-token', 'getOwnerToken');
+    Route::get('owner/login', 'ownerLoginWithToken');
 });
 
 // OAuth routes
