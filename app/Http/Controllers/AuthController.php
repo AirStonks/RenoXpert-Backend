@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Services\SecureTokenService;
 
 class AuthController extends BaseController
 {
@@ -218,6 +219,87 @@ class AuthController extends BaseController
         return $this->sendResponse('Success', 'Password changed successfully.');
     }
 
+    // https://api.renoxpert.my/api/get-owner-token?country_code=60&phone_no=0123456789&email=test@example.com
+    // return {"success": true, "token": "encrypted_secure_token"}
+    public function getOwnerToken(Request $request): JsonResponse
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'country_code' => 'required',
+            'phone_no' => 'required',
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        // Check if the user exists and is an owner
+        $user = User::where('country_code', $request->country_code)
+            ->where('phone_no', $request->phone_no)
+            ->where('type', 'owner')
+            ->orWhere('email', $request->email)
+            ->where('type', 'owner')
+            ->first();
+
+        if (!$user) {
+            return $this->sendError('Unauthorised. User not found or not an owner.');
+        }
+
+        // Generate secure encrypted token
+        $tokenService = new SecureTokenService();
+        $token = $tokenService->generateOwnerToken($user->id, 24); // 24 hours expiration
+
+        return $this->sendResponse($token, 'Owner token generated successfully.');
+    }
+
+    // https://api.renoxpert.my/api/owner/login?token=encrypted_secure_token
+    public function ownerLoginWithToken(Request $request)
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        try {
+            // Validate the secure token
+            $tokenService = new SecureTokenService();
+            $tokenData = $tokenService->validateOwnerToken($request->token);
+
+            if (!$tokenData) {
+                return $this->sendError('Invalid or expired token.', [], 401);
+            }
+
+            // Get the user from the token data
+            $user = User::where('id', $tokenData['user_id'])
+                ->where('type', 'owner')
+                ->first();
+
+            if (!$user) {
+                return $this->sendError('User not found or not an owner.', [], 401);
+            }
+
+            // Log the user in
+            Auth::login($user);
+
+            // Generate bearer token for the user
+            $bearerToken = $user->createToken('OwnerStaticToken')->plainTextToken;
+
+            return $this->sendResponse(
+                [
+                    'redirect_url' => 'https://client.renoxpert.my',
+                    'o_token' => $bearerToken
+                ],
+                'User authenticated successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->sendError('Token processing failed.', ['error' => $e->getMessage()], 500);
+        }
+    }
 
     /**
      * Logout API
@@ -233,5 +315,187 @@ class AuthController extends BaseController
         $user->tokens()->delete();
 
         return $this->sendResponse([], 'User logged out successfully.');
+    }
+
+    /**
+     * Generate JWT-based owner token (alternative approach)
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getOwnerJWTToken(Request $request): JsonResponse
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'country_code' => 'required',
+            'phone_no' => 'required',
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        // Check if the user exists and is an owner
+        $user = User::where('country_code', $request->country_code)
+            ->where('phone_no', $request->phone_no)
+            ->where('type', 'owner')
+            ->orWhere('email', $request->email)
+            ->where('type', 'owner')
+            ->first();
+
+        if (!$user) {
+            return $this->sendError('Unauthorised. User not found or not an owner.');
+        }
+
+        // Generate JWT token
+        $tokenService = new SecureTokenService();
+        $token = $tokenService->generateJWTToken($user->id, 24); // 24 hours expiration
+
+        return $this->sendResponse($token, 'Owner JWT token generated successfully.');
+    }
+
+    /**
+     * Validate JWT-based owner token
+     * 
+     * @param Request $request
+     * @return mixed
+     */
+    public function ownerLoginWithJWTToken(Request $request)
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        try {
+            // Validate the JWT token
+            $tokenService = new SecureTokenService();
+            $tokenData = $tokenService->validateJWTToken($request->token);
+
+            if (!$tokenData) {
+                return $this->sendError('Invalid or expired JWT token.', [], 401);
+            }
+
+            // Get the user from the token data
+            $user = User::where('id', $tokenData['user_id'])
+                ->where('type', 'owner')
+                ->first();
+
+            if (!$user) {
+                return $this->sendError('User not found or not an owner.', [], 401);
+            }
+
+            // Log the user in
+            Auth::login($user);
+
+            // Generate bearer token for the user
+            $bearerToken = $user->createToken('OwnerStaticToken')->plainTextToken;
+
+            return $this->sendResponse(
+                [
+                    'redirect_url' => 'https://client.renoxpert.my',
+                    'o_token' => $bearerToken
+                ],
+                'User authenticated successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->sendError('JWT token processing failed.', ['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Generate simple secure token (easiest approach)
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getOwnerSimpleToken(Request $request): JsonResponse
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'country_code' => 'required',
+            'phone_no' => 'required',
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        // Check if the user exists and is an owner
+        $user = User::where('country_code', $request->country_code)
+            ->where('phone_no', $request->phone_no)
+            ->where('type', 'owner')
+            ->orWhere('email', $request->email)
+            ->where('type', 'owner')
+            ->first();
+
+        if (!$user) {
+            return $this->sendError('Unauthorised. User not found or not an owner.');
+        }
+
+        // Generate simple secure token
+        $tokenService = new SecureTokenService();
+        $token = $tokenService->generateSimpleSecureToken($user->id, 24); // 24 hours expiration
+
+        return $this->sendResponse($token, 'Owner simple secure token generated successfully.');
+    }
+
+    /**
+     * Validate simple secure token
+     * 
+     * @param Request $request
+     * @return mixed
+     */
+    public function ownerLoginWithSimpleToken(Request $request)
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        try {
+            // Validate the simple secure token
+            $tokenService = new SecureTokenService();
+            $tokenData = $tokenService->validateSimpleSecureToken($request->token);
+
+            if (!$tokenData) {
+                return $this->sendError('Invalid or expired simple token.', [], 401);
+            }
+
+            // Get the user from the token data
+            $user = User::where('id', $tokenData['user_id'])
+                ->where('type', 'owner')
+                ->first();
+
+            if (!$user) {
+                return $this->sendError('User not found or not an owner.', [], 401);
+            }
+
+            // Log the user in
+            Auth::login($user);
+
+            // Generate bearer token for the user
+            $bearerToken = $user->createToken('OwnerStaticToken')->plainTextToken;
+
+            return $this->sendResponse(
+                [
+                    'redirect_url' => 'https://client.renoxpert.my',
+                    'o_token' => $bearerToken
+                ],
+                'User authenticated successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->sendError('Simple token processing failed.', ['error' => $e->getMessage()], 500);
+        }
     }
 }
