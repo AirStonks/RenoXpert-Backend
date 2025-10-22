@@ -238,7 +238,7 @@ class AuthController extends BaseController
         $user = User::where('country_code', $request->country_code)
             ->where('phone_no', $request->phone_no)
             ->where('type', 'owner')
-            ->orWhere('email', $request->email)
+            ->where('email', $request->email)
             ->where('type', 'owner')
             ->first();
 
