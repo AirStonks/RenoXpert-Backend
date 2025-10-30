@@ -16,7 +16,7 @@ class OwnerOrderResource extends JsonResource
     public function toArray(Request $request): array
     {
         // Load the quotations to ensure they are available for sorting
-        $this->orderQuotations->load('quotation');
+        $this->orderQuotations;
 
         // Sort orderQuotations by version in descending order
         $orderQuotations = $this->orderQuotations->sortByDesc('version')->values(); // Using values() to reindex the collection
