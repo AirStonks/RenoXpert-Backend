@@ -361,20 +361,37 @@ class PaymentController extends BaseController
         $countryCode = "60";
         $phoneNo = $phone;
 
-        // If phone starts with "0", remove it and use country code "60"
-        if (str_starts_with($phone, '0')) {
-            $phoneNo = substr($phone, 1);
+        // Normalize phone number:
+        // - If starts with "65", remove it and use country code "65"
+        // - If starts with "60", remove it and use country code "60"
+        // - If starts with "0", remove it and use country code "60"
+        if (str_starts_with($phoneNo, '65')) {
+            $countryCode = '65';
+            $phoneNo = substr($phoneNo, 2);
+        } elseif (str_starts_with($phoneNo, '60')) {
+            $countryCode = '60';
+            $phoneNo = substr($phoneNo, 2);
+        } elseif (str_starts_with($phoneNo, '0')) {
+            $countryCode = '60';
+            $phoneNo = substr($phoneNo, 1);
         }
 
-        // Create User record
-        $user = User::create([
-            'name' => $name,
-            'email' => $metadata['email'] ?? null,
-            'type' => 'owner',
-            'country_code' => $countryCode,
-            'phone_no' => $phoneNo,
-            'status' => 'active',
-        ]);
+        // Create User record only if not exists (by email)
+        $email = $metadata['email'] ?? null;
+        $user = null;
+        if ($email) {
+            $user = User::where('email', $email)->first();
+        }
+        if (!$user) {
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'type' => 'owner',
+                'country_code' => $countryCode,
+                'phone_no' => $phoneNo,
+                'status' => 'active',
+            ]);
+        }
 
         $booking = Booking::create([
             'campaign_id' => $campaign->id,
