@@ -1,67 +1,40 @@
 <?php
 
-// app\Models\Quotation.php
-
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\PackageStatus; // Re-using this Enum
 
 class Quotation extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'quotations';
+    protected $guarded = [];
+
+    /**
+     * The attributes that should be cast.
      *
      * @var array
      */
-    protected $fillable = [
-        'property_id',
-        'name',
-        'total_amount',
-        'description',
-        'is_ready',
-        'valid_from',
-        'valid_until',
-        'status',
-        'metadata',
-        'created_by',
-        'updated_by',
-        'archived_at',
-        'archived_by',
-        'deleted_at',
+    protected $casts = [
+        // 'available', 'unavailable', 'archived'
+        'status' => PackageStatus::class,
     ];
 
-    protected static function boot()
+    /**
+     * Get all the "versions" (OrderQuotations) for this main quote.
+     */
+    public function orderQuotations(): HasMany
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
-    }
-
-    public function property()
-    {
-        return $this->belongsTo(Property::class, 'property_id', 'id');
-    }
-
-    public function packages()
-    {
-        return $this->belongsToMany(Package::class, 'quotation_packages', 'quotation_id', 'package_id')
-            ->withPivot('quantity');
-    }
-
-    public function quoPackages()
-    {
-        return $this->hasMany(QuotationPackage::class, 'quotation_id', 'id');
+        return $this->hasMany(OrderQuotation::class, 'quotation_id');
     }
 }

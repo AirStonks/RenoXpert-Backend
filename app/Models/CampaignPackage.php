@@ -1,54 +1,39 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database.Eloquent\Factories\HasFactory;
+use Illuminate\Database.Eloquent\Model;
+use Illuminate\Database.Eloquent\SoftDeletes;
+use Illuminate\Database.Eloquent\Relations\BelongsTo;
+use App\Enums\CampaignStatus;
 
 class CampaignPackage extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'campaign_id',
-        'name',
-        'description',
-        'internal_description',
-        'base_amount',
-        'booking_amount',
-        'start_date',
-        'end_date',
-        'slot_total',
-        'slot_used',
-        'slot_remaining',
-        'status',
-        'metadata',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
+    protected $table = 'campaign_packages';
+    protected $guarded = [];
 
     protected $casts = [
+        'status' => CampaignStatus::class,
         'metadata' => 'array',
+        'price' => 'decimal:2',
     ];
 
-    protected static function boot()
+    /**
+     * Get the parent campaign.
+     */
+    public function campaign(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(Campaign::class, 'campaign_id');
     }
 
-    public function campaign()
+    /**
+     * Get the master package this refers to.
+     */
+    public function package(): BelongsTo
     {
-        return $this->belongsTo(Campaign::class, 'campaign_id', 'id');
-    }
-
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class, 'campaign_package_id', 'id');
+        return $this->belongsTo(Package::class, 'package_id');
     }
 }

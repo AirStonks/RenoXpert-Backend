@@ -1,49 +1,34 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\InventoryStatus;
 
 class Inventory extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'product_id',
-        'alert_level',
-        'total_stock',
-        'current_stock',
-        'coming_stock',
-        'total_available_stock',
-        'total_required_stock',
-        'utilized_stock',
-        'required_stock',
-        'current_balance',
-        'total_balance',
-        'status',
-        'created_by',
-        'updated_by',
-        'deleted_at',
+    protected $table = 'inventories';
+    protected $guarded = [];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'status_' => InventoryStatus::class, // Using the Enum
     ];
 
-    protected static function boot()
+    /**
+     * Get the product this inventory record is for.
+     */
+    public function product(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
-    }
-
-    public function product()
-    {
-        return $this->belongsTo(Product::class, 'product_id', 'id')->withTrashed();
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

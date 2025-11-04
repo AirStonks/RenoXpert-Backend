@@ -1,63 +1,40 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\ProgressStatus; // Re-using this Enum
 
-class POPackage extends Model
+class PoPackage extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'po_packages';
-    protected $with = ['poItems'];
+    protected $guarded = [];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'po_id',
-        'package_id',
-        'sale_id',
-        'name',
-        'description',
-        'description_internal',
-        'category',
-        'quantity',
-        'total_price',
-        'status',
-        'created_by',
-        'updated_by',
-        'archived_at',
-        'archived_by',
-        'deleted_at',
-        'sequence',
+    protected $casts = [
+        'status' => ProgressStatus::class, // Re-using ProgressStatus
+        'price' => 'decimal:2',
+        'quantity' => 'integer',
+        'metadata' => 'array',
     ];
 
-    protected static function boot()
+    /**
+     * Get the parent PO this package belongs to.
+     */
+    public function purchaseOrder(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(PurchaseOrder::class, 'purchase_order_id');
     }
 
-    public function purchaseOrder()
+    /**
+     * Get the master package this PO package refers to.
+     */
+    public function package(): BelongsTo
     {
-        return $this->belongsTo(PurchaseOrder::class, 'po_id', 'id');
-    }
-
-    public function poItems()
-    {
-        return $this->hasMany(POItem::class, 'po_package_id', 'id');
+        return $this->belongsTo(Package::class, 'package_id');
     }
 }

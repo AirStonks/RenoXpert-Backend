@@ -1,57 +1,41 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database.Eloquent\Factories\HasFactory;
+use Illuminate\Database.Eloquent\Model;
+use Illuminate\Database.Eloquent\SoftDeletes;
+use Illuminate\Database.Eloquent\Relations\BelongsTo;
+use App\Enums\FormStatus;
+use App\Enums\LinkStatus; // Re-using this Enum
 
 class DefectInspectionForm extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'id',
-        'reno_progress_id',
-        'di_by',
-        'date',
-        'time',
-        'owner_email',
-        'property_name',
-        'other_property_name',
-        'block',
-        'level',
-        'unit',
-        'contractor_name',
-        'contractor_email',
-        'bedroom_count',
-        'bathroom_count',
-        'status',
-        'metadata',
-        'report_hash',
-        'link_status',
-        'submitted_at',
-        'created_by',
-        'updated_by',
-        'deleted_at',
+    protected $table = 'defect_inspection_forms';
+    protected $guarded = [];
+
+    protected $casts = [
+        'status' => FormStatus::class,
+        'link_status' => LinkStatus::class, // Re-using
+        'metadata' => 'array',
+        'submitted_at' => 'datetime',
     ];
 
-    protected static function boot()
+    /**
+     * Get the order this form is for.
+     */
+    public function order(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(Order::class, 'order_id');
     }
 
-    public function renoProgress()
+    /**
+     * Get the user (owner) who this form belongs to.
+     */
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(RenoProgress::class, 'reno_progress_id', 'id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

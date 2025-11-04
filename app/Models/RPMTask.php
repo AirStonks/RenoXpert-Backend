@@ -1,65 +1,40 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Enums\RpmTaskStatus;
 
-class RPMTask extends Model
+class RpmTask extends Model
 {
-
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'rpm_tasks';
-
-    protected $fillable = [
-        'job_id',
-        'space_type',
-        'room_name',
-        'item_name',
-        'priority',
-        'task_weightage',
-        'sequence',
-        'is_visible',
-        'internal_comment',
-        'owner_comment',
-        'internal_attachments',
-        'owner_attachments',
-        'completed_at',
-        'created_by',
-        'updated_by',
-        'created_at',
-        'updated_at',
-        'deleted_at',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
-        'internal_attachments' => 'array',
-        'owner_attachments' => 'array',
+        'status' => RpmTaskStatus::class,
+        'metadata' => 'array',
+        'due_date' => 'date',
     ];
 
-    protected static function boot()
+    /**
+     * Get the parent job this task belongs to.
+     */
+    public function job(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(RpmJob::class, 'rpm_job_id');
     }
 
-    public function job()
+    /**
+     * Get the QC record for this task.
+     */
+    public function qc(): HasOne
     {
-        return $this->belongsTo(RPMJob::class, 'job_id', 'id');
-    }
-
-    public function taskQc()
-    {
-        return $this->hasOne(RPMTaskQC::class, 'task_id', 'id');
+        return $this->hasOne(RpmTaskQc::class, 'rpm_task_id');
     }
 }

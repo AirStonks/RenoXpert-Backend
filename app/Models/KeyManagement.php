@@ -1,49 +1,32 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\ProgressStatus;
 
 class KeyManagement extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'reno_progress_id',
-        'date_received_key',
-        'date_posted',
-        'pic_name',
-        'status',
-        'metadata',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
+    protected $table = 'key_management';
+    protected $guarded = [];
 
     protected $casts = [
-        'date_received_key' => 'datetime',
-        'date_posted' => 'datetime',
+        'status' => ProgressStatus::class,
+        'metadata' => 'array',
+        'handover_date' => 'datetime',
+        'return_date' => 'datetime',
     ];
 
-    protected static function boot()
+    /**
+     * Get the reno_progress this key is for.
+     */
+    public function renoProgress(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(RenoProgress::class, 'reno_progress_id');
     }
-
-    public function renoProgress()
-    {
-        return $this->belongsTo(RenoProgress::class, 'reno_progress_id', 'id');
-    }
-
 }

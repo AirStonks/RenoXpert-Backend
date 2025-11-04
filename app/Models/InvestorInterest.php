@@ -1,40 +1,30 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\InterestFormStatus;
 
 class InvestorInterest extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'investor_interests';
-
-    protected $fillable = [
-        'full_name',
-        'mobile_number',
-        'email',
-        'property_name',
-        'unit_type',
-        'units_owned', // New field
-        'keys_collected',
-        'concerns',
-        'rental_strategy',
-        'expected_rental_return', // New field
-        'investment_goals', // New field
-        'support_needed',
-        'preferred_contact',
-        'preferred_time',
-        'status',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
-        'concerns' => 'array',
-        'rental_strategy' => 'array',
-        'support_needed' => 'array',
-        'investment_goals' => 'array', // New field
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'status' => InterestFormStatus::class,
+        'metadata' => 'array',
     ];
+
+    /**
+     * Get the user this interest form is linked to (if any).
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

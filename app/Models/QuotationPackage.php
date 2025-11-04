@@ -1,53 +1,29 @@
 <?php
 
-namespace App\Models;
+namespace App\Models; // <-- CORRECTED
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class QuotationPackage extends Model
 {
-    use SoftDeletes;
     use HasFactory;
+    protected $table = 'quotation_packages';
+    protected $guarded = [];
 
-    protected $fillable = [
-        'quotation_id',
-        'package_id',
-        'quantity',
-        'created_by',
-        'updated_by',
-        'deleted_at',
+    protected $casts = [
+        'price' => 'decimal:2',
     ];
 
-    protected static function boot()
+    public function orderQuotation(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(OrderQuotation::class, 'order_quotation_id');
     }
 
-    public function package()
+    public function items(): HasMany
     {
-        return $this->belongsTo(Package::class, 'package_id', 'id');
-    }
-
-
-    public function products()
-    {
-        return $this->belongsToMany(Product::class, 'quo_pkg_prods', 'quotation_package_id', 'product_id')
-            ->withPivot('quantity', 'visibility', 'quo_pkg_prods.id');
-    }
-
-
-    public function quoProducts()
-    {
-        return $this->hasMany(QuoPkgProd::class, 'quotation_package_id', 'id');
+        return $this->hasMany(QuotationPackageItem::class, 'quotation_package_id');
     }
 }

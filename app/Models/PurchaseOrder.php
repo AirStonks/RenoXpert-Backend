@@ -1,80 +1,61 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\PurchaseOrderStatus;
+use App\Enums\PurchaseOrderTypeStatus;
+use App\Enums\SalesStatus; // Re-using this Enum
 
 class PurchaseOrder extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $with = ['poPackages'];
+    protected $table = 'purchase_orders';
+    protected $guarded = [];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'po_no',
-        'reno_sale_id',
-        'sale_id',
-        'vendor_id',
-        'total_amount',
-        'remaining_amount',
-        'remaining_percentage',
-        'shipping_date',
-        'shipped_date',
-        'delivery_date',
-        'delivered_date',
-        'payment_status',
-        'order_status',
-        'description',
-        'internal_note',
-        'created_by',
-        'updated_by',
-        'deleted_at',
+    protected $casts = [
+        'status' => PurchaseOrderStatus::class,
+        'order_status' => PurchaseOrderTypeStatus::class,
+        'payment_status' => SalesStatus::class, // Re-using SalesStatus
+        'total_amount' => 'decimal:2',
+        'metadata' => 'array',
+        'due_date' => 'date',
     ];
 
-    protected static function boot()
+    /**
+     * Get the user (staff) who created this PO.
+     */
+    public function createdBy(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function sale()
+    /**
+     * Get the user (vendor) this PO is for.
+     */
+    public function vendor(): BelongsTo
     {
-        return $this->belongsTo(Sale::class, 'sale_id', 'id');
+        return $this->belongsTo(User::class, 'vendor_id');
     }
 
-    public function renoSale()
+    /**
+     * Get all the line items for this PO.
+     */
+    public function items(): HasMany
     {
-        return $this->belongsTo(RenoXSale::class, 'reno_sale_id', 'id');
+        return $this->hasMany(PoItem::class, 'purchase_order_id');
     }
 
-    public function vendor()
+    /**
+     * Get all the package items for this PO.
+     */
+    public function packages(): HasMany
     {
-        return $this->belongsTo(User::class, 'vendor_id', 'id');
-    }
-
-    public function poPackages()
-    {
-        return $this->hasMany(POPackage::class, 'po_id', 'id');
-    }
-
-    public function invoices()
-    {
-        return $this->morphMany(Invoice::class, 'item', 'item_type', 'item_id', 'id')
-            ->where('item_type', 'App\Models\PurchaseOrder');
+        return $this->hasMany(PoPackage::class, 'purchase_order_id');
     }
 }

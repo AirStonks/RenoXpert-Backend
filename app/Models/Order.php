@@ -1,100 +1,46 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\OrderStatus;
 
 class Order extends Model
 {
+    use HasFactory, SoftDeletes;
 
-    use SoftDeletes;
-    use HasFactory;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'order_no',
-        'draft_order_no',
-        'user_id',
-        'form_id',
-        'property_id',
-        'unit_type',
-        'block',
-        'floor',
-        'unit_no',
-        'bedroom_count',
-        'single_bedroom_count',
-        'queen_bedroom_count',
-        'studio_count',
-        'bathroom_count',
-        'include_partition',
-        'is_progressive_payment',
-        'is_rnpl',
-        'rnpl_base_price',
-        'is_be_powered',
-        'installment_method',
-        'installment_amount',
-        'be_powered_base_price',
-        'total_amount',
-        'final_amount',
-        'description',
-        'internal_remark',
-        'completion_day',
-        'tenure',
-        'status',
-        'released_at',
-        'confirmed_at',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
+    protected $table = 'orders';
+    protected $guarded = [];
 
     protected $casts = [
-        'released_at' => 'datetime',
-        'confirmed_at' => 'datetime',
+        'status' => OrderStatus::class,
     ];
 
-    protected static function boot()
+    /**
+     * Get the user (customer) who this order belongs to.
+     */
+    public function user(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function user()
+    /**
+     * Get the user (staff) who created this order.
+     */
+    public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function form()
+    /**
+     * Get all the quotation versions for this order.
+     */
+    public function quotations(): HasMany
     {
-        return $this->belongsTo(RegistrationForm::class, 'form_id', 'id');
-    }
-
-    public function property()
-    {
-        return $this->belongsTo(Property::class, 'property_id', 'id');
-    }
-
-    public function orderQuotations()
-    {
-        return $this->hasMany(OrderQuotation::class, 'order_id', 'id');
-    }
-
-    public function sale()
-    {
-        return $this->hasOne(Sale::class, 'order_id', 'id');
+        return $this->hasMany(OrderQuotation::class, 'order_id');
     }
 }

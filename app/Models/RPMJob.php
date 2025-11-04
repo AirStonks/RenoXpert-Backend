@@ -1,50 +1,39 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\ProgressStatus;
 
-class RPMJob extends Model
+class RpmJob extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'rpm_jobs';
+    protected $guarded = [];
 
-    protected $fillable = [
-        'reno_progress_id',
-        'job_category',
-        'name',
-        'status',
-        'created_by',
-        'updated_by',
-        'created_at',
-        'updated_at',
-        'deleted_at',
+    protected $casts = [
+        'status' => ProgressStatus::class,
+        'due_date' => 'date',
     ];
 
-    protected static function boot()
+    /**
+     * Get the reno_progress this job is for.
+     */
+    public function renoProgress(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(RenoProgress::class, 'reno_progress_id');
     }
 
-    public function renoProgress()
+    /**
+     * Get all tasks for this job.
+     */
+    public function tasks(): HasMany
     {
-        return $this->belongsTo(RenoProgress::class, 'reno_progress_id', 'id');
-    }
-
-    public function rpmTasks()
-    {
-        return $this->hasMany(RPMTask::class, 'job_id', 'id');
+        return $this->hasMany(RpmTask::class, 'rpm_job_id');
     }
 }

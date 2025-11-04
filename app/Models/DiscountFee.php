@@ -1,39 +1,32 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\AvailabilityStatus;
+use App\Enums\DiscountFeeType;
 
 class DiscountFee extends Model
 {
-    
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'name',
-        'type',
-        'amount',
-        'percentage',
-        'status',
-        'created_by',
-        'updated_by',
-        'deleted_at',
+    protected $table = 'discount_fees';
+    protected $guarded = [];
+
+    protected $casts = [
+        'status' => AvailabilityStatus::class,
+        'type' => DiscountFeeType::class,
+        'value' => 'decimal:2',
     ];
 
-    protected static function boot()
+    /**
+     * Get the user (staff) who created this.
+     */
+    public function createdBy(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

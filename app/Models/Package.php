@@ -1,91 +1,54 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Enums\PackageStatus;
 
 class Package extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'packages';
+    protected $guarded = [];
 
     /**
-     * The attributes that are mass assignable.
+     * The attributes that should be cast.
      *
      * @var array
      */
-    protected $fillable = [
-        'name',
-        'description',
-        'description_internal',
-        'category',
-        'is_addon',
-        'total_price',
-        'markup_amount',
-        'markup_percentage',
-        'tenure',
-        'monthly_amount',
-        'status',
-        'created_by',
-        'updated_by',
-        'archived_at',
-        'archived_by',
-        'deleted_at',
+    protected $casts = [
+        'status' => PackageStatus::class, // Using the Enum we created
     ];
 
-    protected static function boot()
+    /**
+     * Get the products that are in this package.
+     * This defines the many-to-many relationship.
+     */
+    public function products(): BelongsToMany
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
-    }
-
-    public function products()
-    {
-        return $this->belongsToMany(Product::class, 'product_packages', 'package_id', 'product_id')
-            ->withPivot('quantity')
-            ->withPivot('visibility')
-            ->withPivot('included')
-            ->withPivot('isOriginal')
-            ->withPivot('internal_note')
-            ->withPivot('includeSupply')
-            ->withPivot('includeInstall')
-            ->withTimestamps();
-    }
-
-    public function quoProducts()
-    {
-        // Fetch products from 'product_packages' with the relevant pivot data
-        $productsFromPackages = $this->belongsToMany(Product::class, 'product_packages', 'package_id', 'product_id')
+        return $this->belongsToMany(Product::class, 'product_packages')
+            ->using(ProductPackage::class) // Tell Laravel to use our pivot model
             ->withPivot([
+                'quantity',
+                'visibility',
                 'included',
                 'isOriginal',
-                'internal_note',
                 'includeSupply',
-                'includeInstall'
-            ])
-            ->withTimestamps()
-            ->get();
+                'includeInstall',
+                'internal_note'
+            ]);
+    }
 
-        // Fetch products from 'quo_pkg_prods' with the relevant pivot data
-        $productsFromQuoPkgProds = $this->belongsToMany(Product::class, 'quo_pkg_prods', 'quotation_package_id', 'product_id')
-            ->withPivot([
-                'visibility',
-                'quantity'
-            ])
-            ->withTimestamps()
-            ->get();
-
-        // Merge collections while preserving unique products
-        return $productsFromPackages->merge($productsFromQuoPkgProds);
+    /**
+     * Get the user who created this.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

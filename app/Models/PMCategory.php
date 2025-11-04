@@ -1,42 +1,25 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Kalnoy\Nestedset\NodeTrait; // Your schema has _lft, _rgt columns
 
-class PMCategory extends Model
+class PmCategory extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes, NodeTrait; // NodeTrait handles the parent/child logic
 
     protected $table = 'pm_categories';
-  
+    protected $guarded = [];
+
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
+     * Get the products in this category.
      */
-    protected $fillable = [
-        'name',
-        'description',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
-
-    protected static function boot()
+    public function products(): HasMany
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->hasMany(Product::class, 'pm_category_id');
     }
 }

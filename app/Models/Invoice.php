@@ -1,65 +1,61 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Enums\FinancialStatus;
+use App\Enums\LinkStatus;
 
 class Invoice extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'item_id',
-        'item_type',
-        'invoice_no',
-        'percentage',
-        'amount',
-        'status',
-        'link_status',
-        'due_date',
-        'version',
-        'discountsData',
-        'feesData',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
+    protected $table = 'invoices';
+    protected $guarded = [];
 
     protected $casts = [
-        'discountsData' => 'array',
-        'feesData' => 'array',
-        'due_date' => 'datetime',
+        'status' => FinancialStatus::class, // Using our new Enum
+        'link_status' => LinkStatus::class, // Using our new Enum
+        'total_amount' => 'decimal:2',
+        'due_date' => 'date',
+        'metadata' => 'array',
     ];
 
-    protected static function boot()
+    /**
+     * Get the user (owner) this invoice is for.
+     */
+    public function user(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function sale()
+    /**
+     * Get the booking this invoice is for (if any).
+     */
+    public function booking(): BelongsTo
     {
-        return $this->belongsTo(Sale::class, 'item_id', 'id');
+        return $this->belongsTo(Booking::class, 'booking_id');
     }
 
-    public function po()
+    /**
+     * Get all payments made for this invoice.
+     */
+    public function payments(): HasMany
     {
-        return $this->belongsTo(PurchaseOrder::class, 'item_id', 'id');
+        return $this->hasMany(Payment::class, 'invoice_id');
     }
 
-    public function payments()
+    /**
+     * Get the parent item this invoice is for (polymorphic).
+     * This could be an Order, a Booking, etc.
+     */
+    public function item(): MorphTo
     {
-        return $this->hasMany(Payment::class, 'invoice_id', 'id');
+        return $this->morphTo();
     }
 }

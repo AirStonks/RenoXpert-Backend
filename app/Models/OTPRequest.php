@@ -1,32 +1,29 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\OtpStatus;
 
-class OTPRequest extends Model
+class OtpRequest extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'otp_requests';
-
-    protected $fillable = [
-        'mobile',
-        'code',
-        'status',
-        'uuid',
-        'sms_id',
-        'token',
-        'expires_at',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
-        'expires_at' => 'datetime'
+        'status' => OtpStatus::class,
     ];
+
+    /**
+     * Get the user this OTP was for.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

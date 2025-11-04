@@ -1,53 +1,63 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PropertyROI extends Model
+class PropertyRoi extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
-
-    protected $table = 'property_rois';
+    use HasFactory, SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'property_rois';
+    protected $guarded = [];
+
+    /**
+     * The attributes that should be cast.
      *
      * @var array
      */
-    protected $fillable = [
-        'property_id',
-        'thumbnail_title',
-        'thumbnail_desc',
-        'content',
-        'view_enabled',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
-
     protected $casts = [
         'content' => 'array',
+        'view_enabled' => 'boolean',
     ];
 
+    /**
+     * The "booted" method of the model.
+     */
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
+            $model->created_by = auth()->id();
         });
 
         static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
+            $model->updated_by = auth()->id();
         });
     }
 
-    public function property()
+    /**
+     * Get the property this ROI belongs to.
+     */
+    public function property(): BelongsTo
     {
-        return $this->belongsTo(Property::class);
+        return $this->belongsTo(Property::class, 'property_id');
+    }
+
+    /**
+     * Get the user (staff) who created this.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

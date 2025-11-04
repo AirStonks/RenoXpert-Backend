@@ -1,62 +1,48 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\FinancialStatus;
 
 class Booking extends Model
 {
-    use SoftDeletes, HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'campaign_id',
-        'campaign_package_id',
-        'user_id',
-        'booking_no',
-        'booking_hash',
-        'amount',
-        'payment_url',
-        'booked_at',
-        'expired_at',
-        'internal_remark',
-        'status',
-        'metadata',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
+    protected $table = 'bookings';
+    protected $guarded = [];
 
     protected $casts = [
-        'metadata' => 'array',
+        'status' => FinancialStatus::class, // Using our new Enum
+        'booked_at' => 'datetime',
     ];
 
-    protected static function boot()
+    /**
+     * Get the user (owner) who made this booking.
+     */
+    public function user(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function campaign()
+    /**
+     * Get the payments associated with this booking.
+     */
+    public function payments(): HasMany
     {
-        return $this->belongsTo(Campaign::class, 'campaign_id', 'id');
+        return $this->hasMany(Payment::class, 'booking_id');
     }
 
-    public function campaignPackage()
+    /**
+     * Get the invoices associated with this booking.
+     * (Assuming an invoice might be directly tied to a booking)
+     */
+    public function invoices(): HasMany
     {
-        return $this->belongsTo(CampaignPackage::class, 'campaign_package_id', 'id');
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->hasMany(Invoice::class, 'booking_id');
     }
 }

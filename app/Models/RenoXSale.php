@@ -1,62 +1,20 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database.Eloquent\Factories\HasFactory;
+use Illuminate\Database.Eloquent\Model;
+use Illuminate\Database.Eloquent\SoftDeletes;
+use App\Enums\LinkStatus; // Re-using 'active'
 
 class RenoXSale extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'reno_x_sales';
+    protected $guarded = [];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'reno_sale_no',
-        'user_id',
-        'property_id',
-        'unit_type',
-        'block',
-        'floor',
-        'unit_no',
-        'status',
-        'created_by',
-        'updated_by',
-        'deleted_at',
+    protected $casts = [
+        'status' => LinkStatus::class,
     ];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id', 'id');
-    }
-
-    public function sales()
-    {
-        return $this->hasMany(Sale::class, 'reno_sale_id', 'id');
-    }
-
-    public function purchaseOrders()
-    {
-        return $this->hasMany(PurchaseOrder::class, 'reno_sale_id', 'id');
-    }
 }

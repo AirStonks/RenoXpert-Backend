@@ -1,66 +1,40 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\ProgressStatus; // Re-using this Enum
 
-class POItem extends Model
+class PoItem extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'po_items';
+    protected $guarded = [];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'po_package_id',
-        'product_id',
-        'product_name',
-        'product_desc',
-        'sku',
-        'qty',
-        'uom',
-        'supply',
-        'install',
-        'supply_price',
-        'install_price',
-        'supply_qty',
-        'install_qty',
-        'unit_price',
-        'total_price',
-        'status',
-        'shipping_date',
-        'shipped_date',
-        'delivery_date',
-        'delivered_date',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-        'sequence',
+    protected $casts = [
+        'status' => ProgressStatus::class, // Re-using ProgressStatus
+        'price' => 'decimal:2',
+        'quantity' => 'integer',
+        'metadata' => 'array',
     ];
 
-
-    protected static function boot()
+    /**
+     * Get the parent PO this item belongs to.
+     */
+    public function purchaseOrder(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(PurchaseOrder::class, 'purchase_order_id');
     }
 
-    public function poPackage()
+    /**
+     * Get the master product this PO item refers to.
+     */
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(POPackage::class, 'po_package_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

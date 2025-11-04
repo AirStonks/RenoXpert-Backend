@@ -1,58 +1,63 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Property extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
+     * The table associated with the model.
      *
-     * @var array
+     * @var string
      */
-    protected $fillable = [
-        'name',
-        'address',
-        'street',
-        'postcode',
-        'city',
-        'state',
-        'description',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
+    protected $table = 'properties';
+    protected $guarded = [];
 
+    /**
+     * The "booted" method of the model.
+     */
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
+            $model->created_by = auth()->id();
         });
 
         static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
+            $model->updated_by = auth()->id();
         });
     }
 
-    public function propertyRoi()
+    /**
+     * Get the ROI details for this property.
+     */
+    public function propertyRoi(): HasOne
     {
-        return $this->hasOne(PropertyROI::class, 'property_id', 'id');
+        return $this->hasOne(PropertyRoi::class, 'property_id', 'id');
     }
 
     /**
      * Get the project status histories for the property.
      */
-    public function projectStatusHistories()
+    public function projectStatusHistories(): HasMany
     {
         return $this->hasMany(ProjectStatusHistory::class, 'property_id', 'id');
+    }
+
+    /**
+     * Get the user (staff) who created this.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

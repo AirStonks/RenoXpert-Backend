@@ -4,43 +4,36 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
 
 class Contact extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
-  
+    use HasFactory, SoftDeletes;
+
     /**
-     * The attributes that are mass assignable.
+     * The attributes that aren't mass assignable.
      *
      * @var array
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'phone_no',
-        'alt_phone_no',
-        'race',
-        'gender',
-        'nationality',
-        'description',
-        'created_by',
-        'updated_by',
-        'deleted_at',
+    protected $guarded = [];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        // We cast our ENUM columns for convenience
+        'gender' => \App\Enums\Gender::class, // Assumes you'll create this Enum
     ];
 
-    protected static function boot()
+    /**
+     * Get the user that this contact belongs to.
+     */
+    public function user(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
+

@@ -1,55 +1,48 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\FinancialStatus;
 
 class Payment extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
-  
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'invoice_id',
-        'transaction_no',
-        'amount',
-        'payment_method',
-        'payment_channel',
-        'payment_date',
-        'bank',
-        'receiving_account',
-        'remark',
-        'currency',
-        'description',
-        'status',
-        'created_by',
-        'updated_by',
-        'deleted_at',
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'payments';
+    protected $guarded = [];
+
+    protected $casts = [
+        'status' => FinancialStatus::class, // Using our new Enum
+        'amount' => 'decimal:2',
+        'metadata' => 'array',
+        'paid_at' => 'datetime',
     ];
 
-    protected static function boot()
+    /**
+     * Get the user (owner) who made this payment.
+     */
+    public function user(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function invoice()
+    /**
+     * Get the invoice this payment is for.
+     */
+    public function invoice(): BelongsTo
     {
-        return $this->belongsTo(Invoice::class, 'invoice_id', 'id');
+        return $this->belongsTo(Invoice::class, 'invoice_id');
+    }
+
+    /**
+     * Get the booking this payment is for.
+     */
+    public function booking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class, 'booking_id');
     }
 }

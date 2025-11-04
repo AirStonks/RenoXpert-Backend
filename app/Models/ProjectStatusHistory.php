@@ -1,74 +1,40 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\RenoProgressStatus;
 
 class ProjectStatusHistory extends Model
 {
-    use SoftDeletes;
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'reno_progress_id',
-        'property_id',
-        'unit',
-        'status',
-        'payment_percentage',
-        'snapshot_year',
-        'snapshot_week',
-        'snapshot_date',
-        'snapshot_type',
-        'created_by',
-        'updated_by',
-    ];
+    protected $table = 'project_status_histories';
+    protected $guarded = [];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
+    // No `updated_at` timestamp on this table
+    public const UPDATED_AT = null;
+
     protected $casts = [
-        'snapshot_date' => 'date',
-        'payment_percentage' => 'double',
-        'snapshot_year' => 'integer',
-        'snapshot_week' => 'integer',
+        'status' => RenoProgressStatus::class,
+        'metadata' => 'array',
     ];
 
-    protected static function boot()
+    /**
+     * Get the parent reno_progress record.
+     */
+    public function renoProgress(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id();
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id();
-        });
+        return $this->belongsTo(RenoProgress::class, 'reno_progress_id');
     }
 
     /**
-     * Get the reno progress that owns the project status history.
+     * Get the user who triggered this history event.
      */
-    public function renoProgress()
+    public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(RenoProgress::class, 'reno_progress_id', 'id');
-    }
-
-    /**
-     * Get the property that owns the project status history.
-     */
-    public function property()
-    {
-        return $this->belongsTo(Property::class, 'property_id', 'id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

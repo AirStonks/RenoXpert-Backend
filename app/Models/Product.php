@@ -1,72 +1,75 @@
 <?php
 
-// app/models/Product.php
-
-namespace App\Models;
+namespace App; // Or App\Models, depending on your structure
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Enums\ProductStatus;
 
 class Product extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'products';
+    protected $guarded = [];
 
     /**
-     * The attributes that are mass assignable.
+     * The attributes that should be cast.
      *
      * @var array
      */
-    protected $fillable = [
-        'name',
-        'pm_category_id',
-        'supplier_name',
-        'SKU',
-        'type',
-        'description',
-        'uom',
-        'task_weightage',
-        'color',
-        'material',
-        'width',
-        'height',
-        'depth',
-        'internal_desc',
-        'status',
-        'attachments',
-        'created_by',
-        'updated_by',
-        'archived_at',
-        'archived_by',
-        'deleted_at',
+    protected $casts = [
+        'price' => 'decimal:2',
+        'cost' => 'decimal:2',
+        'status' => ProductStatus::class, // Using the Enum we created
+        'metadata' => 'array',
+        'is_package' => 'boolean',
     ];
 
-    protected static function boot()
+    /**
+     * Get the category this product belongs to.
+     */
+    public function category(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(PmCategory::class, 'pm_category_id');
     }
 
-    public function pmCategory()
+    /**
+     * Get the packages this product is a part of.
+     * This defines the many-to-many relationship.
+     */
+    public function packages(): BelongsToMany
     {
-        return $this->belongsTo(PMCategory::class, 'pm_category_id', 'id');
+        return $this->belongsToMany(Package::class, 'product_packages')
+            ->using(ProductPackage::class) // Tell Laravel to use our pivot model
+            ->withPivot([
+                'quantity',
+                'visibility',
+                'included',
+                'isOriginal',
+                'includeSupply',
+                'includeInstall',
+                'internal_note'
+            ]);
     }
 
-    public function productSupply()
+    /**
+     * Get the inventory records for this product.
+     */
+    public function inventory(): HasMany
     {
-        return $this->hasOne(ProductSupply::class, 'product_id', 'id');
+        return $this->hasMany(Inventory::class, 'product_id');
     }
 
-    public function productInstall()
+    /**
+     * Get the user who created this.
+     */
+    public function createdBy(): BelongsTo
     {
-        return $this->hasOne(ProductInstall::class, 'product_id', 'id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

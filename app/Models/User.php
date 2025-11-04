@@ -2,59 +2,24 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Permission\Traits\HasRoles; // <-- IMPORT THE TRAIT
 
 class User extends Authenticatable
 {
-    use SoftDeletes;
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, SoftDeletes, HasRoles; // <-- USE THE TRAIT
 
     /**
-     * The attributes that are mass assignable.
+     * The attributes that aren't mass assignable.
      *
-     * @var array<int, string>
+     * @var array
      */
-    protected $fillable = [
-        'uuid',
-        'name',
-        'name_first',
-        'name_last',
-        'name_preferred',
-        'salutations',
-        'ic',
-        'email',
-        'password',
-        'country_code',
-        'phone_no',
-        'type',
-        'status',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-    ];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->uuid)) {
-                $model->uuid = Str::uuid();
-            }
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
-    }
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -67,84 +32,49 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        // We cast our ENUM columns for convenience
+        'type' => \App\Enums\UserType::class, // Assumes you'll create this Enum
+        'status' => \App\Enums\UserStatus::class, // Assumes you'll create this Enum
+        'phone_no_status' => \App\Enums\UserPhoneStatus::class, // Assumes you'll create this Enum
+    ];
 
-    public function address()
+    /**
+     * Get all of the contacts for the User.
+     */
+    public function contacts(): HasMany
     {
-        return $this->hasOne(Address::class, 'id', 'address_id');
-    }
-
-    public function permissions()
-    {
-        return $this->belongsToMany(Permission::class, 'user_permission')
-            ->withPivot('resource_id');
-    }
-
-    public function itemPermissions()
-    {
-        return $this->belongsToMany(Permission::class, 'user_item_permission')
-            ->withPivot('item_id');
+        return $this->hasMany(Contact::class, 'user_id');
     }
 
     /**
-     * Get all permissions for a specific resource, including those from roles.
+     * Get all of the addresses for the User.
      */
-    public function allPermissionsForResource($resourceId)
+    public function addresses(): HasMany
     {
-        $directPermissions = $this->permissions()->wherePivot('resource_id', $resourceId)->get();
-        $rolePermissions = collect();
-
-        foreach ($this->roles as $role) {
-            $rolePermissions = $rolePermissions->merge(
-                $role->permissions()->wherePivot('resource_id', $resourceId)->get()
-            );
-        }
-
-        return $directPermissions->merge($rolePermissions)->unique('id');
+        return $this->hasMany(Address::class, 'user_id');
     }
 
     /**
-     * Get all permissions for a specific resource item, including those from roles.
+     * Get the user who created this record.
      */
-    public function allPermissionsForItem($itemId)
+    public function createdBy(): BelongsTo
     {
-        $directPermissions = $this->itemPermissions()->wherePivot('item_id', $itemId)->get();
-        $rolePermissions = collect();
-
-        foreach ($this->roles as $role) {
-            $rolePermissions = $rolePermissions->merge(
-                $role->itemPermissions()->wherePivot('item_id', $itemId)->get()
-            );
-        }
-
-        return $directPermissions->merge($rolePermissions)->unique('id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
-     * Check if the user has a specific permission on a resource.
+     * Get the user who last updated this record.
      */
-    public function hasPermissionOnResource($permissionName, $resourceId)
+    public function updatedBy(): BelongsTo
     {
-        return $this->allPermissionsForResource($resourceId)
-            ->contains('permission_name', $permissionName);
-    }
-
-    /**
-     * Check if the user has a specific permission on a resource item.
-     */
-    public function hasPermissionOnItem($permissionName, $itemId)
-    {
-        return $this->allPermissionsForItem($itemId)
-            ->contains('permission_name', $permissionName);
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }
+

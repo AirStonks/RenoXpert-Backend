@@ -1,79 +1,38 @@
 <?php
 
-namespace App\Models;
+namespace App; // Or App\Models
 
-use App\Events\SaleStatusUpdated; // Updated event name
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\SalesStatus;
 
 class Sale extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'order_id',
-        'reno_sale_id',
-        'user_id',
-        'sales_no',
-        'description',
-        'total_amount',
-        'remaining_amount',
-        'remaining_percentage',
-        'status',
-        'created_by',
-        'updated_by',
-        'deleted_at',
+    protected $table = 'sales';
+    protected $guarded = [];
+
+    protected $casts = [
+        'status' => SalesStatus::class, // Using our new Enum
+        'total_amount' => 'decimal:2',
     ];
 
-    protected static function boot()
+    /**
+     * Get the order this sale is linked to.
+     */
+    public function order(): BelongsTo
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->created_by = auth()->id(); // or your logic to get the user ID
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = auth()->id(); // or your logic to get the user ID
-        });
+        return $this->belongsTo(Order::class, 'order_id');
     }
 
-    public function order()
+    /**
+     * Get the user (staff) who made this sale.
+     */
+    public function staff(): BelongsTo
     {
-        return $this->belongsTo(Order::class, 'order_id', 'id');
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id', 'id');
-    }
-
-    public function invoices()
-    {
-        return $this->morphMany(Invoice::class, 'item', 'item_type', 'item_id', 'id')
-            ->where('item_type', 'App\Models\Sale');
-    }
-
-    public function renoProgress()
-    {
-        return $this->hasOne(RenoProgress::class, 'sale_id', 'id');
-    }
-
-    public function purchaseOrders()
-    {
-        return $this->belongsToMany(PurchaseOrder::class, 'sale_po', 'sale_id', 'po_id')
-            ->withTimestamps();
-    }
-
-    public function renoSale()
-    {
-        return $this->belongsTo(RenoXSale::class, 'reno_sale_id', 'id');
+        return $this->belongsTo(User::class, 'staff_id');
     }
 }
