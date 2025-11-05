@@ -222,6 +222,11 @@ class PaymentController extends BaseController
             'booking_hash' => bin2hex(random_bytes(16)),
             'amount' => $amount,
             'status' => 'pending',
+            'metadata' => [
+                'name' => $input['name'],
+                'phone' => $input['phone'],
+                'email' => $input['email'],
+            ],
         ]);
 
         $data = [
@@ -404,6 +409,8 @@ class PaymentController extends BaseController
         }
 
         $booking = Booking::find($metadata['bookingId']);
+        Log::info('Booking ID: ' . $metadata['bookingId']);
+        Log::info('Booking found: ' . json_encode($booking));
         $booking->update([
             'status' => 'paid',
             'booked_at' => $paymentDate ? date('Y-m-d H:i:s', strtotime($paymentDate)) : now(),
