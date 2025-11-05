@@ -307,15 +307,15 @@ class PaymentController extends BaseController
         }
 
         // Check if this transaction has already been processed (idempotency check)
-        $existingBooking = Booking::where('booking_no', $bookingNumber)->first();
-        if ($existingBooking) {
-            Log::info('Transaction already processed for booking number: ' . $bookingNumber);
-            return response()->json([
-                'message' => 'Booking already processed',
-                'booking' => $existingBooking,
-                'code' => 'already_processed'
-            ], 200);
-        }
+        // $existingBooking = Booking::where('booking_no', $bookingNumber)->first();
+        // if ($existingBooking) {
+        //     Log::info('Transaction already processed for booking number: ' . $bookingNumber);
+        //     return response()->json([
+        //         'message' => 'Booking already processed',
+        //         'booking' => $existingBooking,
+        //         'code' => 'already_processed'
+        //     ], 200);
+        // }
 
         // Store booking detail (name, phone)
         $campaign = Campaign::where('slug', $campaignSlug)->first();
