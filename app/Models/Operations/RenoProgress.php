@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Models\Operations; // Or App\Models
+namespace App\Models\Operations;
 
+use App\Enums\Operations\AcknowledgeStatus;
+use App\Enums\Operations\RenoProgressStatus;
+use App\Models\Finance\Sale;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Enums\Operations\RenoProgressStatus;
-use App\Enums\Operations\AcknowledgeStatus;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RenoProgress extends Model
 {
@@ -18,34 +19,32 @@ class RenoProgress extends Model
     protected $guarded = [];
 
     protected $casts = [
+        // REMOVED all 25 date and json columns from here
         'status' => RenoProgressStatus::class,
         'rpm_acknowledge_status' => AcknowledgeStatus::class,
-        'metadata' => 'array',
-        'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'defect_updated_at' => 'datetime',
+        'permit_updated_at' => 'datetime',
+        'sent_to_lark_date' => 'datetime',
+        'owner_handover_released_at' => 'datetime',
+        'owner_handover_submitted_at' => 'datetime',
     ];
 
     /**
-     * Get the order this progress is for.
+     * Get the Sale record associated with this reno progress.
      */
-    public function order(): BelongsTo
+    public function sale(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Business\Order::class, 'order_id');
+        return $this->belongsTo(Sale::class, 'sale_id');
     }
 
     /**
-     * Get the user (owner) this progress belongs to.
+     * NEW: Get the associated date management record.
      */
-    public function user(): BelongsTo
+    public function dates(): HasOne
     {
-        return $this->belongsTo(\App\Models\Foundation\User::class, 'user_id');
+        return $this->hasOne(RenoProgressDate::class, 'reno_progress_id');
     }
 
-    /**
-     * Get the history of status changes.
-     */
-    public function statusHistories(): HasMany
-    {
-        return $this->hasMany(\App\Models\Operations\ProjectStatusHistory::class, 'reno_progress_id');
-    }
+    // ... other relationships like renoSales, rpmJobs, etc.
 }
