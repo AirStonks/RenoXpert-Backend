@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\SaleCreated;
-use App\Models\Inventory;
+use App\Models\Catalog\Inventory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;

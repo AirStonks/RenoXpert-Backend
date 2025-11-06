@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Foundation\User;
 use GuzzleHttp\Client;
 use App\Models\OTPRequest;
 use Illuminate\Http\Request;

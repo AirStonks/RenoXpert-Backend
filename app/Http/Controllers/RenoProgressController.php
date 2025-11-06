@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
-use App\Models\User;
-use App\Models\Order;
+use App\Models\Finance\Sale;
+use App\Models\Foundation\User;
+use App\Models\Business\Order;
 use App\Models\RPMJob;
 use GuzzleHttp\Client;
 use App\Models\RPMTask;
 use App\Models\RPMTaskQC;
 use Illuminate\Support\Str;
-use App\Models\RenoProgress;
+use App\Models\Operations\RenoProgress;
 use App\Models\ResourceItem;
 use Illuminate\Http\Request;
-use App\Models\KeyManagement;
+use App\Models\Operations\KeyManagement;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Models\DefectInspectionForm;
+use App\Models\Lead\DefectInspectionForm;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\RenoProgressResource;
@@ -355,7 +355,7 @@ class RenoProgressController extends BaseController
             ResourceItem::create([
                 'resource_id' => 1,
                 'item_reference_id' => $renoProgress->id,
-                'item_reference_type' => 'App\Models\RenoProgress',
+                'item_reference_type' => 'App\Models\Operations\RenoProgress',
                 'item_name' => "Progress{$number}",
             ]);
 
@@ -768,7 +768,7 @@ class RenoProgressController extends BaseController
             ResourceItem::create([
                 'resource_id' => 1,
                 'item_reference_id' => $newRenoProgress->id,
-                'item_reference_type' => 'App\Models\RenoProgress',
+                'item_reference_type' => 'App\Models\Operations\RenoProgress',
                 'item_name' => "Progress{$number}",
             ]);
 
@@ -1258,7 +1258,7 @@ class RenoProgressController extends BaseController
             ResourceItem::create([
                 'resource_id' => 1,
                 'item_reference_id' => $renoProgress->id,
-                'item_reference_type' => 'App\Models\RenoProgress',
+                'item_reference_type' => 'App\Models\Operations\RenoProgress',
                 'item_name' => "Progress{$number}",
             ]);
 

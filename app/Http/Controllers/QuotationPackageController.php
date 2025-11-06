@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\QuotationPackage;
+use App\Models\Business\QuotationPackage;
 use Illuminate\Http\Request;
 
 class QuotationPackageController extends Controller

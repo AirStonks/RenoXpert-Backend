@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ContactResource;
-use App\Models\Contact;
+use App\Models\Foundation\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 

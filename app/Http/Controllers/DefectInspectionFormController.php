@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Property;
+use App\Models\Property\Property;
 use Illuminate\Support\Str;
-use App\Models\RenoProgress;
+use App\Models\Operations\RenoProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use App\Models\DefectInspectionForm;
+use App\Models\Lead\DefectInspectionForm;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\DefectInspectionFormResource;

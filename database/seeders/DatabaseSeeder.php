@@ -2,24 +2,24 @@
 
 namespace Database\Seeders;
 
-use App\Models\Sale;
-use App\Models\User;
-use App\Models\Order;
-use App\Models\Address;
-use App\Models\Contact;
-use App\Models\Invoice;
-use App\Models\Package;
-use App\Models\Payment;
-use App\Models\Product;
+use App\Models\Finance\Sale;
+use App\Models\Foundation\User;
+use App\Models\Business\Order;
+use App\Models\Foundation\Address;
+use App\Models\Foundation\Contact;
+use App\Models\Finance\Invoice;
+use App\Models\Catalog\Package;
+use App\Models\Finance\Payment;
+use App\Models\Catalog\Product;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use App\Models\Property;
-use App\Models\Quotation;
+use App\Models\Property\Property;
+use App\Models\Business\Quotation;
 use App\Models\PMCategory;
-use App\Models\ProductSupply;
-use App\Models\OrderQuotation;
-use App\Models\ProductInstall;
+use App\Models\Catalog\ProductSupply;
+use App\Models\Business\OrderQuotation;
+use App\Models\Catalog\ProductInstall;
 use Illuminate\Database\Seeder;
-use App\Models\RegistrationForm;
+use App\Models\Lead\RegistrationForm;
 
 class DatabaseSeeder extends Seeder
 {

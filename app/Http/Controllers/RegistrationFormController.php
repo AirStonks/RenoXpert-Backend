@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use stdClass;
-use App\Models\User;
+use App\Models\Foundation\User;
 use GuzzleHttp\Client;
-use App\Models\Address;
-use App\Models\Property;
+use App\Models\Foundation\Address;
+use App\Models\Property\Property;
 use Illuminate\Http\Request;
-use App\Models\RegistrationForm;
+use App\Models\Lead\RegistrationForm;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;

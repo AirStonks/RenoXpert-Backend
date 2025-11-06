@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\QCFormResource;
 use App\Models\QCForm;
-use App\Models\RenoProgress;
+use App\Models\Operations\RenoProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;

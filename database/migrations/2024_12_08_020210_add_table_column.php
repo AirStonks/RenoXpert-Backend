@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Property;
-use App\Models\PropertyROI;
+use App\Models\Property\Property;
+use App\Models\Property\PropertyROI;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;

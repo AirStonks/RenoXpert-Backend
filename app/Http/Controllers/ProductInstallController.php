@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ProductInstall;
+use App\Models\Catalog\ProductInstall;
 use Illuminate\Http\Request;
 
 class ProductInstallController extends Controller

@@ -6,7 +6,7 @@ use App\Http\Resources\RenoProgressResource;
 use App\Models\RPMTask;
 use Illuminate\Http\Request;
 use App\Http\Resources\RPMTaskResource;
-use App\Models\RenoProgress;
+use App\Models\Operations\RenoProgress;
 use App\Models\RPMJob;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;

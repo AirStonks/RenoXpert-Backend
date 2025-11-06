@@ -4,21 +4,21 @@ namespace App\Listeners;
 
 use stdClass;
 use Carbon\Carbon;
-use App\Models\Order;
+use App\Models\Business\Order;
 use App\Models\RPMJob;
 use App\Models\JobTask;
 use App\Models\RPMTask;
 use App\Models\PhaseJob;
-use App\Models\Inventory;
+use App\Models\Catalog\Inventory;
 use App\Models\RPMTaskQC;
 use Illuminate\Support\Str;
-use App\Models\RenoProgress;
+use App\Models\Operations\RenoProgress;
 use App\Models\ResourceItem;
-use App\Models\KeyManagement;
+use App\Models\Operations\KeyManagement;
 use App\Models\ProgressPhase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Models\DefectInspectionForm;
+use App\Models\Lead\DefectInspectionForm;
 use App\Http\Resources\OrderResource;
 use App\Events\SaleStatusUpdated; // Updated event name
 
@@ -65,7 +65,7 @@ class TriggerCreateRenoProgress
             ResourceItem::create([
                 'resource_id' => 1,
                 'item_reference_id' => $renoProgress->id,
-                'item_reference_type' => 'App\Models\RenoProgress',
+                'item_reference_type' => 'App\Models\Operations\RenoProgress',
                 'item_name' => "Progress{$number}",
             ]);
 
@@ -598,7 +598,7 @@ class TriggerCreateRenoProgress
                 ResourceItem::create([
                     'resource_id' => 1,
                     'item_reference_id' => $renoProgress->id,
-                    'item_reference_type' => 'App\Models\RenoProgress',
+                    'item_reference_type' => 'App\Models\Operations\RenoProgress',
                     'item_name' => "Progress{$number}",
                 ]);
 

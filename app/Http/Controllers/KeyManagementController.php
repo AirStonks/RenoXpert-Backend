@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\KeyManagementResource;
-use App\Models\KeyManagement;
-use App\Models\RenoProgress;
+use App\Models\Operations\KeyManagement;
+use App\Models\Operations\RenoProgress;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;

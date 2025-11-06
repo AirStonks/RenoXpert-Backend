@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Order;
-use App\Models\PurchaseOrder;
+use App\Models\Business\Order;
+use App\Models\Purchasing\PurchaseOrder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

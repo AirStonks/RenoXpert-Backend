@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use App\Models\Foundation\User;
 use App\Services\SecureTokenService;
 
 class AuthController extends BaseController

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Exception;
-use App\Models\Booking;
-use App\Models\Campaign;
+use App\Models\Finance\Booking;
+use App\Models\Lead\Campaign;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\BookingResource;

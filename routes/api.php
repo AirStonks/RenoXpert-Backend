@@ -3,22 +3,22 @@
 //  route/api.php
 
 use PgSql\Lob;
-use App\Models\Sale;
-use App\Models\User;
-use App\Models\ApiKey;
+use App\Models\Finance\Sale;
+use App\Models\Foundation\User;
+use App\Models\System\ApiKey;
 
 use App\Models\RPMJob;
-use App\Models\Package;
+use App\Models\Catalog\Package;
 use App\Models\RPMTask;
-use App\Models\RenoXSale;
+use App\Models\Lead\RenoXSale;
 use Illuminate\Support\Str;
-use App\Models\RenoProgress;
+use App\Models\Operations\RenoProgress;
 use Illuminate\Http\Request;
 use App\Events\SaleStatusUpdated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\UserResource;
-use App\Models\DefectInspectionForm;
+use App\Models\Lead\DefectInspectionForm;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MyController;
@@ -459,8 +459,8 @@ Route::get('/tmp/update-reno-x-sale-info', function () {
 
 // Route::get('/test/unauth/{renoId}/{saleId}', function ($renoId, $saleId) {
 
-//     $renoProgress = \App\Models\RenoProgress::find($renoId);
-//     $sale = \App\Models\Sale::find($saleId);
+//     $renoProgress = \App\Models\Operations\RenoProgress::find($renoId);
+//     $sale = \App\Models\Finance\Sale::find($saleId);
 
 //     $metadata = [
 //         'yard' => [

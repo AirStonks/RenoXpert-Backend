@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\DiscountFeeResource;
-use App\Models\DiscountFee;
+use App\Models\Finance\DiscountFee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 

@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources\Operation;
 
-use App\Models\Sale;
-use App\Models\Order;
+use App\Models\Finance\Sale;
+use App\Models\Business\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;

@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\ApiKey;
+use App\Models\System\ApiKey;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

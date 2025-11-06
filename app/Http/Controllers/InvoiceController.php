@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
-use App\Models\Invoice;
-use App\Models\Payment;
+use App\Models\Finance\Sale;
+use App\Models\Finance\Invoice;
+use App\Models\Finance\Payment;
 use Illuminate\Http\Request;
-use App\Models\PurchaseOrder;
+use App\Models\Purchasing\PurchaseOrder;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\PaymentResource;
@@ -54,7 +54,7 @@ class InvoiceController extends BaseController
                 if (!$itemModel) {
                     return $this->sendError('Sale not found.', [], 404);
                 }
-                $itemTypeClass = 'App\Models\Sale';
+                $itemTypeClass = 'App\Models\Finance\Sale';
                 $itemNo = $itemModel->sales_no;
                 $totalAmount = $itemModel->total_amount;
                 $remainingAmountField = 'remaining_amount';
@@ -64,7 +64,7 @@ class InvoiceController extends BaseController
                 if (!$itemModel) {
                     return $this->sendError('Purchase Order not found.', [], 404);
                 }
-                $itemTypeClass = 'App\Models\PurchaseOrder';
+                $itemTypeClass = 'App\Models\Purchasing\PurchaseOrder';
                 $itemNo = $itemModel->po_no;
                 $totalAmount = $itemModel->total_amount;
                 $remainingAmountField = 'remaining_amount';
@@ -199,7 +199,7 @@ class InvoiceController extends BaseController
     //         $newVersion = 1; // Default version in case there are no invoices
 
     //         $selectedPPOLatestInvoice = Invoice::where('item_id', $po->id)
-    //             ->where('item_type', 'App\Models\PurchaseOrder')
+    //             ->where('item_type', 'App\Models\Purchasing\PurchaseOrder')
     //             ->orderBy('id', 'desc')
     //             ->first();
 
@@ -277,7 +277,7 @@ class InvoiceController extends BaseController
     //         $input['status'] = 'unpaid';
 
     //         // Set invoice item type
-    //         $input['item_type'] = 'App\Models\PurchaseOrder';
+    //         $input['item_type'] = 'App\Models\Purchasing\PurchaseOrder';
 
     //         // Create the Invoice
     //         $invoice = Invoice::create($input);

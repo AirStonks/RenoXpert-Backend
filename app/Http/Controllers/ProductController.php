@@ -4,13 +4,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+use App\Models\Catalog\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\API\ProductResource as APIProductResource;
 use App\Http\Resources\ProductResource;
-use App\Models\ProductInstall;
-use App\Models\ProductSupply;
+use App\Models\Catalog\ProductInstall;
+use App\Models\Catalog\ProductSupply;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;

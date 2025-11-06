@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\PackageResource;
 use App\Http\Resources\PackageResourceHead;
-use App\Models\Package;
-use App\Models\Product;
+use App\Models\Catalog\Package;
+use App\Models\Catalog\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;

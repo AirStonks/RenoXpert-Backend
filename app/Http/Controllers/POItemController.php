@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Inventory;
+use App\Models\Catalog\Inventory;
 use App\Models\POItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;

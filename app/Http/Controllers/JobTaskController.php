@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\JobTask;
-use App\Models\Inventory;
-use App\Models\RenoProgress;
+use App\Models\Catalog\Inventory;
+use App\Models\Operations\RenoProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;

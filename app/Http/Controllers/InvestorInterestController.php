@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\InvestorInterest;
+use App\Models\Lead\InvestorInterest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;

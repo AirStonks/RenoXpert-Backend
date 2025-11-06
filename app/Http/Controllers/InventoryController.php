@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\InventoryResource;
-use App\Models\Inventory;
+use App\Models\Catalog\Inventory;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller

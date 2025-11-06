@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\RenoProgress;
-use App\Models\ProjectStatusHistory;
-use App\Models\Sale;
-use App\Models\Order;
+use App\Models\Operations\RenoProgress;
+use App\Models\Operations\ProjectStatusHistory;
+use App\Models\Finance\Sale;
+use App\Models\Business\Order;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;

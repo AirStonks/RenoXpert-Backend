@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\KayaHeigForm;
+use App\Models\Lead\KayaHeigForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;

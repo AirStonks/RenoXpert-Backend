@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources\API;
 
-use App\Models\Sale;
-use App\Models\RenoProgress;
+use App\Models\Finance\Sale;
+use App\Models\Operations\RenoProgress;
 use App\Models\ResourceItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;

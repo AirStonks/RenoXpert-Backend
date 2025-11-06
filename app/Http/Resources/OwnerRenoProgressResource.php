@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Models\RenoProgress;
+use App\Models\Operations\RenoProgress;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;

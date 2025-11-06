@@ -3,8 +3,8 @@
 namespace App\Http\Resources\Campaign;
 
 use App\Http\Resources\CampaignPackageResource;
-use App\Models\Sale;
-use App\Models\Order;
+use App\Models\Finance\Sale;
+use App\Models\Business\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;

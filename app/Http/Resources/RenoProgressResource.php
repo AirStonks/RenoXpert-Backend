@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
-use App\Models\RenoProgress;
+use App\Models\Operations\RenoProgress;
 use App\Models\ResourceItem;
-use App\Models\Sale;
+use App\Models\Finance\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;

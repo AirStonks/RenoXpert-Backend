@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\SaleResource;
 use App\Http\Resources\SaleResourceHead;
-use App\Models\Sale;
+use App\Models\Finance\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 

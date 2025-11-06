@@ -3,16 +3,16 @@
 namespace App\Http\Controllers;
 
 use GuzzleHttp\Client;
-use App\Models\Booking;
-use App\Models\Invoice;
-use App\Models\Payment;
-use App\Models\Campaign;
-use App\Models\User;
+use App\Models\Finance\Booking;
+use App\Models\Finance\Invoice;
+use App\Models\Finance\Payment;
+use App\Models\Lead\Campaign;
+use App\Models\Foundation\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PaymentResource;
-use App\Models\CampaignPackage;
+use App\Models\Lead\CampaignPackage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Exception;
-use App\Models\Property;
-use App\Models\PropertyROI;
+use App\Models\Property\Property;
+use App\Models\Property\PropertyROI;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

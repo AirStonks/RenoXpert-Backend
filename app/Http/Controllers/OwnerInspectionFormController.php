@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OwnerInspectionForm;
+use App\Models\Lead\OwnerInspectionForm;
 use Illuminate\Http\Request;
 
 class OwnerInspectionFormController extends Controller

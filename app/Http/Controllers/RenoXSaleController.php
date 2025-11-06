@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\RenoXSale;
+use App\Models\Lead\RenoXSale;
 use Illuminate\Http\Request;
 use App\Http\Resources\RenoXSaleResource;
 use App\Http\Resources\RenoXSaleResourceHead;

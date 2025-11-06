@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
-use App\Models\User;
-use App\Models\Order;
-use App\Models\Quotation;
-use App\Models\RenoXSale;
+use App\Models\Finance\Sale;
+use App\Models\Foundation\User;
+use App\Models\Business\Order;
+use App\Models\Business\Quotation;
+use App\Models\Lead\RenoXSale;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use App\Models\OrderQuotation;
+use App\Models\Business\OrderQuotation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;

@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Invoice;
-use App\Models\Order;
+use App\Models\Finance\Invoice;
+use App\Models\Business\Order;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 

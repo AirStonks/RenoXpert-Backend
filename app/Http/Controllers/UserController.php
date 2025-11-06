@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Exception;
-use App\Models\User;
-use App\Models\Address;
+use App\Models\Foundation\User;
+use App\Models\Foundation\Address;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Mail\UserCreatedEmail;

@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Order;
-use App\Models\Sale;
+use App\Models\Business\Order;
+use App\Models\Finance\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;

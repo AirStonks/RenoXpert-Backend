@@ -3,7 +3,7 @@
 namespace App\Http\Resources\List;
 
 use App\Http\Resources\CampaignPackageResource;
-use App\Models\User;
+use App\Models\Foundation\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
