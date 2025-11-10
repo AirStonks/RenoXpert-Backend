@@ -123,7 +123,7 @@ class OrderController extends BaseController
 
             // Validate the input
             $validator = Validator::make($input, [
-                'user_id' => 'nullable|numeric|max:255',
+                'user_id' => 'nullable|numeric',
                 'form_id' => 'nullable',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
