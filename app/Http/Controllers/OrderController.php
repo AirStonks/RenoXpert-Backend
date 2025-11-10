@@ -452,7 +452,7 @@ class OrderController extends BaseController
             $input = $request->all();
 
             $validator = Validator::make($input, [
-                'user_id' => 'nullable|numeric|max:255',
+                'user_id' => 'nullable|numeric',
                 'property_id' => 'nullable|numeric|min:0',
                 'quotation_id' => 'nullable|numeric|min:0',
                 'final_amount' => 'nullable|numeric|min:0',
