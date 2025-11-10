@@ -215,6 +215,20 @@ class PaymentController extends BaseController
 
         $returnUrl = $clientDomain . '/campaigns/' . $campaignSlug . '/booking/payment';
 
+        $booking = Booking::create([
+            'campaign_id' => $campaign->id,
+            'campaign_package_id' => $input['packageId'],
+            'booking_no' => $bookingNumber,
+            'booking_hash' => bin2hex(random_bytes(16)),
+            'amount' => $amount,
+            'status' => 'pending',
+            'metadata' => [
+                'name' => $input['name'],
+                'phone' => $input['phone'],
+                'email' => $input['email'],
+            ],
+        ]);
+
         $data = [
             [
                 "amount" => floor($amount * 100),
@@ -237,6 +251,7 @@ class PaymentController extends BaseController
                 "reject_url" => env('APP_URL') . 'api/public/campaigns/' . $campaignSlug . '/booking/payment/error',
                 "single_attempt" => true,
                 "metadata" => [
+                    'bookingId' => $booking->id,
                     'bookingNumber' => $bookingNumber,
                     'phone' => $input['phone'],
                     'email' => $input['email'],
@@ -292,15 +307,15 @@ class PaymentController extends BaseController
         }
 
         // Check if this transaction has already been processed (idempotency check)
-        $existingBooking = Booking::where('booking_no', $bookingNumber)->first();
-        if ($existingBooking) {
-            Log::info('Transaction already processed for booking number: ' . $bookingNumber);
-            return response()->json([
-                'message' => 'Booking already processed',
-                'booking' => $existingBooking,
-                'code' => 'already_processed'
-            ], 200);
-        }
+        // $existingBooking = Booking::where('booking_no', $bookingNumber)->first();
+        // if ($existingBooking) {
+        //     Log::info('Transaction already processed for booking number: ' . $bookingNumber);
+        //     return response()->json([
+        //         'message' => 'Booking already processed',
+        //         'booking' => $existingBooking,
+        //         'code' => 'already_processed'
+        //     ], 200);
+        // }
 
         // Store booking detail (name, phone)
         $campaign = Campaign::where('slug', $campaignSlug)->first();
@@ -393,14 +408,12 @@ class PaymentController extends BaseController
             ]);
         }
 
-        $booking = Booking::create([
-            'campaign_id' => $campaign->id,
-            'campaign_package_id' => $packageId,
-            'booking_no' => $bookingNumber,
-            'booking_hash' => $bookingHash,
-            'booked_at' => $paymentDate ? date('Y-m-d H:i:s', strtotime($paymentDate)) : now(),
-            'amount' => $amount,
+        $booking = Booking::find($metadata['bookingId']);
+        Log::info('Booking ID: ' . $metadata['bookingId']);
+        Log::info('Booking found: ' . json_encode($booking));
+        $booking->update([
             'status' => 'paid',
+            'booked_at' => $paymentDate ? date('Y-m-d H:i:s', strtotime($paymentDate)) : now(),
             'metadata' => [
                 'name' => $name,
                 'phone' => $phone,
