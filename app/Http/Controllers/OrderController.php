@@ -47,10 +47,14 @@ class OrderController extends BaseController
                     ->orWhere('internal_remark', 'like', '%' . $search . '%')
                     // Search in the related user's fields
                     ->orWhereHas('user', function ($q) use ($search) {
+
+                        $normalizedSearch = str_replace(['-', ' '], '', $search);
+
                         $q->where('name_first', 'like', '%' . $search . '%')
                             ->orWhere('name_last', 'like', '%' . $search . '%')
                             ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%'])
-                            ->orWhere('name' , 'like', '%' . $search . '%');
+                            ->orWhere('name', 'like', '%' . $search . '%')
+                            ->orWhereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
                     })
                     // Search in the related property's fields
                     ->orWhereHas('property', function ($q) use ($search) {
