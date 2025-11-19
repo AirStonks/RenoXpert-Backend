@@ -49,7 +49,8 @@ class OrderController extends BaseController
                     ->orWhereHas('user', function ($q) use ($search) {
                         $q->where('name_first', 'like', '%' . $search . '%')
                             ->orWhere('name_last', 'like', '%' . $search . '%')
-                            ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%']);
+                            ->orWhereRaw("CONCAT(name_first, ' ', name_last) LIKE ?", ['%' . $search . '%'])
+                            ->orWhere('name' , 'like', '%' . $search . '%');
                     })
                     // Search in the related property's fields
                     ->orWhereHas('property', function ($q) use ($search) {
