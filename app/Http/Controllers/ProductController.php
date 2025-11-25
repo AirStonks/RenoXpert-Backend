@@ -360,6 +360,7 @@ class ProductController extends BaseController
     {
         $search = $request->input('search', '');
         $size = $request->input('size', 5);
+        $page = $request->input('page', 1);
 
         // ignore case
         $search = strtolower($search);
@@ -367,12 +368,18 @@ class ProductController extends BaseController
         if (!empty($search)) {
             $product = Product::where('type', '!=', 'roundup')
                 ->whereRaw('LOWER(name) LIKE ?', ['%' . $search . '%'])
-                ->paginate($size);
+                ->paginate($size, ['*'], 'page', $page);
         } else {
-            $product = Product::where('type', '!=', 'roundup')->paginate($size);
+            $product = Product::where('type', '!=', 'roundup')->paginate($size, ['*'], 'page', $page);
         }
 
-        return $this->sendResponse(APIProductResource::collection($product->items()), 'Product retrieved successfully.');
+        $data = [
+            'products' => APIProductResource::collection($product->items()),
+            'current_page' => $product->currentPage(),
+            'total' => $product->total(),
+        ];
+
+        return $this->sendResponse($data, 'Product retrieved successfully.');
     }
 
     /**
