@@ -358,28 +358,63 @@ class ProductController extends BaseController
 
     public function showByName(Request $request): JsonResponse
     {
-        $search = $request->input('search', '');
+        // Retrieve the size parameter from the request with a default value of 5
         $size = $request->input('size', 5);
-        $page = $request->input('page', 1);
 
-        // ignore case
-        $search = strtolower($search);
+        // Retrieve the search term from the request
+        $search = $request->input('search', '');
 
+        $sortField = $request->input('sortField', 'id'); // Default to 'id' instead of ''
+        $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
+
+        // Build the query to retrieve products
+        $query = Product::query();
+
+        // Filter out products with 'status' as 'archived' by default
+        $query->where('status', '!=', 'archived');
+
+        // Apply search filter if a search term is provided
         if (!empty($search)) {
-            $product = Product::where('type', '!=', 'roundup')
-                ->whereRaw('LOWER(name) LIKE ?', ['%' . $search . '%'])
-                ->paginate($size, ['*'], 'page', $page);
-        } else {
-            $product = Product::where('type', '!=', 'roundup')->paginate($size, ['*'], 'page', $page);
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('SKU', 'like', '%' . $search . '%')
+                    ->orWhere('supplier_name', 'like', '%' . $search . '%');
+            });
+        }
+        $sortField = $request->input('sortField', 'name');
+
+        // Apply sorting by total price when sortField is 'price'
+        if ($sortField === 'price') {
+            $query->join('product_supplies', 'product_supplies.product_id', '=', 'products.id')
+                ->join('product_installs', 'product_installs.product_id', '=', 'products.id')
+                ->addSelect('products.*')
+                ->addSelect(DB::raw('(product_supplies.retail_price + product_installs.retail_price) AS total_price'))
+                ->orderBy('total_price', $sortOrder);
+        } elseif (!empty($sortField)) {
+            // Apply sorting if a sort field is provided (other than 'price')
+            $query->orderBy($sortField, $sortOrder);
         }
 
-        $data = [
-            'products' => APIProductResource::collection($product->items()),
-            'current_page' => $product->currentPage(),
-            'total' => $product->total(),
+        // Ensure sortField is valid before applying orderBy
+        if (empty($sortField)) {
+            $sortField = 'id'; // Fallback to 'id' if sortField is empty
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        // Paginate the results
+        $products = $query->paginate($size);
+
+        // Custom response to fit with Tailwind DataTable JSON format
+        $response = [
+            "page" => $products->currentPage(),  // Current page number
+            "pageCount" => $products->lastPage(), // Total number of pages
+            "sortField" => $sortField,            // Sorting field, if applicable
+            "sortOrder" => $sortOrder,            // Sorting order, if applicable
+            "totalCount" => $products->total(),   // Total number of items
+            "data" => APIProductResource::collection($products) // Transformed product data
         ];
 
-        return $this->sendResponse($data, 'Product retrieved successfully.');
+        return response()->json($response, 200);
     }
 
     /**
