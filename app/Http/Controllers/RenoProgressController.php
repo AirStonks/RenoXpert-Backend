@@ -26,6 +26,7 @@ use App\Http\Resources\OwnerRenoProgressResource;
 use App\Http\Resources\RenoProgressResourceAdTable;
 use App\Http\Resources\API\RenoProgressResource as APIRenoProgressResource;
 use App\Http\Resources\Operation\RenoProgressResource as OperationRenoProgressResource;
+use App\Http\Resources\API\Manager\RenoProgressResource as ManagerRenoProgressResource;
 
 class RenoProgressController extends BaseController
 {
@@ -305,6 +306,36 @@ class RenoProgressController extends BaseController
         ];
 
         return response()->json($response, 200);
+    }
+
+    // API: Manager Index
+    public function managerIndex(Request $request)
+    {
+        $size = $request->input('size', 5);
+        $search = $request->input('search', '');
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'id');
+
+        $query = RenoProgress::query();
+
+        if ($request->input('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if (!empty($search)) {
+            $normalizedSearch = str_replace(['-', ' '], '', $search);
+        }
+
+        $renoProgress = $query->paginate($size);
+
+        return response()->json([
+            "page" => $renoProgress->currentPage(),
+            "pageCount" => $renoProgress->lastPage(),
+            "sortField" => $sortField,
+            "sortOrder" => $sortOrder,
+            "totalCount" => $renoProgress->total(),
+            "data" => ManagerRenoProgressResource::collection($renoProgress),
+        ], 200);
     }
 
     // public function retrieveRenoProgresses(Request $request)
