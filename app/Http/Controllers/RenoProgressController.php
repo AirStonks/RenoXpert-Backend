@@ -338,15 +338,6 @@ class RenoProgressController extends BaseController
         ], 200);
     }
 
-    // public function retrieveRenoProgresses(Request $request)
-    // {
-    //     $user = Auth::user();
-
-    //     $forms = RenoProgress::where('sale_id', $user->phone_no)->get();
-
-    //     return $this->sendResponse(RegistrationFormResource::collection($forms), 'Registration Form retrieved successfully.');
-    // }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -432,6 +423,18 @@ class RenoProgressController extends BaseController
         }
 
         return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
+    }
+
+    // API: Owner Project Trackers by ID
+    public function managerShowById(Request $request, $id)
+    {
+        $renoProgress = RenoProgress::find($id);
+
+        if (is_null($renoProgress)) {
+            return $this->sendError('Reno Progress not found.');
+        }
+
+        return $this->sendResponse(new ManagerRenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
     public function showOwnerProjectTrackersByUuid(Request $request, $uuid)

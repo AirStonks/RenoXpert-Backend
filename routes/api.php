@@ -341,6 +341,7 @@ Route::middleware('auth.api_key')->group(function () {
     Route::get('/v1/owner/{uuid}/reno-progress/{id}', [RPMJobController::class, 'showByJobName']);
 
     Route::get('/v1/manager/project-trackers', [RenoProgressController::class, 'managerIndex']);
+    Route::get('/v1/manager/project-trackers/{id}', [RenoProgressController::class, 'managerShowById']);
 
     // WIP
     Route::get('/v1/owners', [UserController::class, 'showOwners']);
