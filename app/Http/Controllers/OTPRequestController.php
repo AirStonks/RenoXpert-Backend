@@ -190,7 +190,7 @@ class OTPRequestController extends BaseController
     {
         Log::info('IsBypass: ' . env('APP_BYPASS'));
 
-        if (env('APP_BYPASS') === true) {
+        if (env('APP_BYPASS') === 'true') {
             Log::info('verifyLoginOtp: Bypassing OTP verification for development');
             return $this->devVerifyLoginOtp($request);
         }
@@ -271,7 +271,7 @@ class OTPRequestController extends BaseController
             'ip' => $request->ip(),
         ]);
 
-        if (env('APP_BYPASS') === true) {
+        if (env('APP_BYPASS') === 'true') {
             Log::info('verifyOtp: Bypassing OTP verification due to APP_BYPASS=true');
             return response()->json([
                 'status' => 'verified',
