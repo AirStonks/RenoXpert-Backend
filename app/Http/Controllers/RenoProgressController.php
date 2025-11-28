@@ -315,11 +315,12 @@ class RenoProgressController extends BaseController
         $search = $request->input('search', '');
         $sortOrder = $request->input('sortOrder', 'asc');
         $sortField = $request->input('sortField', 'id');
+        $status = $request->input('status', '');
 
         $query = RenoProgress::query();
 
-        if ($request->input('status')) {
-            $query->where('status', $request->input('status'));
+        if ($status) {
+            $query->where('status', $status);
         }
 
         if (!empty($search)) {
