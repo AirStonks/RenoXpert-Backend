@@ -26,6 +26,7 @@ use App\Http\Resources\OwnerRenoProgressResource;
 use App\Http\Resources\RenoProgressResourceAdTable;
 use App\Http\Resources\API\RenoProgressResource as APIRenoProgressResource;
 use App\Http\Resources\Operation\RenoProgressResource as OperationRenoProgressResource;
+use App\Http\Resources\API\Manager\RenoProgressResource as ManagerRenoProgressResource;
 
 class RenoProgressController extends BaseController
 {
@@ -307,14 +308,36 @@ class RenoProgressController extends BaseController
         return response()->json($response, 200);
     }
 
-    // public function retrieveRenoProgresses(Request $request)
-    // {
-    //     $user = Auth::user();
+    // API: Manager Index
+    public function managerIndex(Request $request)
+    {
+        $size = $request->input('size', 5);
+        $search = $request->input('search', '');
+        $sortOrder = $request->input('sortOrder', 'asc');
+        $sortField = $request->input('sortField', 'id');
+        $status = $request->input('status', '');
 
-    //     $forms = RenoProgress::where('sale_id', $user->phone_no)->get();
+        $query = RenoProgress::query();
 
-    //     return $this->sendResponse(RegistrationFormResource::collection($forms), 'Registration Form retrieved successfully.');
-    // }
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if (!empty($search)) {
+            $normalizedSearch = str_replace(['-', ' '], '', $search);
+        }
+
+        $renoProgress = $query->paginate($size);
+
+        return response()->json([
+            "page" => $renoProgress->currentPage(),
+            "pageCount" => $renoProgress->lastPage(),
+            "sortField" => $sortField,
+            "sortOrder" => $sortOrder,
+            "totalCount" => $renoProgress->total(),
+            "data" => ManagerRenoProgressResource::collection($renoProgress),
+        ], 200);
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -401,6 +424,18 @@ class RenoProgressController extends BaseController
         }
 
         return $this->sendResponse(new RenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
+    }
+
+    // API: Owner Project Trackers by ID
+    public function managerShowById(Request $request, $id)
+    {
+        $renoProgress = RenoProgress::find($id);
+
+        if (is_null($renoProgress)) {
+            return $this->sendError('Reno Progress not found.');
+        }
+
+        return $this->sendResponse(new ManagerRenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
     public function showOwnerProjectTrackersByUuid(Request $request, $uuid)
