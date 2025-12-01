@@ -24,6 +24,7 @@ class RenoProgressResource extends JsonResource
         $data = [
             'id' => $this->id,
             'sale_id' => $this->mainSale->id,
+            'user_uuid' => $this->mainSale->user->uuid,
             'property' => [
                 'name' => $this->mainSale->order->property->name,
                 'block' => $this->mainSale->order->block,
