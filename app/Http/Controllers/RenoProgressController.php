@@ -269,17 +269,18 @@ class RenoProgressController extends BaseController
             $normalizedSearch = str_replace(['-', ' '], '', $search);
 
             $query->where(function ($subQuery) use ($normalizedSearch) {
-                $subQuery->whereHas('sale.order.property', function ($q) use ($normalizedSearch) {
+                $subQuery->whereHas('mainSale.order.property', function ($q) use ($normalizedSearch) {
                     $q->where('name', 'like', '%' . $normalizedSearch . '%');
                 })
-                    ->orWhereHas('sale.order', function ($q) use ($normalizedSearch) {
+                    ->orWhereHas('mainSale.order', function ($q) use ($normalizedSearch) {
                         $q->whereRaw("REPLACE(REPLACE(CONCAT(block, floor, unit_no), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
                     })
-                    ->orWhereHas('sale', function ($q) use ($normalizedSearch) {
+                    ->orWhereHas('mainSale', function ($q) use ($normalizedSearch) {
                         $q->whereRaw("REPLACE(REPLACE(sales_no, '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
                     });
             });
         }
+
 
         $userId = Auth::user()->id;
 
