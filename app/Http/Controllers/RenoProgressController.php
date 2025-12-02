@@ -259,25 +259,32 @@ class RenoProgressController extends BaseController
         $sortOrder = $request->input('sortOrder', 'asc');
         $sortField = $request->input('sortField', 'id');
 
-        $query = RenoProgress::query();
+        $query = RenoProgress::query()
+            ->select('reno_progress.*')
+            ->join('sales', function ($join) {
+                $join->on('reno_progress.sale_id', '=', 'sales.id')
+                    ->whereNull('sales.deleted_at');
+            })
+            ->join('orders', function ($join) {
+                $join->on('sales.order_id', '=', 'orders.id')
+                    ->whereNull('orders.deleted_at');
+            })
+            ->leftJoin('properties', function ($join) {
+                $join->on('orders.property_id', '=', 'properties.id')
+                    ->whereNull('properties.deleted_at');
+            })
+            ->whereNull('reno_progress.deleted_at');
 
         if ($request->input('status')) {
-            $query->where('status', $request->input('status'));
+            $query->where('reno_progress.status', $request->input('status'));
         }
 
         if (!empty($search)) {
             $normalizedSearch = str_replace(['-', ' '], '', $search);
 
             $query->where(function ($subQuery) use ($normalizedSearch) {
-                $subQuery->whereHas('mainSale.order.property', function ($q) use ($normalizedSearch) {
-                    $q->where('name', 'like', '%' . $normalizedSearch . '%');
-                })
-                    ->orWhereHas('mainSale.order', function ($q) use ($normalizedSearch) {
-                        $q->whereRaw("REPLACE(REPLACE(CONCAT_WS('', COALESCE(block, ''), COALESCE(floor, ''), COALESCE(unit_no, '')), '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
-                    })
-                    ->orWhereHas('mainSale', function ($q) use ($normalizedSearch) {
-                        $q->whereRaw("REPLACE(REPLACE(sales_no, '-', ''), ' ', '') like ?", ['%' . $normalizedSearch . '%']);
-                    });
+                $subQuery->where('properties.name', 'like', '%' . $normalizedSearch . '%')
+                    ->orWhereRaw("REPLACE(REPLACE(CONCAT(orders.block, orders.floor, orders.unit_no), '-', ''), ' ', '') LIKE ?", ['%' . $normalizedSearch . '%']);
             });
         }
 
