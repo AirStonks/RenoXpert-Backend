@@ -41,13 +41,13 @@ use App\Http\Controllers\JobTaskController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProjectStatusHistoryController;
 use App\Http\Controllers\RPMTaskController;
 use App\Http\Controllers\CampaignController;
-// use App\Http\Controllers\LarkAuthController;
 use App\Http\Controllers\PhaseJobController;
+// use App\Http\Controllers\LarkAuthController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\LarkEventController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\RenoXSaleController;
 use App\Http\Controllers\RPMTaskQCController;
@@ -66,6 +66,7 @@ use App\Http\Controllers\InvestorInterestController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\UserItemPermissionController;
 use App\Http\Controllers\DefectInspectionFormController;
+use App\Http\Controllers\ProjectStatusHistoryController;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -346,6 +347,9 @@ Route::middleware('auth.api_key')->group(function () {
     // WIP
     Route::get('/v1/owners', [UserController::class, 'showOwners']);
 });
+
+// Laark Event Routes
+Route::post('/v1/lark/event', [LarkEventController::class, 'handleEvent']);
 
 Route::get('/test/{id}', [TestController::class, 'test']);
 
