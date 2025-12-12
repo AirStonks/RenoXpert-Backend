@@ -188,6 +188,10 @@ class UserController extends BaseController
         $phone = $request->input('phoneNo');
         $country_code = $request->input('prefix', '60');
 
+        if (!$phone) {
+            return $this->sendResponse(null, 'Phone number is required');
+        }
+
         $user = User::where('phone_no', $phone)
             ->where('country_code', $country_code)
             ->first();
@@ -195,7 +199,7 @@ class UserController extends BaseController
         if ($user) {
             return $this->sendResponse(new OwnerResource($user), 'User retrieved successfully.');
         } else {
-            return $this->sendResponse(null, 'User not exists');
+            return $this->sendResponse(null, 'Owner not exists');
         }
     }
 
