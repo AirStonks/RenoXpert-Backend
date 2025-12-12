@@ -185,13 +185,19 @@ class UserController extends BaseController
 
     public function showByPhoneNo(Request $request)
     {
+        // "+60123456789"
         $phone = $request->input('phoneNo');
-        $country_code = $request->input('prefix', '60');
 
         if (!$phone) {
             return $this->sendResponse(null, 'Phone number is required');
         }
 
+        // Country code is the first 3 characters of the phone number
+        $country_code = substr($phone, 0, 2);
+
+        // Remove the country code from the phone number
+        $phone = str_replace($country_code, '', $phone);
+        
         $user = User::where('phone_no', $phone)
             ->where('country_code', $country_code)
             ->first();
