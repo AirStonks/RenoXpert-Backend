@@ -27,6 +27,7 @@ use App\Http\Resources\RenoProgressResourceAdTable;
 use App\Http\Resources\API\RenoProgressResource as APIRenoProgressResource;
 use App\Http\Resources\Operation\RenoProgressResource as OperationRenoProgressResource;
 use App\Http\Resources\API\Manager\RenoProgressResource as ManagerRenoProgressResource;
+use App\Http\Resources\API\OwnerCS\RenoProgressCollectionResource;
 
 class RenoProgressController extends BaseController
 {
@@ -543,13 +544,29 @@ class RenoProgressController extends BaseController
         if (array_key_exists('id', $input)) {
             // if the input is "id=1", the reno progress will be retrieved by the id 1
             $renoProgress = RenoProgress::find($input['id']);
+
+            if (!$renoProgress) {
+                return $this->sendError('Reno Progress not found.');
+            }
+
+            return $this->sendResponse(new APIRenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
         }
+
+        $renoProgress = RenoProgress::whereHas('sales', function ($query) use ($user) {
+            $query->whereHas('order', function ($query) use ($user) {
+                $query->whereHas('user', function ($query) use ($user) {
+                    $query->where('users.id', $user->id);
+                });
+            });
+        })
+            ->with(['sales.order.property', 'sales.order.user'])
+            ->first();
 
         if (!$renoProgress) {
-            return $this->sendError('Reno Progress not found.');
+            return $this->sendResponse(null, 'Reno Progress not found.');
         }
 
-        return $this->sendResponse(new APIRenoProgressResource($renoProgress), 'Reno Progress retrieved successfully.');
+        return $this->sendResponse(new RenoProgressCollectionResource($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
     /**
