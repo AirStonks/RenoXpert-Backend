@@ -15,6 +15,7 @@ use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\API\OwnerCS\OwnerResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends BaseController
@@ -180,6 +181,22 @@ class UserController extends BaseController
         }
 
         return $this->sendResponse(new UserResource($user), 'User retrieved successfully.');
+    }
+
+    public function showByPhoneNo(Request $request)
+    {
+        $phone = $request->input('phoneNo');
+        $country_code = $request->input('prefix', '60');
+
+        $user = User::where('phone_no', $phone)
+            ->where('country_code', $country_code)
+            ->first();
+
+        if ($user) {
+            return $this->sendResponse(new OwnerResource($user), 'User retrieved successfully.');
+        } else {
+            return $this->sendResponse(null, 'User not exists');
+        }
     }
 
     public function verifyExistsPhoneUser($country_code = '60', $phone)
