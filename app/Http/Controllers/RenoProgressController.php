@@ -1250,6 +1250,78 @@ class RenoProgressController extends BaseController
         return $date;
     }
 
+    /**
+     * Get task phase based on item name
+     */
+    private function getTaskPhase($itemName)
+    {
+        $p1Items = [
+            'Wiring',
+            'Lighting',
+            'LED Track Lighting',
+            'Fan',
+            'Painting',
+            'Painting & Featured Wall',
+            'Water Heater',
+            'Smart Main Door Lock',
+            'G2 Gateway Hub',
+            'SMART METER',
+            'SMART LOCK (Room)',
+            'Partition Wall',
+        ];
+
+        $p2aItems = [
+            'Bedframe',
+            'Wardrobe',
+            'Table',
+            'Chair',
+            'Curtain',
+            'Wall Mirror',
+            'Dining Table',
+            'Dining Chair',
+            'Shoe Cabinet',
+            'CCTV & Shelve',
+            'Kitchen Cabinet Base Unit',
+            'Kitchen Top',
+            'Wall Unit',
+            'Kitchen Sink',
+            'Sofa',
+            'TV Console',
+            'Coffee Table',
+        ];
+
+        $p2bItems = [
+            'Mattress',
+            'Matterss Protector',
+            'Portrait',
+            'Door Stopper',
+            'Mini Fridge',
+            'Air Cond',
+            'Cloth Hanger',
+            'Bidet',
+            'Cloth Drying Rack',
+            'Doorbell',
+            'Fire Extinguisher',
+            'Cleaning Tools Set',
+            'Hood',
+            'Water Dispenser',
+            'Microwave',
+            'Induction Cooker',
+            'Washer',
+            'Dryer',
+        ];
+
+        if (in_array($itemName, $p1Items)) {
+            return 'p1';
+        } elseif (in_array($itemName, $p2aItems)) {
+            return 'p2a';
+        } elseif (in_array($itemName, $p2bItems)) {
+            return 'p2b';
+        }
+
+        return null;
+    }
+
     private function createRenoProgressV3($mainSaleId, $addonSaleIds)
     {
         try {
@@ -1439,6 +1511,7 @@ class RenoProgressController extends BaseController
                         'job_id' => $furnitureJob->id,
                         'room_name' => $bedroom,
                         'item_name' => $item,
+                        'task_phase' => $this->getTaskPhase($item),
                         'is_visible' => true,
                     ]);
 
@@ -1472,6 +1545,7 @@ class RenoProgressController extends BaseController
                         'job_id' => $bathroomJob->id,
                         'room_name' => $batroom,
                         'item_name' => $item,
+                        'task_phase' => $this->getTaskPhase($item),
                         'is_visible' => true,
                     ]);
 
@@ -1504,6 +1578,7 @@ class RenoProgressController extends BaseController
                     'job_id' => $dyfJob->id,
                     'room_name' => null,
                     'item_name' => $item,
+                    'task_phase' => $this->getTaskPhase($item),
                     'is_visible' => true,
                 ]);
 
@@ -1534,6 +1609,7 @@ class RenoProgressController extends BaseController
                     'job_id' => $kitchenJob->id,
                     'room_name' => null,
                     'item_name' => $item,
+                    'task_phase' => $this->getTaskPhase($item),
                     'is_visible' => true,
                 ]);
 
@@ -1565,6 +1641,7 @@ class RenoProgressController extends BaseController
                     'job_id' => $electricalJob->id,
                     'room_name' => null,
                     'item_name' => $item,
+                    'task_phase' => $this->getTaskPhase($item),
                     'is_visible' => true,
                 ]);
 
@@ -1596,6 +1673,7 @@ class RenoProgressController extends BaseController
                     'job_id' => $livingJob->id,
                     'room_name' => null,
                     'item_name' => $item,
+                    'task_phase' => $this->getTaskPhase($item),
                     'is_visible' => true,
                 ]);
 

@@ -17,6 +17,7 @@ class RPMTask extends Model
     protected $fillable = [
         'job_id',
         'space_type',
+        'task_phase',
         'room_name',
         'item_name',
         'priority',
