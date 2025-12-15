@@ -53,7 +53,6 @@ class RenoProgressResource extends JsonResource
                     return $sale->total_amount * ($invoice->percentage / 100);
                 });
             })->sum() / $this->sales->sum('total_amount')) * 100, 2),
-            'is_rpm' => '',
             'completion' => $this->calculateV3Completion(),
             'completed_at' => $this->completed_at?->format('d/m/Y'),
             'defect_updated_at' => $this->defect_updated_at?->format('d/m/Y'),
