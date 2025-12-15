@@ -1206,6 +1206,20 @@ class RenoProgressController extends BaseController
         return $this->sendResponse($renoProgress->sent_to_lark_date, 'acknowledged');
     }
 
+    public function updateRPMStatus($id, Request $request)
+    {
+        $renoProgress = RenoProgress::find($id);
+
+        if (!$renoProgress) {
+            return $this->sendError('Reno Progress not found.');
+        }
+
+        $renoProgress->status = $request->input('status');
+        $renoProgress->save();
+
+        return $this->sendResponse($renoProgress, 'Reno Progress status updated successfully.');
+    }
+
     protected function changeContractDate(Request $request, $id, $dateType)
     {
         try {
