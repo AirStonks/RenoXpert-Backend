@@ -560,13 +560,13 @@ class RenoProgressController extends BaseController
             });
         })
             ->with(['sales.order.property', 'sales.order.user'])
-            ->first();
+            ->get();
 
         if (!$renoProgress) {
             return $this->sendResponse(null, 'Reno Progress not found.');
         }
 
-        return $this->sendResponse(new RenoProgressCollectionResource($renoProgress), 'Reno Progress retrieved successfully.');
+        return $this->sendResponse(RenoProgressCollectionResource::collection($renoProgress), 'Reno Progress retrieved successfully.');
     }
 
     /**
