@@ -183,24 +183,29 @@ class UserController extends BaseController
         return $this->sendResponse(new UserResource($user), 'User retrieved successfully.');
     }
 
-    public function showByPhoneNo(Request $request)
+    public function showByParams(Request $request)
     {
         // "+60123456789"
         $phone = $request->input('phoneNo');
+        $uuid = $request->input('uuid');
 
-        if (!$phone) {
-            return $this->sendResponse(null, 'Phone number is required');
+        $user = null;
+
+        if ($uuid) {
+            $user = User::where('uuid', $uuid)->first();
+        } else if ($phone) {
+            // Country code is the first 3 characters of the phone number
+            $country_code = substr($phone, 0, 2);
+
+            // Remove the country code from the phone number
+            $phone = str_replace($country_code, '', $phone);
+
+            $user = User::where('phone_no', $phone)
+                ->where('country_code', $country_code)
+                ->first();
+        } else {
+            return $this->sendResponse(null, 'Phone number or UUID is required');
         }
-
-        // Country code is the first 3 characters of the phone number
-        $country_code = substr($phone, 0, 2);
-
-        // Remove the country code from the phone number
-        $phone = str_replace($country_code, '', $phone);
-        
-        $user = User::where('phone_no', $phone)
-            ->where('country_code', $country_code)
-            ->first();
 
         if ($user) {
             return $this->sendResponse(new OwnerResource($user), 'User retrieved successfully.');

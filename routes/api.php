@@ -346,7 +346,7 @@ Route::middleware('auth.api_key')->group(function () {
 
     // WIP
     Route::get('/v1/owners', [UserController::class, 'showOwners']);
-    Route::get('/v1/owner', [UserController::class, 'showByPhoneNo']);
+    Route::get('/v1/owner', [UserController::class, 'showByParams']);
 });
 
 // Laark Event Routes
