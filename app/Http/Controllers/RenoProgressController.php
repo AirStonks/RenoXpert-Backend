@@ -372,6 +372,7 @@ class RenoProgressController extends BaseController
 
             // Create RenoProgress
             $input['resource_id'] = 1;
+            $input['status'] = 'pending-vp';
 
             // Default permission_id set to restricted (1)
             $input['permission_id'] = 1;
