@@ -1137,6 +1137,7 @@ class RenoProgressController extends BaseController
     public function sendRenoToLark($id)
     {
         $renoProgress = RenoProgress::find($id);
+        $paymentMethod = $renoProgress->mainSale->order->is_progressive_payment ? 'Installment Plan' : ($renoProgress->mainSale->order->is_rnpl ? 'RNPL' : 'Full Payment');
 
         $bonusValue = $renoProgress->mainSale->order->orderQuotations->last()->bonus
             ? (int) json_decode($renoProgress->mainSale->order->orderQuotations->last()->bonus)->value
@@ -1157,6 +1158,7 @@ class RenoProgressController extends BaseController
                 "total_bathroom" => $renoProgress->mainSale->order->bathroom_count,
                 "partition" => $renoProgress->mainSale->order->include_partition ? 'Yes' : 'No',
                 "discount" => $bonusValue,
+                "payment_method" => $paymentMethod,
                 "remark" => $renoProgress->mainSale->order->internal_remark,
                 "oh_date" => $renoProgress->date_management['oh_date'],
                 "owner_name" => $renoProgress->mainSale->user->name,
