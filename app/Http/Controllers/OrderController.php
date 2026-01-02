@@ -212,12 +212,12 @@ class OrderController extends BaseController
 
             // Check if bonus exists and is an array
             if (isset($input['bonus']) && is_array($input['bonus'])) {
-                // Check if 'value' in 'bonus' is '', null, or 0
-                if (empty($input['bonus']['value']) || $input['bonus']['value'] == 0) {
-                    // Set bonus as null if value is empty, null, or 0
+                // Check if 'value' in 'bonus' is empty or null (but allow 0)
+                if (empty($input['bonus']['value']) && $input['bonus']['value'] !== 0 && $input['bonus']['value'] !== '0') {
+                    // Set bonus as null if value is empty or null (but not 0)
                     $input['bonus'] = null;
                 } else {
-                    // Otherwise, encode the bonus as JSON
+                    // Otherwise, encode the bonus as JSON (including when value is 0)
                     $input['bonus'] = json_encode($input['bonus']);
                 }
             } else {
@@ -485,9 +485,11 @@ class OrderController extends BaseController
 
             // Handle bonus logic
             if (isset($input['bonus']) && is_array($input['bonus'])) {
-                if (empty($input['bonus']['value']) || $input['bonus']['value'] == 0) {
+                // Allow 0 values to be stored (only set to null if empty or null, but not 0)
+                if (empty($input['bonus']['value']) && $input['bonus']['value'] !== 0 && $input['bonus']['value'] !== '0') {
                     $input['bonus'] = null;
                 } else {
+                    // Store bonus as JSON (including when value is 0)
                     $input['bonus'] = json_encode($input['bonus']);
                 }
             } else {
