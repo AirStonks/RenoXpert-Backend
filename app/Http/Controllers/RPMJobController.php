@@ -10,15 +10,15 @@ class RPMJobController extends BaseController
 {
     public function showByJobName(Request $request)
     {
-        $name = $request->input('name', '');
+        $jobCategory = $request->input('job_category', '');
 
-        // return error if name is empty
-        if (empty($name)) {
-            return $this->sendError('Name is required.');
+        // return error if job_category is empty
+        if (empty($jobCategory)) {
+            return $this->sendError('job_category is required.');
         }
 
         // ignore match whole word and case insensitive
-        $rpmJob = RPMJob::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($name) . '%'])->first();
+        $rpmJob = RPMJob::whereRaw('LOWER(job_category) LIKE ?', ['%' . strtolower($jobCategory) . '%'])->first();
 
         if (!$rpmJob) {
             return $this->sendError('RPM Job not found.');
