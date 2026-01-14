@@ -567,7 +567,7 @@ class TriggerCreateRenoProgress
                     'resource_id' => 1,
                     'permission_id' => 1,
                     'rpm_version' => 3,
-                    'status' => 'in_progress',
+                    'status' => 'pending-vp',
                     'date_management' => [
                         'sales_date' => $latestPayment ? Carbon::parse($latestPayment->payment_date)->format('Y-m-d') : null,
                         'oh_date' => '',
