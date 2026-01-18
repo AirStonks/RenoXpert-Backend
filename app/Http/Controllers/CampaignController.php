@@ -85,6 +85,7 @@ class CampaignController extends BaseController
 
         // Load packages
         $campaign->load('packages');
+        $campaign->load('order');
 
         return $this->sendResponse(new PublicCampaignResource($campaign), 'Campaign retrieved successfully.');
     }
@@ -114,6 +115,7 @@ class CampaignController extends BaseController
                 'packages.*.base_amount' => 'required|numeric',
                 'packages.*.booking_amount' => 'required|numeric',
                 'packages.*.slot_total' => 'nullable|numeric',
+                'order_id' => 'nullable|numeric|min:0',
             ]);
 
             if ($validator->fails()) {
@@ -155,6 +157,7 @@ class CampaignController extends BaseController
             $validatedData['slot_remaining'] = $validatedData['slot_total'];
             // TODO: Current stage set to published
             $validatedData['status'] = 'published';
+            $validatedData['order_id'] = $validatedData['order_id'] ?? null;
 
             // Handle thumbnail upload
             if ($request->hasFile('thumbnail')) {
@@ -225,6 +228,7 @@ class CampaignController extends BaseController
                 'packages.*.slot_total' => 'nullable|numeric',
                 'packages.*.status' => 'nullable|string',
                 'packages.*.metadata' => 'nullable',
+                'order_id' => 'nullable|numeric|min:0',
             ]);
 
             if ($validator->fails()) {
@@ -234,6 +238,7 @@ class CampaignController extends BaseController
             $validatedData = $validator->validated();
             // Recalculate the slot_remaining based on new slot_total
             $validatedData['slot_remaining'] = $validatedData['slot_total'] - $campaign->slot_used;
+            $validatedData['order_id'] = $validatedData['order_id'] ?? null;
 
             // Handle thumbnail upload
             if ($request->hasFile('thumbnail')) {

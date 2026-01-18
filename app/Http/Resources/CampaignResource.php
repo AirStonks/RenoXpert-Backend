@@ -39,6 +39,10 @@ class CampaignResource extends JsonResource
             'slot_remaining' => $this->slot_remaining,
             'status' => $this->status,
             'metadata' => $this->metadata,
+            'order_id' => $this->order_id,
+            'order' => $this->when($this->order_id && $this->relationLoaded('order'), function () {
+                return new OrderResource($this->order);
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'created_by' => $this->created_by,
