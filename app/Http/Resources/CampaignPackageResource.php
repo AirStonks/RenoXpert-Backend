@@ -35,6 +35,10 @@ class CampaignPackageResource extends JsonResource
             'slot_remaining' => $this->slot_remaining,
             'status' => $this->status,
             'metadata' => $this->metadata,
+            'order_id' => $this->order_id,
+            'order' => $this->when($this->order_id && $this->relationLoaded('order'), function () {
+                return new OrderResource($this->order);
+            }),
         ];
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Resources\List;
 
 use App\Http\Resources\CampaignPackageResource;
-use App\Http\Resources\OrderResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -39,10 +38,6 @@ class CampaignListResource extends JsonResource
             'slot_remaining' => $slotRemaining,
             'status' => $this->status,
             'metadata' => $this->metadata,
-            'order_id' => $this->order_id,
-            'order' => $this->when($this->order_id && $this->relationLoaded('order'), function () {
-                return new OrderResource($this->order);
-            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'created_by' => $this->created_by,

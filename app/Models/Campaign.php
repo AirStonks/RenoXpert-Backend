@@ -27,7 +27,6 @@ class Campaign extends Model
         'slot_remaining',
         'status',
         'metadata',
-        'order_id',
         'created_by',
         'updated_by',
         'deleted_at',
@@ -55,10 +54,5 @@ class Campaign extends Model
     public function packages()
     {
         return $this->hasMany(CampaignPackage::class, 'campaign_id', 'id');
-    }
-
-    public function order()
-    {
-        return $this->belongsTo(Order::class, 'order_id', 'id');
     }
 }
