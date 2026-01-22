@@ -24,6 +24,7 @@ class CampaignPackage extends Model
         'slot_remaining',
         'status',
         'metadata',
+        'order_id',
         'created_by',
         'updated_by',
         'deleted_at',
@@ -50,5 +51,10 @@ class CampaignPackage extends Model
     public function bookings()
     {
         return $this->hasMany(Booking::class, 'campaign_package_id', 'id');
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'id');
     }
 }

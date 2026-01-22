@@ -473,6 +473,7 @@ class OrderController extends BaseController
                 'internal_remark' => 'nullable|string|min:0',
                 'completion_day' => 'nullable|numeric|min:0',
                 'tenure' => 'nullable|numeric|min:0',
+                'status' => 'nullable|string|max:255',
                 'metadata' => 'nullable',
             ]);
 
@@ -618,7 +619,8 @@ class OrderController extends BaseController
             $order->internal_remark = $validatedData['internal_remark'];
             $order->completion_day = $validatedData['completion_day'];
             $order->tenure = $validatedData['tenure'];
-
+            $order->status = $validatedData['status'];
+            
             // Ensure status is set properly
             if (!isset($validatedData['status'])) {
                 $order->status = $isDraftMode ? 'draft' : 'unreleased';

@@ -24,7 +24,7 @@ class CampaignController extends BaseController
             $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
 
             // Build the query to retrieve campaigns with packages loaded
-            $query = Campaign::with('packages');
+            $query = Campaign::with('packages.order');
 
             // Apply search filter
             if (!empty($search)) {
@@ -64,8 +64,8 @@ class CampaignController extends BaseController
     {
         $campaign = Campaign::find($id);
 
-        // Load packages
-        $campaign->load('packages');
+        // Load packages with order relationship
+        $campaign->load('packages.order');
 
         if (is_null($campaign)) {
             return $this->sendError('Campaign not found.');
@@ -83,8 +83,8 @@ class CampaignController extends BaseController
             return $this->sendError('Campaign not found.');
         }
 
-        // Load packages
-        $campaign->load('packages');
+        // Load packages with order relationship
+        $campaign->load('packages.order');
 
         return $this->sendResponse(new PublicCampaignResource($campaign), 'Campaign retrieved successfully.');
     }
@@ -114,6 +114,7 @@ class CampaignController extends BaseController
                 'packages.*.base_amount' => 'required|numeric',
                 'packages.*.booking_amount' => 'required|numeric',
                 'packages.*.slot_total' => 'nullable|numeric',
+                'packages.*.order_id' => 'nullable|integer|exists:orders,id',
             ]);
 
             if ($validator->fails()) {
@@ -182,7 +183,7 @@ class CampaignController extends BaseController
                 $campaign->packages()->create($package);
             }
 
-            return $this->sendResponse(new CampaignResource($campaign->load('packages')), 'Campaign created successfully.');
+            return $this->sendResponse(new CampaignResource($campaign->load('packages.order')), 'Campaign created successfully.');
         } catch (\Exception $e) {
             Log::error('Campaign creation failed', [
                 'error_message' => $e->getMessage(),
@@ -225,6 +226,7 @@ class CampaignController extends BaseController
                 'packages.*.slot_total' => 'nullable|numeric',
                 'packages.*.status' => 'nullable|string',
                 'packages.*.metadata' => 'nullable',
+                'packages.*.order_id' => 'nullable|integer|exists:orders,id',
             ]);
 
             if ($validator->fails()) {
@@ -307,7 +309,7 @@ class CampaignController extends BaseController
 
                 DB::commit();
 
-                return $this->sendResponse(new CampaignResource($campaign->load('packages')), 'Campaign updated successfully.');
+                return $this->sendResponse(new CampaignResource($campaign->load('packages.order')), 'Campaign updated successfully.');
             } catch (\Exception $e) {
                 DB::rollBack();
                 throw $e;
