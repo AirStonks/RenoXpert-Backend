@@ -16,7 +16,6 @@ return new class extends Migration
             $table->unsignedBigInteger('invoice_id')->nullable();
             $table->string('transaction_no');
             $table->double('amount');
-            $table->string('payment_method');
             $table->string('currency');
             $table->string('payment_method')->nullable();
             $table->string('payment_channel')->nullable();
