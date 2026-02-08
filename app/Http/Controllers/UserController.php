@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\API\OwnerCS\OwnerResource;
+use App\Http\Resources\API\OwnerCS\OwnerListResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends BaseController
@@ -212,6 +213,12 @@ class UserController extends BaseController
         } else {
             return $this->sendResponse(null, 'Owner not exists');
         }
+    }
+
+    public function showOwners()
+    {
+        $owners = User::where('type', 'owner')->get();
+        return $this->sendResponse(OwnerListResource::collection($owners), 'Owners retrieved successfully.');
     }
 
     public function verifyExistsPhoneUser($country_code = '60', $phone)
