@@ -215,10 +215,33 @@ class UserController extends BaseController
         }
     }
 
-    public function showOwners()
+    public function showOwners(Request $request)
     {
-        $owners = User::where('type', 'owner')->get();
-        return $this->sendResponse(OwnerListResource::collection($owners), 'Owners retrieved successfully.');
+        $size = $request->input('size', 15);
+        $search = $request->input('search', '');
+
+        $query = User::where('type', 'owner');
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('phone_no', 'like', '%' . $search . '%');
+            });
+        }
+
+        $owners = $query->paginate($size);
+
+        $response = [
+            'page' => $owners->currentPage(),
+            'pageCount' => $owners->lastPage(),
+            'sortField' => null,
+            'sortOrder' => null,
+            'totalCount' => $owners->total(),
+            'data' => OwnerListResource::collection($owners->items()),
+        ];
+
+        return $this->sendResponse($response, 'Owners retrieved successfully.');
     }
 
     public function verifyExistsPhoneUser($country_code = '60', $phone)
