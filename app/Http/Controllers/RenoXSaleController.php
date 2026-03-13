@@ -100,7 +100,7 @@ class RenoXSaleController extends BaseController
         //     foreach ($filters as $filter) {
         //         if ($filter['field'] === 'status') {
         //             if ($filter['value'] === 'On Track') {
-        //                 $query->where('reno_progress.status', 'in_progress');
+        //                 $query->where('reno_progress.status', 'pending-vp');
         //             } elseif ($filter['value'] === 'Completed') {
         //                 $query->where('reno_progress.status', 'completed');
         //             } elseif ($filter['value'] === 'Handed Over') {

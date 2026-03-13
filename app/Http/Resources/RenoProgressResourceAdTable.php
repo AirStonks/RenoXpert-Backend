@@ -155,7 +155,7 @@ class RenoProgressResourceAdTable extends JsonResource
             $weightage = $task['task_weightage'];
             $statusWeightage = match ($task['status']) {
                 'not_available', 'submitted', 'completed' => 1.0,
-                'in_progress' => 0.75,
+                'pending-vp' => 0.75,
                 'started' => 0.25,
                 'not_started' => 0.0,
                 default => 0.0,
@@ -178,7 +178,7 @@ class RenoProgressResourceAdTable extends JsonResource
     {
         return match ($task['status']) {
             'not_available', 'submitted', 'completed' => 1.0,
-            'in_progress' => 0.75,
+            'pending-vp' => 0.75,
             'started' => 0.25,
             'not_started' => 0.0,
             default => 0.0,
@@ -215,7 +215,7 @@ class RenoProgressResourceAdTable extends JsonResource
                     'not_available' => 1.0,
                     'submitted' => 1.0,
                     'completed' => 1.0,
-                    'in_progress' => 0.75,
+                    'pending-vp' => 0.75,
                     'started' => 0.25,
                     'not_started' => 0.0,
                     default => 0.0,

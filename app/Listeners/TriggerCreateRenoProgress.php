@@ -47,13 +47,13 @@ class TriggerCreateRenoProgress
     protected function createRenoProgress($sale)
     {
         try {
-            // Create a new RenoProgress record with 'in_progress' status
+            // Create a new RenoProgress record with 'pending-vp' status
             $renoProgress = RenoProgress::create([
                 'sale_id' => $sale->id,
                 'resource_id' => 1,
                 'permission_id' => 1,
                 'rpm_version' => 2, // Change to version 3 after the new RPM flow is done
-                'status' => 'in_progress',
+                'status' => 'pending-vp',
             ]);
 
             // Count only ResourceItems with item_name starting with "Progress" for this resource_id
@@ -72,7 +72,7 @@ class TriggerCreateRenoProgress
             $preRenoPhase = ProgressPhase::create([
                 'progress_id' => $renoProgress->id,
                 'name' => 'Pre Reno',
-                'status' => 'in_progress',
+                'status' => 'pending-vp',
             ]);
 
             $p1Phase = ProgressPhase::create([
