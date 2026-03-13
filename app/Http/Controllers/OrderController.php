@@ -154,6 +154,7 @@ class OrderController extends BaseController
                 'internal_remark' => 'nullable|string|min:0',
                 'completion_day' => 'nullable|numeric|min:0',
                 'tenure' => 'nullable|numeric|min:0',
+                'status' => 'nullable|string|max:255',
                 'metadata' => 'nullable', // Added validation for metadata
             ]);
 

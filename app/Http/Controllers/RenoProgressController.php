@@ -120,7 +120,7 @@ class RenoProgressController extends BaseController
             foreach ($filters as $filter) {
                 if ($filter['field'] === 'status') {
                     if ($filter['value'] === 'On Track') {
-                        $query->where('reno_progress.status', 'in_progress');
+                        $query->where('reno_progress.status', 'pending-vp');
                     } elseif ($filter['value'] === 'Completed') {
                         $query->where('reno_progress.status', 'completed');
                     } elseif ($filter['value'] === 'Handed Over') {
@@ -802,13 +802,13 @@ class RenoProgressController extends BaseController
         }
 
         try {
-            // Create a new RenoProgress record with 'in_progress' status
+            // Create a new RenoProgress record with 'pending-vp' status
             $newRenoProgress = RenoProgress::create([
                 'sale_id' => $renoProgress->sale_id,
                 'resource_id' => 1,
                 'permission_id' => 1,
                 'rpm_version' => 3,
-                'status' => 'in_progress',
+                'status' => 'pending-vp',
                 'date_management' => [
                     'sales_date' => Carbon::now()->format('Y-m-d'),
                     'oh_date' => '',
@@ -1366,7 +1366,7 @@ class RenoProgressController extends BaseController
                 'resource_id' => 1,
                 'permission_id' => 1,
                 'rpm_version' => 3,
-                'status' => 'in_progress',
+                'status' => 'pending-vp',
                 'date_management' => [
                     'sales_date' => '',
                     'oh_date' => '',
