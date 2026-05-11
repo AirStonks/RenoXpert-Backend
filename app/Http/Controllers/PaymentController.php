@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use GuzzleHttp\Client;
+use App\Jobs\SendLarkBookingNotification;
 use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -306,16 +307,23 @@ class PaymentController extends BaseController
             return response()->json(['message' => 'Payment failed', 'code' => 'payment_failed'], 400);
         }
 
-        // Check if this transaction has already been processed (idempotency check)
-        // $existingBooking = Booking::where('booking_no', $bookingNumber)->first();
-        // if ($existingBooking) {
-        //     Log::info('Transaction already processed for booking number: ' . $bookingNumber);
-        //     return response()->json([
-        //         'message' => 'Booking already processed',
-        //         'booking' => $existingBooking,
-        //         'code' => 'already_processed'
-        //     ], 200);
-        // }
+        // Idempotency guard: PayEx may retry this callback (e.g. on timeout). The
+        // booking row is created in paymentIntentBooking() so it always exists here;
+        // a `paid` status means we've already processed this transaction and must
+        // not decrement slots or notify Lark again.
+        $existingBooking = Booking::find($metadata['bookingId'] ?? null);
+        if ($existingBooking && $existingBooking->status === 'paid') {
+            Log::info('Payment callback received for already-paid booking', [
+                'booking_id' => $existingBooking->id,
+                'booking_no' => $existingBooking->booking_no,
+                'txn_id' => $txnId,
+            ]);
+            return response()->json([
+                'message' => 'Booking already processed',
+                'booking' => $existingBooking,
+                'code' => 'already_processed',
+            ], 200);
+        }
 
         // Store booking detail (name, phone)
         $campaign = Campaign::where('slug', $campaignSlug)->first();
@@ -421,22 +429,18 @@ class PaymentController extends BaseController
             ],
         ]);
 
-        $campaignData = (object) [
+        // Dispatch Lark notification to the queue so the gateway callback can
+        // return immediately. A slow inline HTTP call to Lark previously delayed
+        // the response long enough that PayEx would retry the callback, which
+        // re-sent the Lark notification.
+        SendLarkBookingNotification::dispatch([
             'id' => $campaign->id,
             'name' => $campaign->title,
             'package_name' => $package->name ?? null,
             'booking_number' => $bookingNumber,
             'owner_name' => $name,
             'booking_fee' => $amount,
-        ];
-
-        // Send Lark message notification
-        try {
-            $larkResponse = $this->sendLarkMessage($campaignData);
-            Log::info('Lark message sent successfully', ['response' => $larkResponse]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send Lark message', ['error' => $e->getMessage()]);
-        }
+        ]);
 
         return $this->sendResponse($booking, 'Booking created successfully.');
     }
@@ -695,161 +699,4 @@ class PaymentController extends BaseController
         }
     }
 
-    private function sendLarkMessage($campaignData)
-    {
-        $client = new Client();
-
-        $headers = [
-            'Content-Type' => 'application/json',
-        ];
-
-        $campaignId = $campaignData->id;
-        $campaignName = $campaignData->name;
-        $campaignPackageName = $campaignData->package_name;
-        $bookingNumber = $campaignData->booking_number;
-        $ownername = $campaignData->owner_name;
-        $bookingFee = $campaignData->booking_fee;
-
-        // $campaignUrl = env('APP_BYPASS') === 'production' ? `https://app.renoxpert.my/registration-forms/{$formId}` : `https://sapp.renoxpert.my/registration-forms/{$formId}`;
-
-        $bodyData = [
-            "msg_type" => "interactive",
-            "card" => [
-                "elements" => [
-                    [
-                        "tag" => "markdown",
-                        "content" => "**Congratulations to the Owner Sales Team!**\nWe've just locked in a new booking for **{$campaignName}**!\nThis milestone highlights your outstanding hustle, collaboration, and client-winning skills. Let's keep the momentum going."
-                    ],
-                    [
-                        "tag" => "column_set",
-                        "flex_mode" => "none",
-                        "background_style" => "default",
-                        "columns" => [
-                            [
-                                "tag" => "column",
-                                "width" => "weighted",
-                                "weight" => 1,
-                                "vertical_align" => "top",
-                                "elements" => [
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "**🔴 Campaign Package:**\n{$campaignPackageName}",
-                                            "tag" => "lark_md"
-                                        ]
-                                    ]
-                                ]
-                            ],
-                            [
-                                "tag" => "column",
-                                "width" => "weighted",
-                                "weight" => 1,
-                                "vertical_align" => "top",
-                                "elements" => [
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "**👤 Owner Name:**\n{$ownername}",
-                                            "tag" => "lark_md"
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ],
-                    [
-                        "tag" => "column_set",
-                        "flex_mode" => "none",
-                        "background_style" => "default",
-                        "columns" => [
-                            [
-                                "tag" => "column",
-                                "width" => "weighted",
-                                "weight" => 1,
-                                "vertical_align" => "top",
-                                "elements" => [
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "**🧾 Booking Number:**\n{$bookingNumber}",
-                                            "tag" => "lark_md"
-                                        ]
-                                    ]
-                                ]
-                            ],
-                            [
-                                "tag" => "column",
-                                "width" => "weighted",
-                                "weight" => 1,
-                                "vertical_align" => "top",
-                                "elements" => [
-                                    [
-                                        "tag" => "div",
-                                        "text" => [
-                                            "content" => "**💵 Booking Fee:**\nRM {$bookingFee}",
-                                            "tag" => "lark_md"
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ],
-                    [
-                        "tag" => "hr"
-                    ],
-                    [
-                        "tag" => "div",
-                        "text" => [
-                            "content" => "🙋🏼 [View Campaign](https://app.renoxpert.my/campaigns/{$campaignId})",
-                            "tag" => "lark_md"
-                        ]
-                    ]
-                ],
-                "header" => [
-                    "template" => "red",
-                    "title" => [
-                        "tag" => "plain_text",
-                        "content" => "New Booking - {$campaignName}"
-                    ]
-                ]
-            ]
-        ];
-
-        // // Convert array to JSON
-        $body = json_encode($this->convertEmptyArrayToObject($bodyData), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
-        try {
-            $req = $client->request('POST', env('APP_BYPASS') === true ? env('LARK_MSG_TEST_OS_URL') : env('LARK_MSG_OS_URL'), [
-                'headers' => $headers,
-                'body' => $body,
-            ]);
-
-            $res = json_decode($req->getBody(), true);
-
-            // Check for a successful response
-            if ($req->getStatusCode() === 200) {
-                return $res;
-            } else {
-                return $req->getBody();
-            }
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
-    }
-
-    private function convertEmptyArrayToObject($data)
-    {
-        if (is_array($data)) {
-            // If it's an empty array, return an empty object (stdClass)
-            if (empty($data)) {
-                return (object) [];
-            }
-
-            // Recursively process the array
-            foreach ($data as $key => $value) {
-                $data[$key] = $this->convertEmptyArrayToObject($value);
-            }
-        }
-        return $data;
-    }
 }
