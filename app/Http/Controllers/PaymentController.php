@@ -429,18 +429,21 @@ class PaymentController extends BaseController
             ],
         ]);
 
-        // Dispatch Lark notification to the queue so the gateway callback can
-        // return immediately. A slow inline HTTP call to Lark previously delayed
-        // the response long enough that PayEx would retry the callback, which
-        // re-sent the Lark notification.
-        SendLarkBookingNotification::dispatch([
-            'id' => $campaign->id,
-            'name' => $campaign->title,
-            'package_name' => $package->name ?? null,
-            'booking_number' => $bookingNumber,
-            'owner_name' => $name,
-            'booking_fee' => $amount,
-        ]);
+        // Send Lark notification synchronously. The idempotency guard above
+        // already prevents the duplicate-notification issue caused by PayEx
+        // callback retries, so running this inline is safe.
+        try {
+            SendLarkBookingNotification::dispatchSync([
+                'id' => $campaign->id,
+                'name' => $campaign->title,
+                'package_name' => $package->name ?? null,
+                'booking_number' => $bookingNumber,
+                'owner_name' => $name,
+                'booking_fee' => $amount,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send Lark message', ['error' => $e->getMessage()]);
+        }
 
         return $this->sendResponse($booking, 'Booking created successfully.');
     }
