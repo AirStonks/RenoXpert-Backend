@@ -406,4 +406,78 @@ class CampaignController extends BaseController
             return $this->sendError('Failed to delete campaign. Please try again.', [], 500);
         }
     }
+
+    public function uploadThumbnailVideo(Request $request, $id)
+    {
+        try {
+            $campaign = Campaign::find($id);
+            if (is_null($campaign)) {
+                return $this->sendError('Campaign not found.');
+            }
+
+            $validator = Validator::make($request->all(), [
+                'thumbnail_video' => 'required|file|mimetypes:video/mp4,video/webm,video/quicktime|max:51200',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->sendError('Validation Error.', $validator->errors(), 422);
+            }
+
+            // Delete the previous video from S3 if present
+            if ($campaign->thumbnail_video && isset($campaign->thumbnail_video['path'])) {
+                Storage::disk('s3')->delete($campaign->thumbnail_video['path']);
+            }
+
+            $videoFile = $request->file('thumbnail_video');
+            $directory = 'campaigns';
+            $filename = 'thumbnail_video_' . time() . '_' . uniqid() . '.' . $videoFile->getClientOriginalExtension();
+
+            $path = Storage::disk('s3')->putFileAs($directory, $videoFile, $filename, 'public');
+
+            $campaign->thumbnail_video = [
+                'file_url' => config('filesystems.disks.s3.url') . '/' . $path,
+                'path' => $path,
+            ];
+            $campaign->save();
+
+            return $this->sendResponse(['thumbnail_video' => $campaign->thumbnail_video], 'Thumbnail video uploaded successfully.');
+        } catch (\Exception $e) {
+            Log::error('Campaign thumbnail video upload failed', [
+                'campaign_id' => $id,
+                'error_message' => $e->getMessage(),
+                'error_line' => $e->getLine(),
+                'error_file' => $e->getFile(),
+            ]);
+
+            return $this->sendError('Failed to upload thumbnail video. Please try again.', [], 500);
+        }
+    }
+
+    public function deleteThumbnailVideo($id)
+    {
+        try {
+            $campaign = Campaign::find($id);
+            if (is_null($campaign)) {
+                return $this->sendError('Campaign not found.');
+            }
+
+            if ($campaign->thumbnail_video && isset($campaign->thumbnail_video['path'])) {
+                Storage::disk('s3')->delete($campaign->thumbnail_video['path']);
+            }
+
+            $campaign->thumbnail_video = null;
+            $campaign->save();
+
+            return $this->sendResponse([], 'Thumbnail video removed successfully.');
+        } catch (\Exception $e) {
+            Log::error('Campaign thumbnail video deletion failed', [
+                'campaign_id' => $id,
+                'error_message' => $e->getMessage(),
+                'error_line' => $e->getLine(),
+                'error_file' => $e->getFile(),
+            ]);
+
+            return $this->sendError('Failed to remove thumbnail video. Please try again.', [], 500);
+        }
+    }
 }

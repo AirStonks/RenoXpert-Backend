@@ -317,6 +317,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('campaigns/{campaignId}/bookings', [BookingController::class, 'getBookingByCampaign']);
     Route::post('campaigns/{campaignId}/update', [CampaignController::class, 'update']);
+    Route::post('campaigns/{id}/thumbnail-video/upload', [CampaignController::class, 'uploadThumbnailVideo']);
+    Route::delete('campaigns/{id}/thumbnail-video', [CampaignController::class, 'deleteThumbnailVideo']);
 
     Route::post('resource-items/add/user/permission', [ResourceItemController::class, 'createUserPermission']);
     Route::post('resource-items/{userId}/{itemId}/permission', [ResourceItemController::class, 'changeUserPermission']);
