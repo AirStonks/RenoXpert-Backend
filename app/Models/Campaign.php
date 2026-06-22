@@ -57,4 +57,9 @@ class Campaign extends Model
     {
         return $this->hasMany(CampaignPackage::class, 'campaign_id', 'id');
     }
+
+    public function layoutTypes()
+    {
+        return $this->hasMany(CampaignLayoutType::class, 'campaign_id', 'id');
+    }
 }

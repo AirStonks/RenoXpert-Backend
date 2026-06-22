@@ -12,6 +12,7 @@ class CampaignPackage extends Model
 
     protected $fillable = [
         'campaign_id',
+        'layout_type_id',
         'name',
         'description',
         'internal_description',
@@ -56,5 +57,10 @@ class CampaignPackage extends Model
     public function order()
     {
         return $this->belongsTo(Order::class, 'order_id', 'id');
+    }
+
+    public function layoutType()
+    {
+        return $this->belongsTo(CampaignLayoutType::class, 'layout_type_id', 'id');
     }
 }
