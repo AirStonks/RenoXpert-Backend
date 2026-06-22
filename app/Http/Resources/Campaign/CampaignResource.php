@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Campaign;
 
+use App\Http\Resources\CampaignLayoutTypeResource;
 use App\Http\Resources\CampaignPackageResource;
 use App\Models\Sale;
 use App\Models\Order;
@@ -23,6 +24,9 @@ class CampaignResource extends JsonResource
             'thumbnail_video' => $this->thumbnail_video,
             'packages' => $this->whenLoaded('packages', function () {
                 return CampaignPackageResource::collection($this->packages);
+            }),
+            'layout_types' => $this->whenLoaded('layoutTypes', function () {
+                return CampaignLayoutTypeResource::collection($this->layoutTypes);
             }),
             'base_amount' => $this->base_amount,
             'booking_amount' => $this->booking_amount,

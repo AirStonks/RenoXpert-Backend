@@ -83,8 +83,8 @@ class CampaignController extends BaseController
             return $this->sendError('Campaign not found.');
         }
 
-        // Load packages with order relationship
-        $campaign->load('packages.order');
+        // Load packages with order relationship and layout types
+        $campaign->load(['packages.order', 'layoutTypes']);
 
         return $this->sendResponse(new PublicCampaignResource($campaign), 'Campaign retrieved successfully.');
     }
