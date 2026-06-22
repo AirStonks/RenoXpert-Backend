@@ -89,9 +89,42 @@ class CampaignController extends BaseController
         return $this->sendResponse(new PublicCampaignResource($campaign), 'Campaign retrieved successfully.');
     }
 
+    /**
+     * The admin form submits campaigns as multipart/form-data, where a null package
+     * field is serialized as the literal string "null" / "undefined" (and empty values
+     * as ""). Those strings fail the nullable|integer rules on the integer package
+     * fields (e.g. layout_type_id on a campaign with no layout types). Coerce them back
+     * to real null before validation. Mutates the request in place.
+     */
+    private function normalizePackageNullables(Request $request): void
+    {
+        $packages = $request->input('packages');
+
+        if (!is_array($packages)) {
+            return;
+        }
+
+        $sentinels = ['null', 'undefined', ''];
+
+        foreach ($packages as $i => $package) {
+            if (!is_array($package)) {
+                continue;
+            }
+
+            foreach (['layout_type_id', 'layout_type_index', 'order_id'] as $field) {
+                if (array_key_exists($field, $package) && in_array($package[$field], $sentinels, true)) {
+                    $packages[$i][$field] = null;
+                }
+            }
+        }
+
+        $request->merge(['packages' => $packages]);
+    }
+
     public function store(Request $request)
     {
         try {
+            $this->normalizePackageNullables($request);
             $input = $request->all();
 
             // Packages name must be unique and not empty
@@ -234,6 +267,8 @@ class CampaignController extends BaseController
             if (is_null($campaign)) {
                 return $this->sendError('Campaign not found.');
             }
+
+            $this->normalizePackageNullables($request);
 
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
