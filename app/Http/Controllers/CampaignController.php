@@ -107,7 +107,12 @@ class CampaignController extends BaseController
                 'end_date' => 'nullable|date',
                 'slot_total' => 'nullable|numeric',
                 'metadata' => 'nullable',
+                'layout_types' => 'nullable|array',
+                'layout_types.*.name' => 'required|string|max:255',
+                'layout_types.*.description' => 'nullable|string',
+                'layout_types.*.sort' => 'nullable|integer',
                 'packages' => 'required|array',
+                'packages.*.layout_type_index' => 'nullable|integer',
                 'packages.*.name' => 'required|string|max:255',
                 'packages.*.description' => 'nullable|string',
                 'packages.*.internal_description' => 'nullable|string',
@@ -178,8 +183,25 @@ class CampaignController extends BaseController
 
             $campaign = Campaign::create($validatedData);
 
-            // Create packages
+            // Create layout types (optional) and map input index -> new id
+            $layoutIdByIndex = [];
+            if (!empty($input['layout_types']) && is_array($input['layout_types'])) {
+                foreach ($input['layout_types'] as $idx => $layoutType) {
+                    $createdLayout = $campaign->layoutTypes()->create([
+                        'name' => $layoutType['name'],
+                        'description' => $layoutType['description'] ?? null,
+                        'sort' => $layoutType['sort'] ?? $idx,
+                    ]);
+                    $layoutIdByIndex[$idx] = $createdLayout->id;
+                }
+            }
+
+            // Create packages, threading layout_type_id from layout_type_index
             foreach ($input['packages'] as $package) {
+                if (isset($package['layout_type_index']) && isset($layoutIdByIndex[$package['layout_type_index']])) {
+                    $package['layout_type_id'] = $layoutIdByIndex[$package['layout_type_index']];
+                }
+                unset($package['layout_type_index']);
                 $campaign->packages()->create($package);
             }
 
@@ -216,8 +238,15 @@ class CampaignController extends BaseController
                 'start_date' => 'nullable|date',
                 'end_date' => 'nullable|date',
                 'slot_total' => 'nullable|numeric',
+                'layout_types' => 'nullable|array',
+                'layout_types.*.id' => 'nullable|integer|exists:campaign_layout_types,id',
+                'layout_types.*.name' => 'required|string|max:255',
+                'layout_types.*.description' => 'nullable|string',
+                'layout_types.*.sort' => 'nullable|integer',
                 'packages' => 'nullable|array',
                 'packages.*.id' => 'nullable|integer|exists:campaign_packages,id',
+                'packages.*.layout_type_id' => 'nullable|integer',
+                'packages.*.layout_type_index' => 'nullable|integer',
                 'packages.*.name' => 'required|string|max:255',
                 'packages.*.description' => 'nullable|string',
                 'packages.*.internal_description' => 'nullable|string',
@@ -272,6 +301,40 @@ class CampaignController extends BaseController
                 // Update campaign
                 $campaign->update($validatedData);
 
+                // Sync layout types (optional); map input index -> resolved id
+                $layoutIdByIndex = [];
+                if ($request->has('layout_types')) {
+                    $inputLayouts = $request->input('layout_types', []);
+                    $existingLayoutIds = $campaign->layoutTypes()->pluck('id')->toArray();
+                    $inputLayoutIds = collect($inputLayouts)->pluck('id')->filter()->toArray();
+
+                    $layoutsToDelete = array_diff($existingLayoutIds, $inputLayoutIds);
+                    if (!empty($layoutsToDelete)) {
+                        $campaign->layoutTypes()->whereIn('id', $layoutsToDelete)->delete();
+                    }
+
+                    foreach ($inputLayouts as $idx => $layoutType) {
+                        if (!empty($layoutType['id'])) {
+                            $layout = $campaign->layoutTypes()->find($layoutType['id']);
+                            if ($layout) {
+                                $layout->update([
+                                    'name' => $layoutType['name'],
+                                    'description' => $layoutType['description'] ?? null,
+                                    'sort' => $layoutType['sort'] ?? $idx,
+                                ]);
+                                $layoutIdByIndex[$idx] = $layout->id;
+                            }
+                        } else {
+                            $createdLayout = $campaign->layoutTypes()->create([
+                                'name' => $layoutType['name'],
+                                'description' => $layoutType['description'] ?? null,
+                                'sort' => $layoutType['sort'] ?? $idx,
+                            ]);
+                            $layoutIdByIndex[$idx] = $createdLayout->id;
+                        }
+                    }
+                }
+
                 // Handle packages update
                 if (isset($validatedData['packages'])) {
                     $inputPackages = $validatedData['packages'];
@@ -286,6 +349,11 @@ class CampaignController extends BaseController
 
                     // Update or create packages
                     foreach ($inputPackages as $packageData) {
+                        if (isset($packageData['layout_type_index']) && isset($layoutIdByIndex[$packageData['layout_type_index']])) {
+                            $packageData['layout_type_id'] = $layoutIdByIndex[$packageData['layout_type_index']];
+                        }
+                        unset($packageData['layout_type_index']);
+
                         if (isset($packageData['id']) && $packageData['id']) {
                             // Update existing package
                             $package = $campaign->packages()->find($packageData['id']);
