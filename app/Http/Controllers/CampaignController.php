@@ -64,12 +64,12 @@ class CampaignController extends BaseController
     {
         $campaign = Campaign::find($id);
 
-        // Load packages with order relationship
-        $campaign->load('packages.order');
-
         if (is_null($campaign)) {
             return $this->sendError('Campaign not found.');
         }
+
+        // Load packages with order relationship and layout types
+        $campaign->load(['packages.order', 'layoutTypes']);
 
         return $this->sendResponse(new CampaignResource($campaign), 'Campaign retrieved successfully.');
     }
@@ -181,31 +181,39 @@ class CampaignController extends BaseController
                 ];
             }
 
-            $campaign = Campaign::create($validatedData);
+            DB::beginTransaction();
+            try {
+                $campaign = Campaign::create($validatedData);
 
-            // Create layout types (optional) and map input index -> new id
-            $layoutIdByIndex = [];
-            if (!empty($input['layout_types']) && is_array($input['layout_types'])) {
-                foreach ($input['layout_types'] as $idx => $layoutType) {
-                    $createdLayout = $campaign->layoutTypes()->create([
-                        'name' => $layoutType['name'],
-                        'description' => $layoutType['description'] ?? null,
-                        'sort' => $layoutType['sort'] ?? $idx,
-                    ]);
-                    $layoutIdByIndex[$idx] = $createdLayout->id;
+                // Create layout types (optional) and map input index -> new id
+                $layoutIdByIndex = [];
+                if (!empty($input['layout_types']) && is_array($input['layout_types'])) {
+                    foreach ($input['layout_types'] as $idx => $layoutType) {
+                        $createdLayout = $campaign->layoutTypes()->create([
+                            'name' => $layoutType['name'],
+                            'description' => $layoutType['description'] ?? null,
+                            'sort' => $layoutType['sort'] ?? $idx,
+                        ]);
+                        $layoutIdByIndex[$idx] = $createdLayout->id;
+                    }
                 }
-            }
 
-            // Create packages, threading layout_type_id from layout_type_index
-            foreach ($input['packages'] as $package) {
-                if (isset($package['layout_type_index']) && isset($layoutIdByIndex[$package['layout_type_index']])) {
-                    $package['layout_type_id'] = $layoutIdByIndex[$package['layout_type_index']];
+                // Create packages, threading layout_type_id from layout_type_index
+                foreach ($input['packages'] as $package) {
+                    if (isset($package['layout_type_index']) && isset($layoutIdByIndex[$package['layout_type_index']])) {
+                        $package['layout_type_id'] = $layoutIdByIndex[$package['layout_type_index']];
+                    }
+                    unset($package['layout_type_index']);
+                    $campaign->packages()->create($package);
                 }
-                unset($package['layout_type_index']);
-                $campaign->packages()->create($package);
-            }
 
-            return $this->sendResponse(new CampaignResource($campaign->load('packages.order')), 'Campaign created successfully.');
+                DB::commit();
+
+                return $this->sendResponse(new CampaignResource($campaign->load(['packages.order', 'layoutTypes'])), 'Campaign created successfully.');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
         } catch (\Exception $e) {
             Log::error('Campaign creation failed', [
                 'error_message' => $e->getMessage(),
@@ -377,7 +385,7 @@ class CampaignController extends BaseController
 
                 DB::commit();
 
-                return $this->sendResponse(new CampaignResource($campaign->load('packages.order')), 'Campaign updated successfully.');
+                return $this->sendResponse(new CampaignResource($campaign->load(['packages.order', 'layoutTypes'])), 'Campaign updated successfully.');
             } catch (\Exception $e) {
                 DB::rollBack();
                 throw $e;
