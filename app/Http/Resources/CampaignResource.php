@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\User;
+use App\Http\Resources\CampaignLayoutTypeResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -25,6 +26,9 @@ class CampaignResource extends JsonResource
             'thumbnail_video' => $this->thumbnail_video,
             'packages' => $this->whenLoaded('packages', function () {
                 return CampaignPackageResource::collection($this->packages);
+            }),
+            'layout_types' => $this->whenLoaded('layoutTypes', function () {
+                return CampaignLayoutTypeResource::collection($this->layoutTypes);
             }),
             'bookings' => $this->whenLoaded('bookings', function () {
                 return BookingResource::collection($this->bookings);
