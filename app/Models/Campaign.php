@@ -16,6 +16,7 @@ class Campaign extends Model
         'description',
         'internal_description',
         'thumbnail',
+        'thumbnail_video',
         'base_amount',
         'booking_amount',
         'start_date',
@@ -35,6 +36,7 @@ class Campaign extends Model
     protected $casts = [
         'metadata' => 'array',
         'thumbnail' => 'array',
+        'thumbnail_video' => 'array',
     ];
 
     protected static function boot()
