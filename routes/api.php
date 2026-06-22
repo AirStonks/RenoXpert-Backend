@@ -67,6 +67,7 @@ use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\UserItemPermissionController;
 use App\Http\Controllers\DefectInspectionFormController;
 use App\Http\Controllers\ProjectStatusHistoryController;
+use App\Http\Controllers\CampaignLayoutTypeController;
 
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
@@ -319,6 +320,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('campaigns/{campaignId}/update', [CampaignController::class, 'update']);
     Route::post('campaigns/{id}/thumbnail-video/upload', [CampaignController::class, 'uploadThumbnailVideo']);
     Route::delete('campaigns/{id}/thumbnail-video', [CampaignController::class, 'deleteThumbnailVideo']);
+    Route::post('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'uploadRentalProjection']);
+    Route::delete('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'deleteRentalProjection']);
+    Route::post('campaign-layout-types/{id}/renderings', [CampaignLayoutTypeController::class, 'uploadRenderings']);
+    Route::delete('campaign-layout-types/{id}/renderings', [CampaignLayoutTypeController::class, 'deleteRendering']);
 
     Route::post('resource-items/add/user/permission', [ResourceItemController::class, 'createUserPermission']);
     Route::post('resource-items/{userId}/{itemId}/permission', [ResourceItemController::class, 'changeUserPermission']);
