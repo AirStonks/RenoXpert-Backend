@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
-class CampaignLayoutTypeController extends Controller
+class CampaignLayoutTypeController extends BaseController
 {
     public function uploadRentalProjection(Request $request, $id)
     {
