@@ -322,6 +322,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('campaigns/{id}/thumbnail-video', [CampaignController::class, 'deleteThumbnailVideo']);
     Route::post('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'uploadRentalProjection']);
     Route::delete('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'deleteRentalProjection']);
+    Route::post('campaign-layout-types/{id}/layout-thumbnail', [CampaignLayoutTypeController::class, 'uploadLayoutThumbnail']);
+    Route::delete('campaign-layout-types/{id}/layout-thumbnail', [CampaignLayoutTypeController::class, 'deleteLayoutThumbnail']);
     Route::post('campaign-layout-types/{id}/renderings', [CampaignLayoutTypeController::class, 'uploadRenderings']);
     Route::delete('campaign-layout-types/{id}/renderings', [CampaignLayoutTypeController::class, 'deleteRendering']);
 
