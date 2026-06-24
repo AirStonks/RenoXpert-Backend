@@ -17,6 +17,7 @@ class Campaign extends Model
         'internal_description',
         'thumbnail',
         'thumbnail_video',
+        'thumbnail_video_url',
         'base_amount',
         'booking_amount',
         'start_date',
