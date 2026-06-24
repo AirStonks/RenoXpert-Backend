@@ -22,6 +22,7 @@ class CampaignResource extends JsonResource
             'description' => $this->description,
             'thumbnail' => $this->thumbnail,
             'thumbnail_video' => $this->thumbnail_video,
+            'thumbnail_video_url' => $this->thumbnail_video_url,
             'packages' => $this->whenLoaded('packages', function () {
                 return CampaignPackageResource::collection($this->packages);
             }),
