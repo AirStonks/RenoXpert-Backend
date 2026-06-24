@@ -136,4 +136,61 @@ class CampaignLayoutTypeController extends Controller
             return $this->sendError('Failed to remove rendering.', [], 500);
         }
     }
+
+    public function uploadLayoutThumbnail(Request $request, $id)
+    {
+        try {
+            $layout = CampaignLayoutType::find($id);
+            if (is_null($layout)) {
+                return $this->sendError('Layout type not found.');
+            }
+
+            $validator = Validator::make($request->all(), [
+                'layout_thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+            ]);
+            if ($validator->fails()) {
+                return $this->sendError('Validation Error.', $validator->errors(), 422);
+            }
+
+            if ($layout->layout_thumbnail && isset($layout->layout_thumbnail['path'])) {
+                Storage::disk('s3')->delete($layout->layout_thumbnail['path']);
+            }
+
+            $file = $request->file('layout_thumbnail');
+            $directory = 'campaigns/layout-types/' . $layout->id;
+            $filename = 'thumbnail_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = Storage::disk('s3')->putFileAs($directory, $file, $filename, 'public');
+
+            $layout->layout_thumbnail = [
+                'file_url' => config('filesystems.disks.s3.url') . '/' . $path,
+                'path' => $path,
+            ];
+            $layout->save();
+
+            return $this->sendResponse(new CampaignLayoutTypeResource($layout), 'Layout thumbnail uploaded successfully.');
+        } catch (\Exception $e) {
+            Log::error('Layout thumbnail upload failed', ['layout_type_id' => $id, 'error_message' => $e->getMessage(), 'error_line' => $e->getLine()]);
+            return $this->sendError('Failed to upload layout thumbnail.', [], 500);
+        }
+    }
+
+    public function deleteLayoutThumbnail($id)
+    {
+        try {
+            $layout = CampaignLayoutType::find($id);
+            if (is_null($layout)) {
+                return $this->sendError('Layout type not found.');
+            }
+            if ($layout->layout_thumbnail && isset($layout->layout_thumbnail['path'])) {
+                Storage::disk('s3')->delete($layout->layout_thumbnail['path']);
+            }
+            $layout->layout_thumbnail = null;
+            $layout->save();
+
+            return $this->sendResponse(new CampaignLayoutTypeResource($layout), 'Layout thumbnail removed.');
+        } catch (\Exception $e) {
+            Log::error('Layout thumbnail delete failed', ['layout_type_id' => $id, 'error_message' => $e->getMessage(), 'error_line' => $e->getLine()]);
+            return $this->sendError('Failed to remove layout thumbnail.', [], 500);
+        }
+    }
 }

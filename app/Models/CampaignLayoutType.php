@@ -16,6 +16,7 @@ class CampaignLayoutType extends Model
         'description',
         'sort',
         'rental_projection',
+        'layout_thumbnail',
         'rendering_images',
         'metadata',
         'created_by',
@@ -25,6 +26,7 @@ class CampaignLayoutType extends Model
 
     protected $casts = [
         'rental_projection' => 'array',
+        'layout_thumbnail' => 'array',
         'rendering_images' => 'array',
         'metadata' => 'array',
     ];
