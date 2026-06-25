@@ -121,6 +121,8 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('obtain-login-token', 'ownerLoginWithToken');
 });
 
+Route::post('agent/google-login', [\App\Http\Controllers\AgentAuthController::class, 'googleLogin']);
+
 // OAuth routes
 // Route::get('/auth/larksuite', [LarkSuiteAuthController::class, 'redirectToLarkSuite']);
 // Route::get('/auth/larksuite/callback', [LarkSuiteAuthController::class, 'handleLarkSuiteCallback']);
@@ -130,6 +132,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return response()->json(new UserResource($request->user()));
     });
+
+    Route::post('agent/onboarding', [\App\Http\Controllers\AgentAuthController::class, 'onboarding']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('changePassword');

@@ -30,6 +30,7 @@ class UserResource extends JsonResource
             'referral_code' => $this->referral_code,
             'address' => $this->address ? $this->address : null,
             'status' => $this->status,
+            'onboarded_at' => $this->onboarded_at,
             'email_verified_at' => $this->email_verified_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
