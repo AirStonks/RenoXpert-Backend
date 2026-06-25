@@ -169,6 +169,7 @@ class PaymentController extends BaseController
             'phone' => 'required|string|max:255',
             'email' => 'nullable|string|max:255',
             'packageId' => 'nullable|numeric',
+            'referral_code' => 'nullable|string|max:32',
         ]);
 
         if ($validator->fails()) {
@@ -216,12 +217,19 @@ class PaymentController extends BaseController
 
         $returnUrl = $clientDomain . '/campaigns/' . $campaignSlug . '/booking/payment';
 
+        $referrer = null;
+        if (!empty($input['referral_code'])) {
+            $referrer = \App\Models\User::where('referral_code', strtoupper(trim($input['referral_code'])))->first();
+        }
+
         $booking = Booking::create([
             'campaign_id' => $campaign->id,
             'campaign_package_id' => $input['packageId'],
             'booking_no' => $bookingNumber,
             'booking_hash' => bin2hex(random_bytes(16)),
             'amount' => $amount,
+            'referred_by_user_id' => $referrer?->id,
+            'referral_code' => $referrer?->referral_code,
             'status' => 'pending',
             'metadata' => [
                 'name' => $input['name'],
