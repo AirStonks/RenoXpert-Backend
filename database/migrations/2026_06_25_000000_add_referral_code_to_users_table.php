@@ -13,7 +13,7 @@ return new class extends Migration {
         });
 
         // Backfill existing users with a unique code (saveQuietly: skip model events / updated_by).
-        User::whereNull('referral_code')->orderBy('id')->each(function ($user) {
+        User::withTrashed()->whereNull('referral_code')->orderBy('id')->each(function ($user) {
             $user->referral_code = User::generateReferralCode();
             $user->saveQuietly();
         });
