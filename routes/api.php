@@ -317,6 +317,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('key-management/{keyManagementId}/quantity/update', [KeyManagementController::class, 'updateKeyCategoryQuantity']);
 
     Route::get('campaigns/{campaignId}/bookings', [BookingController::class, 'getBookingByCampaign']);
+    Route::put('campaigns/{campaignId}/bookings/{bookingId}/referral', [BookingController::class, 'setReferral']);
     Route::post('campaigns/{campaignId}/update', [CampaignController::class, 'update']);
     Route::post('campaigns/{id}/thumbnail-video/upload', [CampaignController::class, 'uploadThumbnailVideo']);
     Route::delete('campaigns/{id}/thumbnail-video', [CampaignController::class, 'deleteThumbnailVideo']);

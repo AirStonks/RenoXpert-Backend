@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\Booking;
 use App\Models\Campaign;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\BookingResource;
@@ -55,6 +56,44 @@ class BookingController extends BaseController
         $bookings = Booking::where('campaign_id', $campaignId)->get();
 
         return $this->sendResponse(BookingResource::collection($bookings), 'Bookings retrieved successfully.');
+    }
+
+    public function setReferral(Request $request, $campaignId, $bookingId)
+    {
+        $booking = Booking::where('campaign_id', $campaignId)->where('id', $bookingId)->first();
+        if (is_null($booking)) {
+            return $this->sendError('Booking not found.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'referral_code' => 'nullable|string',
+            'referred_by_user_id' => 'nullable|integer|exists:users,id',
+        ]);
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        }
+
+        $user = null;
+        if ($request->filled('referred_by_user_id')) {
+            $user = User::find($request->input('referred_by_user_id'));
+        } elseif ($request->filled('referral_code')) {
+            $user = User::where('referral_code', strtoupper(trim($request->input('referral_code'))))->first();
+        }
+
+        if (is_null($user)) {
+            return $this->sendError('Referrer not found.', [], 422);
+        }
+
+        if ((int) $user->id === (int) $booking->user_id) {
+            return $this->sendError('A booking cannot be referred by its own owner.', [], 422);
+        }
+
+        $booking->referred_by_user_id = $user->id;
+        $booking->referral_code = $user->referral_code;
+        $booking->save();
+
+        $booking->load('referredBy');
+        return $this->sendResponse(new BookingResource($booking), 'Booking referrer updated.');
     }
 
     public function show(Request $request, $id)
