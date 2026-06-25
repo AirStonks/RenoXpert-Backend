@@ -49,7 +49,7 @@ class User extends Authenticatable
             for ($i = 0; $i < 8; $i++) {
                 $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
             }
-        } while (self::where('referral_code', $code)->exists());
+        } while (self::withTrashed()->where('referral_code', $code)->exists());
         return $code;
     }
 

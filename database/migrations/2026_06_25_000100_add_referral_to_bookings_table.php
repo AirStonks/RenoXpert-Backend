@@ -10,14 +10,14 @@ return new class extends Migration {
         Schema::table('bookings', function (Blueprint $table) {
             $table->unsignedBigInteger('referred_by_user_id')->nullable()->after('user_id');
             $table->string('referral_code')->nullable()->after('referred_by_user_id');
-            $table->foreign('referred_by_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->index('referred_by_user_id');
         });
     }
 
     public function down(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->dropForeign(['referred_by_user_id']);
+            $table->dropIndex(['referred_by_user_id']);
             $table->dropColumn(['referred_by_user_id', 'referral_code']);
         });
     }
