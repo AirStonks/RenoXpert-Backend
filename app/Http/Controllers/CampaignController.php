@@ -440,6 +440,26 @@ class CampaignController extends BaseController
         }
     }
 
+    public function setAgentVisibility(Request $request, $id)
+    {
+        $campaign = Campaign::find($id);
+        if (is_null($campaign)) {
+            return $this->sendError('Campaign not found.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'visible_to_agents' => 'required|boolean',
+        ]);
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        }
+
+        $campaign->visible_to_agents = $request->boolean('visible_to_agents');
+        $campaign->save();
+
+        return $this->sendResponse(new CampaignResource($campaign), 'Campaign agent visibility updated.');
+    }
+
     public function updatePackage(Request $request, $campaignId, $packageId)
     {
         try {

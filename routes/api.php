@@ -321,6 +321,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('campaigns/{campaignId}/update', [CampaignController::class, 'update']);
     Route::post('campaigns/{id}/thumbnail-video/upload', [CampaignController::class, 'uploadThumbnailVideo']);
     Route::delete('campaigns/{id}/thumbnail-video', [CampaignController::class, 'deleteThumbnailVideo']);
+    Route::patch('campaigns/{id}/agent-visibility', [CampaignController::class, 'setAgentVisibility']);
     Route::post('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'uploadRentalProjection']);
     Route::delete('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'deleteRentalProjection']);
     Route::post('campaign-layout-types/{id}/layout-thumbnail', [CampaignLayoutTypeController::class, 'uploadLayoutThumbnail']);
