@@ -36,6 +36,7 @@ class User extends Authenticatable
         'type',
         'referral_code',
         'status',
+        'onboarded_at',
         'created_by',
         'updated_by',
         'deleted_at',
