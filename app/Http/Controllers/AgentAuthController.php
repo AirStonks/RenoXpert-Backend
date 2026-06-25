@@ -56,6 +56,9 @@ class AgentAuthController extends BaseController
             if ($user->type !== 'agent') {
                 return $this->sendError('This email is already in use.', [], 422);
             }
+            if ($user->status !== 'active') {
+                return $this->sendError('Your agent account is not active.', [], 403);
+            }
         } else {
             $user = new User();
             $user->name = $name;
