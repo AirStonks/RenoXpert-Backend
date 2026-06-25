@@ -28,6 +28,7 @@ class Campaign extends Model
         'slot_used',
         'slot_remaining',
         'status',
+        'visible_to_agents',
         'metadata',
         'created_by',
         'updated_by',
@@ -35,6 +36,7 @@ class Campaign extends Model
     ];
 
     protected $casts = [
+        'visible_to_agents' => 'boolean',
         'metadata' => 'array',
         'thumbnail' => 'array',
         'thumbnail_video' => 'array',

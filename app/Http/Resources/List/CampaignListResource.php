@@ -37,6 +37,7 @@ class CampaignListResource extends JsonResource
             'slot_used' => $slotUsed,
             'slot_remaining' => $slotRemaining,
             'status' => $this->status,
+            'visible_to_agents' => $this->visible_to_agents,
             'metadata' => $this->metadata,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
