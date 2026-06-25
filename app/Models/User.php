@@ -34,11 +34,24 @@ class User extends Authenticatable
         'country_code',
         'phone_no',
         'type',
+        'referral_code',
         'status',
         'created_by',
         'updated_by',
         'deleted_at',
     ];
+
+    public static function generateReferralCode(): string
+    {
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        do {
+            $code = '';
+            for ($i = 0; $i < 8; $i++) {
+                $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+        } while (self::where('referral_code', $code)->exists());
+        return $code;
+    }
 
     protected static function boot()
     {
@@ -47,6 +60,9 @@ class User extends Authenticatable
         static::creating(function ($model) {
             if (empty($model->uuid)) {
                 $model->uuid = Str::uuid();
+            }
+            if (empty($model->referral_code)) {
+                $model->referral_code = self::generateReferralCode();
             }
             $model->created_by = auth()->id(); // or your logic to get the user ID
         });
