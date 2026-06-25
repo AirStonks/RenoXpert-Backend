@@ -19,6 +19,15 @@ class BookingResource extends JsonResource
             'campaign_id' => $this->campaign_id,
             'campaign_package_id' => $this->campaign_package_id,
             'user_id' => $this->user_id,
+            'referred_by_user_id' => $this->referred_by_user_id,
+            'referral_code' => $this->referral_code,
+            'referred_by' => $this->whenLoaded('referredBy', function () {
+                return [
+                    'id' => $this->referredBy->id,
+                    'name' => $this->referredBy->name,
+                    'referral_code' => $this->referredBy->referral_code,
+                ];
+            }),
             'booking_no' => $this->booking_no,
             'booking_hash' => $this->booking_hash,
             'amount' => $this->amount,

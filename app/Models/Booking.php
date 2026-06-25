@@ -14,6 +14,8 @@ class Booking extends Model
         'campaign_id',
         'campaign_package_id',
         'user_id',
+        'referred_by_user_id',
+        'referral_code',
         'booking_no',
         'booking_hash',
         'amount',
@@ -58,5 +60,10 @@ class Booking extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function referredBy()
+    {
+        return $this->belongsTo(User::class, 'referred_by_user_id', 'id');
     }
 }
