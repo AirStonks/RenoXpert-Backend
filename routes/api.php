@@ -330,6 +330,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('agent/referrals', [\App\Http\Controllers\AgentAuthController::class, 'referrals']);
     Route::get('admin/agents', [UserController::class, 'adminAgents']);
     Route::post('admin/agents/{id}/approve', [UserController::class, 'approveAgent']);
+    Route::post('admin/agents/{id}/status', [UserController::class, 'setAgentStatus']);
     Route::post('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'uploadRentalProjection']);
     Route::delete('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'deleteRentalProjection']);
     Route::post('campaign-layout-types/{id}/layout-thumbnail', [CampaignLayoutTypeController::class, 'uploadLayoutThumbnail']);
