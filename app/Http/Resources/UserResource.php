@@ -31,6 +31,7 @@ class UserResource extends JsonResource
             'address' => $this->address ? $this->address : null,
             'status' => $this->status,
             'onboarded_at' => $this->onboarded_at,
+            'agent_approved_at' => $this->agent_approved_at,
             'email_verified_at' => $this->email_verified_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

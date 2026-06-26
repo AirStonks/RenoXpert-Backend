@@ -422,6 +422,36 @@ class UserController extends BaseController
         return $this->sendResponse([new UserResource($user), 'new_password' => $newPassword], 'Password reset successfully.');
     }
 
+    public function adminAgents(Request $request)
+    {
+        $caller = $request->user();
+        if (!$caller || !in_array($caller->type, ['staff', 'admin', 'super-admin', 'owner'])) {
+            return $this->sendError('Forbidden.', [], 403);
+        }
+        $agents = User::where('type', 'agent')
+            ->orderByRaw('agent_approved_at IS NOT NULL')
+            ->orderByDesc('id')
+            ->get();
+        return $this->sendResponse(UserResource::collection($agents), 'Agents retrieved.');
+    }
+
+    public function approveAgent(Request $request, $id)
+    {
+        $caller = $request->user();
+        if (!$caller || !in_array($caller->type, ['staff', 'admin', 'super-admin', 'owner'])) {
+            return $this->sendError('Forbidden.', [], 403);
+        }
+        $agent = User::where('id', $id)->where('type', 'agent')->first();
+        if (!$agent) {
+            return $this->sendError('Agent not found.', [], 404);
+        }
+        if (is_null($agent->agent_approved_at)) {
+            $agent->agent_approved_at = now();
+            $agent->save();
+        }
+        return $this->sendResponse(new UserResource($agent), 'Agent approved.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */
