@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\AgentCampaignResource;
 use App\Http\Resources\CampaignResource;
 use App\Http\Resources\List\CampaignListResource;
 use App\Http\Resources\Campaign\CampaignResource as PublicCampaignResource;
@@ -438,6 +439,20 @@ class CampaignController extends BaseController
 
             return $this->sendError('Failed to update campaign. Please try again.', [], 500);
         }
+    }
+
+    public function agentCampaigns(Request $request)
+    {
+        if (optional($request->user())->type !== 'agent') {
+            return $this->sendError('Forbidden.', [], 403);
+        }
+
+        $campaigns = Campaign::where('visible_to_agents', true)
+            ->whereIn('status', ['published', 'active'])
+            ->orderByDesc('id')
+            ->get();
+
+        return $this->sendResponse(AgentCampaignResource::collection($campaigns), 'Agent campaigns retrieved.');
     }
 
     public function setAgentVisibility(Request $request, $id)
