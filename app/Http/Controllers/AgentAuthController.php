@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
 use App\Models\User;
 use App\Http\Resources\UserResource;
 use GuzzleHttp\Client;
@@ -98,11 +99,47 @@ class AgentAuthController extends BaseController
         if ($request->filled('name')) {
             $user->name = $request->input('name');
         }
-        $user->country_code = $request->input('country_code');
+        $user->country_code = ltrim(trim((string) $request->input('country_code')), '+');
         $user->phone_no = $request->input('phone_no');
         $user->onboarded_at = now();
         $user->save();
 
         return $this->sendResponse(new UserResource($user), 'Onboarding complete.');
+    }
+
+    public function referrals(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || $user->type !== 'agent') {
+            return $this->sendError('Forbidden.', [], 403);
+        }
+        if (is_null($user->agent_approved_at)) {
+            return $this->sendError('Your agent account is pending approval.', [], 403);
+        }
+
+        $bookings = Booking::where('referred_by_user_id', $user->id)
+            ->with('campaign')
+            ->orderByDesc('id')
+            ->get();
+
+        $rows = $bookings->map(function ($b) {
+            $meta = is_array($b->metadata) ? $b->metadata : [];
+            return [
+                'campaign_title' => optional($b->campaign)->title,
+                'customer_name' => $meta['name'] ?? null,
+                'amount' => $b->amount,
+                'status' => $b->status,
+                'date' => $b->booked_at ?? $b->created_at,
+            ];
+        });
+
+        return $this->sendResponse([
+            'summary' => [
+                'total' => $bookings->count(),
+                'paid' => $bookings->where('status', 'paid')->count(),
+                'total_amount' => $bookings->sum('amount'),
+            ],
+            'bookings' => $rows,
+        ], 'Referrals retrieved.');
     }
 }

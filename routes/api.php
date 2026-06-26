@@ -327,6 +327,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('campaigns/{id}/thumbnail-video', [CampaignController::class, 'deleteThumbnailVideo']);
     Route::patch('campaigns/{id}/agent-visibility', [CampaignController::class, 'setAgentVisibility']);
     Route::get('agent/campaigns', [CampaignController::class, 'agentCampaigns']);
+    Route::get('agent/referrals', [\App\Http\Controllers\AgentAuthController::class, 'referrals']);
+    Route::get('admin/agents', [UserController::class, 'adminAgents']);
+    Route::post('admin/agents/{id}/approve', [UserController::class, 'approveAgent']);
     Route::post('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'uploadRentalProjection']);
     Route::delete('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'deleteRentalProjection']);
     Route::post('campaign-layout-types/{id}/layout-thumbnail', [CampaignLayoutTypeController::class, 'uploadLayoutThumbnail']);
