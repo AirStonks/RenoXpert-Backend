@@ -452,6 +452,27 @@ class UserController extends BaseController
         return $this->sendResponse(new UserResource($agent), 'Agent approved.');
     }
 
+    public function setAgentStatus(Request $request, $id)
+    {
+        $caller = $request->user();
+        if (!$caller || !in_array($caller->type, ['staff', 'admin', 'super-admin', 'owner'])) {
+            return $this->sendError('Forbidden.', [], 403);
+        }
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:active,inactive',
+        ]);
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        }
+        $agent = User::where('id', $id)->where('type', 'agent')->first();
+        if (!$agent) {
+            return $this->sendError('Agent not found.', [], 404);
+        }
+        $agent->status = $request->input('status');
+        $agent->save();
+        return $this->sendResponse(new UserResource($agent), 'Agent status updated.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */

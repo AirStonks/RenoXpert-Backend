@@ -446,6 +446,9 @@ class CampaignController extends BaseController
         if (optional($request->user())->type !== 'agent') {
             return $this->sendError('Forbidden.', [], 403);
         }
+        if ($request->user()->status !== 'active') {
+            return $this->sendError('Your agent account is not active.', [], 403);
+        }
         if (is_null($request->user()->agent_approved_at)) {
             return $this->sendError('Your agent account is pending approval.', [], 403);
         }
