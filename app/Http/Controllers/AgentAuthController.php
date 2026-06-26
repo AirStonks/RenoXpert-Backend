@@ -85,6 +85,9 @@ class AgentAuthController extends BaseController
         if (!$user || $user->type !== 'agent') {
             return $this->sendError('Forbidden.', [], 403);
         }
+        if ($user->status !== 'active') {
+            return $this->sendError('Your agent account is not active.', [], 403);
+        }
 
         $validator = Validator::make($request->all(), [
             'name' => 'nullable|string|max:255',
