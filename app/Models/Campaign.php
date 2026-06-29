@@ -28,7 +28,6 @@ class Campaign extends Model
         'slot_used',
         'slot_remaining',
         'status',
-        'visible_to_agents',
         'metadata',
         'created_by',
         'updated_by',
@@ -36,7 +35,6 @@ class Campaign extends Model
     ];
 
     protected $casts = [
-        'visible_to_agents' => 'boolean',
         'metadata' => 'array',
         'thumbnail' => 'array',
         'thumbnail_video' => 'array',
@@ -49,6 +47,12 @@ class Campaign extends Model
         static::creating(function ($model) {
             $model->created_by = auth()->id(); // or your logic to get the user ID
         });
+    }
+
+    public function visibleToAgents()
+    {
+        return $this->belongsToMany(User::class, 'agent_campaign_visibility', 'campaign_id', 'user_id')
+            ->withTimestamps();
     }
 
     public function bookings()
