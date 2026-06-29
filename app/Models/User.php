@@ -115,6 +115,12 @@ class User extends Authenticatable
             ->withPivot('item_id');
     }
 
+    public function visibleCampaigns()
+    {
+        return $this->belongsToMany(Campaign::class, 'agent_campaign_visibility', 'user_id', 'campaign_id')
+            ->withTimestamps();
+    }
+
     /**
      * Get all permissions for a specific resource, including those from roles.
      */
