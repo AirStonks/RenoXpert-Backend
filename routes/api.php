@@ -325,12 +325,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('campaigns/{campaignId}/update', [CampaignController::class, 'update']);
     Route::post('campaigns/{id}/thumbnail-video/upload', [CampaignController::class, 'uploadThumbnailVideo']);
     Route::delete('campaigns/{id}/thumbnail-video', [CampaignController::class, 'deleteThumbnailVideo']);
-    Route::patch('campaigns/{id}/agent-visibility', [CampaignController::class, 'setAgentVisibility']);
     Route::get('agent/campaigns', [CampaignController::class, 'agentCampaigns']);
     Route::get('agent/referrals', [\App\Http\Controllers\AgentAuthController::class, 'referrals']);
     Route::get('admin/agents', [UserController::class, 'adminAgents']);
     Route::post('admin/agents/{id}/approve', [UserController::class, 'approveAgent']);
     Route::post('admin/agents/{id}/status', [UserController::class, 'setAgentStatus']);
+    Route::get('admin/agents/{id}/campaigns', [CampaignController::class, 'agentCampaignIds']);
+    Route::put('admin/agents/{id}/campaigns', [CampaignController::class, 'setAgentCampaigns']);
+    Route::get('admin/campaigns/{id}/agents', [CampaignController::class, 'campaignAgentIds']);
+    Route::put('admin/campaigns/{id}/agents', [CampaignController::class, 'setCampaignAgents']);
     Route::post('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'uploadRentalProjection']);
     Route::delete('campaign-layout-types/{id}/rental-projection', [CampaignLayoutTypeController::class, 'deleteRentalProjection']);
     Route::post('campaign-layout-types/{id}/layout-thumbnail', [CampaignLayoutTypeController::class, 'uploadLayoutThumbnail']);

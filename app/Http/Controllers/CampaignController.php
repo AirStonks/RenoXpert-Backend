@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\Campaign;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -453,32 +454,97 @@ class CampaignController extends BaseController
             return $this->sendError('Your agent account is pending approval.', [], 403);
         }
 
-        $campaigns = Campaign::where('visible_to_agents', true)
+        $campaigns = $request->user()->visibleCampaigns()
             ->whereIn('status', ['published', 'active'])
-            ->orderByDesc('id')
+            ->orderByDesc('campaigns.id')
             ->get();
 
         return $this->sendResponse(AgentCampaignResource::collection($campaigns), 'Agent campaigns retrieved.');
     }
 
-    public function setAgentVisibility(Request $request, $id)
+    public function agentCampaignIds(Request $request, $id)
     {
-        $campaign = Campaign::find($id);
-        if (is_null($campaign)) {
-            return $this->sendError('Campaign not found.');
+        $caller = $request->user();
+        if (!$caller || !in_array($caller->type, ['staff', 'admin', 'super-admin', 'owner'])) {
+            return $this->sendError('Forbidden.', [], 403);
         }
+        $agent = User::where('type', 'agent')->find($id);
+        if (is_null($agent)) {
+            return $this->sendError('Agent not found.', [], 404);
+        }
+        return $this->sendResponse(
+            ['campaign_ids' => $agent->visibleCampaigns()->pluck('campaigns.id')],
+            'Agent campaigns retrieved.'
+        );
+    }
 
+    public function setAgentCampaigns(Request $request, $id)
+    {
+        $caller = $request->user();
+        if (!$caller || !in_array($caller->type, ['staff', 'admin', 'super-admin', 'owner'])) {
+            return $this->sendError('Forbidden.', [], 403);
+        }
+        $agent = User::where('type', 'agent')->find($id);
+        if (is_null($agent)) {
+            return $this->sendError('Agent not found.', [], 404);
+        }
         $validator = Validator::make($request->all(), [
-            'visible_to_agents' => 'required|boolean',
+            'campaign_ids' => 'present|array',
+            'campaign_ids.*' => 'integer|exists:campaigns,id',
         ]);
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors(), 422);
         }
+        $agent->visibleCampaigns()->sync($request->input('campaign_ids', []));
+        return $this->sendResponse(
+            ['campaign_ids' => $agent->visibleCampaigns()->pluck('campaigns.id')],
+            'Agent campaigns updated.'
+        );
+    }
 
-        $campaign->visible_to_agents = $request->boolean('visible_to_agents');
-        $campaign->save();
+    public function campaignAgentIds(Request $request, $id)
+    {
+        $caller = $request->user();
+        if (!$caller || !in_array($caller->type, ['staff', 'admin', 'super-admin', 'owner'])) {
+            return $this->sendError('Forbidden.', [], 403);
+        }
+        $campaign = Campaign::find($id);
+        if (is_null($campaign)) {
+            return $this->sendError('Campaign not found.', [], 404);
+        }
+        return $this->sendResponse(
+            ['user_ids' => $campaign->visibleToAgents()->pluck('users.id')],
+            'Campaign agents retrieved.'
+        );
+    }
 
-        return $this->sendResponse(new CampaignResource($campaign), 'Campaign agent visibility updated.');
+    public function setCampaignAgents(Request $request, $id)
+    {
+        $caller = $request->user();
+        if (!$caller || !in_array($caller->type, ['staff', 'admin', 'super-admin', 'owner'])) {
+            return $this->sendError('Forbidden.', [], 403);
+        }
+        $campaign = Campaign::find($id);
+        if (is_null($campaign)) {
+            return $this->sendError('Campaign not found.', [], 404);
+        }
+        $validator = Validator::make($request->all(), [
+            'user_ids' => 'present|array',
+            'user_ids.*' => 'integer|exists:users,id',
+        ]);
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        }
+        $ids = array_values(array_unique($request->input('user_ids', [])));
+        $agentCount = User::where('type', 'agent')->whereIn('id', $ids)->count();
+        if ($agentCount !== count($ids)) {
+            return $this->sendError('All assigned users must be agents.', [], 422);
+        }
+        $campaign->visibleToAgents()->sync($ids);
+        return $this->sendResponse(
+            ['user_ids' => $campaign->visibleToAgents()->pluck('users.id')],
+            'Campaign agents updated.'
+        );
     }
 
     public function updatePackage(Request $request, $campaignId, $packageId)
@@ -546,6 +612,7 @@ class CampaignController extends BaseController
                 Storage::disk('s3')->delete($thumbnailPath);
             }
 
+            $campaign->visibleToAgents()->detach();
             $campaign->delete();
 
             return $this->sendResponse([], 'Campaign deleted successfully.');
