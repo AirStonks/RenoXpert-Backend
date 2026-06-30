@@ -16,6 +16,7 @@ class CampaignLayoutType extends Model
         'description',
         'sort',
         'rental_projection',
+        'roi_calculator',
         'layout_thumbnail',
         'rendering_images',
         'metadata',
@@ -26,6 +27,7 @@ class CampaignLayoutType extends Model
 
     protected $casts = [
         'rental_projection' => 'array',
+        'roi_calculator' => 'array',
         'layout_thumbnail' => 'array',
         'rendering_images' => 'array',
         'metadata' => 'array',

@@ -147,6 +147,7 @@ class CampaignController extends BaseController
                 'layout_types.*.name' => 'required|string|max:255',
                 'layout_types.*.description' => 'nullable|string',
                 'layout_types.*.sort' => 'nullable|integer',
+                'layout_types.*.roi_calculator' => 'nullable|array',
                 'packages' => 'required|array',
                 'packages.*.layout_type_index' => 'nullable|integer',
                 'packages.*.name' => 'required|string|max:255',
@@ -229,6 +230,7 @@ class CampaignController extends BaseController
                             'name' => $layoutType['name'],
                             'description' => $layoutType['description'] ?? null,
                             'sort' => $layoutType['sort'] ?? $idx,
+                            'roi_calculator' => $layoutType['roi_calculator'] ?? null,
                         ]);
                         $layoutIdByIndex[$idx] = $createdLayout->id;
                     }
@@ -290,6 +292,7 @@ class CampaignController extends BaseController
                 'layout_types.*.name' => 'required|string|max:255',
                 'layout_types.*.description' => 'nullable|string',
                 'layout_types.*.sort' => 'nullable|integer',
+                'layout_types.*.roi_calculator' => 'nullable|array',
                 'packages' => 'nullable|array',
                 'packages.*.id' => 'nullable|integer|exists:campaign_packages,id',
                 'packages.*.layout_type_id' => 'nullable|integer',
@@ -368,6 +371,7 @@ class CampaignController extends BaseController
                                     'name' => $layoutType['name'],
                                     'description' => $layoutType['description'] ?? null,
                                     'sort' => $layoutType['sort'] ?? $idx,
+                                    'roi_calculator' => $layoutType['roi_calculator'] ?? null,
                                 ]);
                                 $layoutIdByIndex[$idx] = $layout->id;
                             }
@@ -376,6 +380,7 @@ class CampaignController extends BaseController
                                 'name' => $layoutType['name'],
                                 'description' => $layoutType['description'] ?? null,
                                 'sort' => $layoutType['sort'] ?? $idx,
+                                'roi_calculator' => $layoutType['roi_calculator'] ?? null,
                             ]);
                             $layoutIdByIndex[$idx] = $createdLayout->id;
                         }
