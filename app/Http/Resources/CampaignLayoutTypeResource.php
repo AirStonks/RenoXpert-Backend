@@ -15,6 +15,7 @@ class CampaignLayoutTypeResource extends JsonResource
             'description' => $this->description,
             'sort' => $this->sort,
             'rental_projection' => $this->rental_projection,
+            'roi_calculator' => $this->roi_calculator,
             'layout_thumbnail' => $this->layout_thumbnail,
             'rendering_images' => $this->rendering_images,
         ];
