@@ -123,10 +123,41 @@ class CampaignController extends BaseController
         $request->merge(['packages' => $packages]);
     }
 
+    /**
+     * The admin form submits campaigns as multipart/form-data. The nested
+     * roi_calculator object is JSON-encoded by the frontend (FormData cannot carry a
+     * nested object — it would arrive as the literal string "[object Object]"). Decode
+     * it back to an array before validation so layout_types.*.roi_calculator =>
+     * nullable|array passes and the JSON cast stores structured data. Mutates the
+     * request in place.
+     */
+    private function normalizeLayoutTypeRoi(Request $request): void
+    {
+        $layoutTypes = $request->input('layout_types');
+
+        if (!is_array($layoutTypes)) {
+            return;
+        }
+
+        foreach ($layoutTypes as $i => $layoutType) {
+            if (!is_array($layoutType) || !array_key_exists('roi_calculator', $layoutType)) {
+                continue;
+            }
+
+            if (is_string($layoutType['roi_calculator'])) {
+                $decoded = json_decode($layoutType['roi_calculator'], true);
+                $layoutTypes[$i]['roi_calculator'] = is_array($decoded) ? $decoded : null;
+            }
+        }
+
+        $request->merge(['layout_types' => $layoutTypes]);
+    }
+
     public function store(Request $request)
     {
         try {
             $this->normalizePackageNullables($request);
+            $this->normalizeLayoutTypeRoi($request);
             $input = $request->all();
 
             // Packages name must be unique and not empty
@@ -274,6 +305,7 @@ class CampaignController extends BaseController
             }
 
             $this->normalizePackageNullables($request);
+            $this->normalizeLayoutTypeRoi($request);
 
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
