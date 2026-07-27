@@ -40,6 +40,7 @@ class CampaignLayoutTypeController extends Controller
                 'path' => $path,
             ];
             $layout->save();
+            $layout->campaign?->touchUpdatedBy();
 
             return $this->sendResponse(new CampaignLayoutTypeResource($layout), 'Rental projection uploaded successfully.');
         } catch (\Exception $e) {
@@ -60,6 +61,7 @@ class CampaignLayoutTypeController extends Controller
             }
             $layout->rental_projection = null;
             $layout->save();
+            $layout->campaign?->touchUpdatedBy();
 
             return $this->sendResponse(new CampaignLayoutTypeResource($layout), 'Rental projection removed.');
         } catch (\Exception $e) {
@@ -97,6 +99,7 @@ class CampaignLayoutTypeController extends Controller
 
             $layout->rendering_images = $existing;
             $layout->save();
+            $layout->campaign?->touchUpdatedBy();
 
             return $this->sendResponse(new CampaignLayoutTypeResource($layout), 'Renderings uploaded successfully.');
         } catch (\Exception $e) {
@@ -129,6 +132,7 @@ class CampaignLayoutTypeController extends Controller
             Storage::disk('s3')->delete($targetPath);
             $layout->rendering_images = $remaining;
             $layout->save();
+            $layout->campaign?->touchUpdatedBy();
 
             return $this->sendResponse(new CampaignLayoutTypeResource($layout), 'Rendering removed.');
         } catch (\Exception $e) {
@@ -166,6 +170,7 @@ class CampaignLayoutTypeController extends Controller
                 'path' => $path,
             ];
             $layout->save();
+            $layout->campaign?->touchUpdatedBy();
 
             return $this->sendResponse(new CampaignLayoutTypeResource($layout), 'Layout thumbnail uploaded successfully.');
         } catch (\Exception $e) {
@@ -186,6 +191,7 @@ class CampaignLayoutTypeController extends Controller
             }
             $layout->layout_thumbnail = null;
             $layout->save();
+            $layout->campaign?->touchUpdatedBy();
 
             return $this->sendResponse(new CampaignLayoutTypeResource($layout), 'Layout thumbnail removed.');
         } catch (\Exception $e) {

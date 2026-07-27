@@ -46,7 +46,40 @@ class Campaign extends Model
 
         static::creating(function ($model) {
             $model->created_by = auth()->id(); // or your logic to get the user ID
+            $model->updated_by = auth()->id();
         });
+
+        // Only stamp updated_by for authenticated users. The public booking flow
+        // (PaymentController) saves the campaign to consume a slot without a user,
+        // and must not wipe the last editor.
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+    }
+
+    /**
+     * Bump updated_at/updated_by after a nested change (package, layout type,
+     * agent assignment) that does not otherwise save the campaign row.
+     */
+    public function touchUpdatedBy()
+    {
+        if (auth()->check()) {
+            $this->updated_by = auth()->id();
+        }
+
+        $this->touch();
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function visibleToAgents()
