@@ -26,7 +26,7 @@ class CampaignController extends BaseController
             $sortOrder = $request->input('sortOrder', 'desc'); // Default to 'desc'
 
             // Build the query to retrieve campaigns with packages loaded
-            $query = Campaign::with('packages.order');
+            $query = Campaign::with(['packages.order', 'createdBy', 'updatedBy']);
 
             // Apply search filter
             if (!empty($search)) {
@@ -71,7 +71,7 @@ class CampaignController extends BaseController
         }
 
         // Load packages with order relationship and layout types
-        $campaign->load(['packages.order', 'layoutTypes']);
+        $campaign->load(['packages.order', 'layoutTypes', 'createdBy', 'updatedBy']);
 
         return $this->sendResponse(new CampaignResource($campaign), 'Campaign retrieved successfully.');
     }
@@ -532,7 +532,11 @@ class CampaignController extends BaseController
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors(), 422);
         }
-        $agent->visibleCampaigns()->sync($request->input('campaign_ids', []));
+        $changes = $agent->visibleCampaigns()->sync($request->input('campaign_ids', []));
+        $changedCampaignIds = array_merge($changes['attached'], $changes['detached'], $changes['updated']);
+        foreach (Campaign::whereIn('id', $changedCampaignIds)->get() as $changedCampaign) {
+            $changedCampaign->touchUpdatedBy();
+        }
         return $this->sendResponse(
             ['campaign_ids' => $agent->visibleCampaigns()->pluck('campaigns.id')],
             'Agent campaigns updated.'
@@ -577,7 +581,10 @@ class CampaignController extends BaseController
         if ($agentCount !== count($ids)) {
             return $this->sendError('All assigned users must be agents.', [], 422);
         }
-        $campaign->visibleToAgents()->sync($ids);
+        $changes = $campaign->visibleToAgents()->sync($ids);
+        if ($changes['attached'] || $changes['detached'] || $changes['updated']) {
+            $campaign->touchUpdatedBy();
+        }
         return $this->sendResponse(
             ['user_ids' => $campaign->visibleToAgents()->pluck('users.id')],
             'Campaign agents updated.'
@@ -619,6 +626,7 @@ class CampaignController extends BaseController
             $validatedData['status'] = $validatedData['status'] ?? 'published';
 
             $package->update($validatedData);
+            $campaign->touchUpdatedBy();
 
             return $this->sendResponse($package, 'Package updated successfully.');
         } catch (\Exception $e) {
