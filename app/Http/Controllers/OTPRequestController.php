@@ -25,6 +25,35 @@ class OTPRequestController extends BaseController
         $this->senderId = 'MOBIWEB';
     }
 
+    /**
+     * Strip every non-digit from a mobile number.
+     *
+     * requestOtp() sends the sanitised number to iSMS and stores the
+     * "+{country_code}{mobile}" string iSMS echoes back, so the verify side
+     * MUST sanitise identically or the lookup misses and the owner is told
+     * "Invalid OTP" for an OTP that was never looked up.
+     */
+    protected function normalizeMobile($mobile)
+    {
+        return preg_replace('/[^0-9]/', '', (string) $mobile);
+    }
+
+    /**
+     * Country codes are stored bare (60, 65); tolerate a leading "+".
+     */
+    protected function normalizeCountryCode($countryCode)
+    {
+        return ltrim(trim((string) $countryCode), '+');
+    }
+
+    /**
+     * The key used in otp_requests.mobile, matching what iSMS returns.
+     */
+    protected function otpMobileKey($countryCode, $mobile)
+    {
+        return '+' . $this->normalizeCountryCode($countryCode) . $this->normalizeMobile($mobile);
+    }
+
     public function index(Request $request)
     {
         $size = $request->input('size', 10);
@@ -87,7 +116,8 @@ class OTPRequestController extends BaseController
         }
 
         // Sanitize and validate mobile number (basic check)
-        $mobile = preg_replace('/[^0-9]/', '', $mobile); // Remove non-numeric characters
+        $country_code = $this->normalizeCountryCode($country_code);
+        $mobile = $this->normalizeMobile($mobile); // Remove non-numeric characters
         if (strlen($mobile) < 7) {
             Log::warning('requestOtp: Invalid mobile number format', [
                 'mobile' => $mobile,
@@ -197,9 +227,9 @@ class OTPRequestController extends BaseController
 
         $input = $request->all();
 
-        $mobile = $input['mobile'];
-        $country_code = $input['country_code'] ?? '60'; // Default to 60 if not provided
-        $otpFormatMobile = '+' . $country_code . $input['mobile'];
+        $country_code = $this->normalizeCountryCode($input['country_code'] ?? '60'); // Default to 60 if not provided
+        $mobile = $this->normalizeMobile($input['mobile']);
+        $otpFormatMobile = $this->otpMobileKey($country_code, $input['mobile']);
 
         $latestOtpReq = OTPRequest::where('mobile', $otpFormatMobile)
             ->orderBy('created_at', 'desc')
@@ -292,9 +322,9 @@ class OTPRequestController extends BaseController
             ], 400);
         }
 
-        $mobile = $input['mobile'];
-        $country_code = $input['country_code'] ?? '60'; // Default to 60 if not provided
-        $otpFormatMobile = '+' . $country_code . $input['mobile'];
+        $country_code = $this->normalizeCountryCode($input['country_code'] ?? '60'); // Default to 60 if not provided
+        $mobile = $this->normalizeMobile($input['mobile']);
+        $otpFormatMobile = $this->otpMobileKey($country_code, $input['mobile']);
 
         // Log formatted mobile number
         Log::debug('verifyOtp: Formatted mobile number', [
